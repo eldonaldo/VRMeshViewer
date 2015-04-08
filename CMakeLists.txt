@@ -1,0 +1,99 @@
+# Basis skeleton for this build file taken from Nori/Nanogui project created by Jakob Wenzel
+
+cmake_minimum_required (VERSION 2.8.3)
+project("VRMeshViewer")
+
+# Args for nested build process
+set(CMAKE_EXTERNAL_ARGUMENTS_LIST "")
+include(ExternalProject)
+
+# =========================================
+# External dependencies
+# =========================================
+
+ExternalProject_Add(glfw_p
+	URL "${CMAKE_SOURCE_DIR}/ext/glfw"
+	PREFIX "ext_build"
+	CMAKE_ARGS ${CMAKE_EXTERNAL_ARGUMENTS_LIST} -DGLFW_BUILD_TESTS=0 -DGLFW_BUILD_EXAMPLES=0 -DGLFW_BUILD_DOCS=0 -DGLFW_INSTALL=0
+	INSTALL_COMMAND ""
+)
+
+if(WIN32)
+	# Windows needs GLEW
+	ExternalProject_Add(glew_p
+		URL "${CMAKE_SOURCE_DIR}/ext/glew"
+		PREFIX "ext_build"
+		CMAKE_ARGS ${CMAKE_EXTERNAL_ARGUMENTS_LIST}
+		INSTALL_COMMAND ""
+	)
+	
+	# No akward security warnings
+	add_definitions (/D "_CRT_SECURE_NO_WARNINGS")
+	
+	include_directories(ext/glew/include)
+	set(extra_libs opengl32
+		$<$<CONFIG:Debug>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/Debug/glew.lib>
+		$<$<CONFIG:Release>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/Release/glew.lib>
+		$<$<CONFIG:RelWithDebInfo>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/RelWithDebInfo/glew.lib>
+		$<$<CONFIG:MinSizeRel>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/MinSizeRel/glew.lib>
+	)
+elseif (APPLE)
+	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+	
+	# Find standard libraries needed for OpenGL/GLFW
+	find_library(cocoa_library Cocoa)
+	find_library(opengl_library OpenGL)
+	find_library(corevideo_library CoreVideo)
+	find_library(iokit_library IOKit)
+	set(extra_libs ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
+elseif("${CMAKE_SYSTEM}" MATCHES "Linux")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	set(extra_libs GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl)
+endif()
+
+# Set include directories
+include_directories(
+	ext/eigen
+	ext/glfw/include
+	ext/tinyformat
+	ext/filesystem
+	ext/stb_image
+	include
+	${CMAKE_BINARY_DIR}
+)
+
+# The following lines build the main executable
+add_executable(VRMeshViewer
+
+	# Header files
+	include/common.hpp
+	include/Viewer.hpp
+	include/GLUtil.hpp
+#	include/GLSLProgram.hpp
+#	include/renderer/Renderer.hpp
+#	include/renderer/PerspectiveRenderer.hpp
+#	include/mesh/Texture.hpp
+	
+	# Source code files
+	src/main.cpp
+	src/common.cpp
+	src/GLUtil.cpp
+	src/Viewer.cpp
+#	src/GLSLProgram.cpp
+#	src/renderer/Renderer.cpp
+#	src/renderer/PerspectiveRenderer.cpp
+#	src/mesh/Texture.cpp
+)
+
+# Make sure to build in the right order
+add_dependencies(VRMeshViewer glfw_p)
+if(WIN32)
+  add_dependencies(VRMeshViewer glew_p)
+endif()
+
+# Link to dependent libraries
+link_directories(${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src)
+target_link_libraries(VRMeshViewer glfw3 ${extra_libs})
+
+# Copy resources
+file(COPY resources DESTINATION ${CMAKE_BINARY_DIR})

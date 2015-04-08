@@ -1,0 +1,12 @@
+[submodule "glfw"]
+	path = ext/glfw
+	url = https://github.com/glfw/glfw
+[submodule "filesystem"]
+	path = ext/filesystem
+	url = https://github.com/wjakob/filesystem
+[submodule "tinyformat"]
+	path = ext/tinyformat
+	url = https://github.com/c42f/tinyformat
+[submodule "eigen"]
+	path = ext/eigen
+	url = https://github.com/RLovelett/eigen
