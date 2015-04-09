@@ -75,6 +75,7 @@ bool GLShader::init(const std::string &name,
         defines += std::string("#define ") + def.first + std::string(" ") + def.second + "\n";
 
     glGenVertexArrays(1, &mVertexArrayObject);
+
     mName = name;
     mVertexShader =
         createShader_helper(GL_VERTEX_SHADER, defines, vertex_str);

@@ -16,7 +16,7 @@
 // Include the basis usages
 #include "Eigen/Core"
 #include <stdint.h>
-#include <array>
+#include <iostream>
 #include <vector>
 #if defined(PLATFORM_APPLE)
 	#define GLFW_INCLUDE_GLCOREARB
@@ -53,6 +53,9 @@ VR_NAMESPACE_BEGIN
 
 // Some typedefs
 typedef Vector3f Color3f;
+typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
+typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
+typedef Eigen::Matrix<unsigned int, 3, 1> Vector3ui;
 
 /// Stores an RGBA color value
 class Color : public Eigen::Vector4f {

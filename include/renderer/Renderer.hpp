@@ -1,7 +1,8 @@
 #pragma once
 
 #include "common.hpp"
-#include "GLSLProgram.hpp"
+#include "GLUtil.hpp"
+#include "mesh/Mesh.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -10,35 +11,28 @@ VR_NAMESPACE_BEGIN
  */
 class Renderer {
 public:
-	Renderer ();
-	virtual ~Renderer ();
+	/**
+	 * @brief Default constructor
+	 */
+	Renderer (std::shared_ptr<GLShader> &s)
+		: shader(s) {
+
+	};
+
+	/**
+	 * @brief Default destructor
+	 */
+	virtual ~Renderer () {
+		shader->free();
+	}
 
 	/**
 	 * @brief Updates the state
 	 *
 	 * This method must be implemented by all subclasses. This method is
 	 * always called before Renderer::draw();
-	 *
-	 * NOTE:
-	 *
-	 * Besides it calculates the MVP matrix and the inverse transpose of
-	 * the model matrix and the inverse of the view matrix. These matrices
-	 * are sometimes handy to have.
-	 *
-	 * So MAKE SURE that the appropriate model, view and projection matrices
-	 * are calculated in advance (maybe in the constructor of the subclass) and
-	 * that you call Renderer::update() in the derived update() method.
 	 */
-	virtual void update () {
-//		// Calculate model-view-projection matrix
-//		mvp = projectionMatrix * viewMatrix * modelMatrix;
-//
-//		// Inverse transpose model matrix
-//		modelMatrixInverseTranspose = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
-//
-//		// Inverse view matrix
-//		viewMatrixInverse = glm::inverse(glm::mat3(viewMatrix));
-	}
+	virtual void update () = 0;
 
 	/**
 	 * @brief Draws the loaded data
@@ -54,30 +48,30 @@ public:
 	 *
 	 * The default implementation does nothing.
 	 */
-	virtual void preProcess () {};
+	virtual void preProcess () { };
+
+	/**
+	 * @brief Sets the mesh
+	 *
+	 * @param m Mesh
+	 */
+	void setMesh (std::shared_ptr<Mesh> &m) {
+		mesh = m;
+	};
 
 	/**
 	 * @brief To the necessary clean up
 	 */
 	virtual void cleanUp () = 0;
 
-	/**
-	 * @brief Assign the currently used shader
-	 * @param s Shared Pointer to the shader resource
-	 */
-	void setShader (std::shared_ptr<GLSLProgram> &s) {
-		shader = s;
-	}
-
 protected:
 
-	std::shared_ptr<GLSLProgram> shader; ///< Bounded shader
-//	Matrix4f viewMatrix; ///< View matrix
-//	Matrix3f viewMatrixInverse; ///< Inverse view matrix
-//	Matrix4f modelMatrix; ///< Model matrix
-//	Matrix3f modelMatrixInverseTranspose; ///< Inverse, transpose model matrix
-//	Matrix4f projectionMatrix; ///< Projection matrix
-//	Matrix4f mvp; ///< MVP matrix
+	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
+	std::shared_ptr<GLShader> shader; ///< Bounded shader
+	Matrix4f viewMatrix; ///< View matrix
+	Matrix4f modelMatrix; ///< Model matrix
+	Matrix4f projectionMatrix; ///< Projection matrix
+	Matrix4f mvp; ///< MVP matrix
 };
 
 VR_NAMESPACE_END

@@ -24,7 +24,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
 		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
 	} else {
-		Vector3f v(0.0,0.0,0.0);
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
 
@@ -38,13 +37,14 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	if (!glewInitialized) {
 		glewExperimental = GL_TRUE;
 		glewInitialized = true;
-		if (glewInit() != GLEW_NO_ERROR) {
+		if (glewInit() != GLEW_NO_ERROR)
 			throw VRException("Could not initialize GLEW!");
 	}
 #endif
 
 	// Default view port and reset all pixels to black
 	background = Vector3f(0.8f, 0.8f, 0.8f);
+//	background = Vector3f(0.0f, 0.0f, 0.0f);
 
 	glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
 	glViewport(0, 0, FBWidth, FBHeight);
@@ -103,44 +103,36 @@ void Viewer::calcAndAppendFPS () {
 	}
 }
 
-void Viewer::display () throw () {
-//	if (!renderer)
-//		throw VRException("No renderer attached. Viewer can not display the object.");
-//
-//	if (!shader)
-//		throw VRException("No shader attached. Viewer can not display the object.");
-//
-//
-//	shader->create();
-//
-//	renderer->setShader(shader);
-//	renderer->preProcess();
-//
-//	// Render loop
-//	t0 = glfwGetTime();
+void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
+	if (!renderer)
+		throw VRException("No renderer attached. Viewer can not display the object.");
+
+	renderer->setMesh(mesh);
+	renderer->preProcess();
+
+	// Render loop
+	t0 = glfwGetTime();
+
 	while (!glfwWindowShouldClose(window)) {
-//
-//		glfwMakeContextCurrent(window);
-//		glfwGetWindowSize(window, &width, &height);
-//		glViewport(0, 0, width, height);
-//		glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
-//		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//		shader->bind();
-//
-//		if (appFPS)
-//			calcAndAppendFPS();
-//
-//		renderer->update();
-//		renderer->draw();
-//
+		// Clear
+		glfwMakeContextCurrent(window);
+		glfwGetWindowSize(window, &width, &height);
+		glViewport(0, 0, width, height);
+		glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		if (appFPS)
+			calcAndAppendFPS();
+
+		renderer->update();
+		renderer->draw();
+
 		glfwSwapBuffers(window);
-		glfwWaitEvents();
-////		glfwPollEvents();
+//		glfwWaitEvents();
+		glfwPollEvents();
 	}
-//
-//	renderer->cleanUp();
-//	shader->unbind();
+
+	renderer->cleanUp();
 }
 
 Viewer::~Viewer () {

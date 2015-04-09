@@ -1,6 +1,8 @@
 #pragma once
 
 #include "common.hpp"
+#include "mesh/Mesh.hpp"
+#include "renderer/Renderer.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -26,28 +28,17 @@ public:
 	 */
 	virtual ~Viewer ();
 
-//	/**
-//	 * Sets the bounded renderer.
-//	 *
-//	 * The Viewer uses this renderer to generate drawings defined with
-//	 * respect to the renderer class.
-//	 *
-//	 * @param r Bounded Renderer
-//	 */
-//	void setRenderer (std::unique_ptr<Renderer> &r) {
-//		renderer = std::move(r);
-//	}
-//
-//	/**
-//	 * Sets the bounded shader.
-//	 *
-//	 * The Viewer uses this shader to pass it to OpenGL for drawing.
-//	 *
-//	 * @param s Shared pointer to the shader
-//	 */
-//	void setShader (std::shared_ptr<GLSLProgram> &s) {
-//		shader = s;
-//	}
+	/**
+	 * Sets the bounded renderer.
+	 *
+	 * The Viewer uses this renderer to generate drawings defined with
+	 * respect to the renderer class.
+	 *
+	 * @param r Bounded Renderer
+	 */
+	void setRenderer (std::unique_ptr<Renderer> &r) {
+		renderer = std::move(r);
+	}
 
 	/**
 	 * @brief Displays the data
@@ -56,7 +47,7 @@ public:
 	 * Renderer::update() is that the states get updated and Renderer::draw() is responsible
 	 * of drawing the data. Of course a renderer must be set in advance.
 	 */
-	virtual void display () throw ();
+	virtual void display (std::shared_ptr<Mesh> &mesh) throw ();
 
 protected:
 
@@ -79,8 +70,7 @@ protected:
 	double fps = 0.0; ///< FPS count
 	bool appFPS = true; ///< If true, then the current FPS count is appended to the window title
 	bool fullscreen; ///< Need fullscreen?
-//	std::shared_ptr<GLSLProgram> shader; ///< Active shader (if only one)
-//	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
+	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
 };
 
 VR_NAMESPACE_END

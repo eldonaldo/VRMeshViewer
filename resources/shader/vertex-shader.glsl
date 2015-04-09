@@ -1,11 +1,10 @@
-"#version 330
+#version 330
 
-in vec4 in_Position;
-in vec4 in_Color;
+uniform mat4 mvp;
+uniform float intensity;
 
-out vec4 ex_Color;
+in vec3 position;
 
 void main (void) {
-	gl_Position = in_Position;
-	ex_Color = in_Color;
+	gl_Position = mvp * vec4(position, 1.0);
 }

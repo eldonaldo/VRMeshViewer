@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "renderer/Renderer.hpp"
+#include "GLUtil.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -21,7 +22,7 @@ public:
 	 * @param zNear Near z clipping plane
 	 * @param zFar Far z clipping  plane
 	 */
-	PerspectiveRenderer (float fov, float aspectRatio, float zNear, float zFar);
+	PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar);
 
 	/**
 	 * @brief Default destructor
@@ -56,6 +57,7 @@ private:
 	float fov; ///> Field of view
 	float aspectRatio; ///< Width / height
 	float zNear, zFar; ///< Clipping planes
+	float fH, fW; ///< Frustum width and height
 };
 
 VR_NAMESPACE_END

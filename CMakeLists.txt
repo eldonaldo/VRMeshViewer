@@ -69,9 +69,10 @@ add_executable(VRMeshViewer
 	include/common.hpp
 	include/Viewer.hpp
 	include/GLUtil.hpp
-#	include/GLSLProgram.hpp
-#	include/renderer/Renderer.hpp
-#	include/renderer/PerspectiveRenderer.hpp
+	include/mesh/Mesh.hpp
+	include/mesh/ObjectLoader.hpp
+	include/renderer/Renderer.hpp
+	include/renderer/PerspectiveRenderer.hpp
 #	include/mesh/Texture.hpp
 	
 	# Source code files
@@ -79,9 +80,9 @@ add_executable(VRMeshViewer
 	src/common.cpp
 	src/GLUtil.cpp
 	src/Viewer.cpp
-#	src/GLSLProgram.cpp
-#	src/renderer/Renderer.cpp
-#	src/renderer/PerspectiveRenderer.cpp
+	src/mesh/Mesh.cpp
+	src/mesh/ObjectLoader.cpp
+	src/renderer/PerspectiveRenderer.cpp
 #	src/mesh/Texture.cpp
 )
 

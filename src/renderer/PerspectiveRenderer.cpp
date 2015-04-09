@@ -1,36 +1,39 @@
-#include <renderer/PerspectiveRenderer.hpp>
+#include "renderer/PerspectiveRenderer.hpp"
 
 VR_NAMESPACE_BEGIN
 
-PerspectiveRenderer::PerspectiveRenderer (float fov, float aspectRatio, float zNear, float zFar)
-	: Renderer(), fov(fov), aspectRatio(aspectRatio), zNear(zNear), zFar(zFar) {
+PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar)
+	: Renderer(shader), fov(fov), aspectRatio(aspectRatio), zNear(zNear), zFar(zFar), fH(tan(fov / 360 * M_PI ) * zNear), fW(fH * aspectRatio) {
 
-//	// Calculate projection matrix
-//	projectionMatrix = glm::perspective(this->fov, this->aspectRatio, this->zNear, this->zFar);
-//
-//	// Calculate view matrix
-//	viewMatrix = glm::lookAt(
-//		Vector3f(4, 3, -3), // Camera is at (4,3,-3), in world space
-//		Vector3f(0, 0, 0), // And looks at the origin
-//		Vector3f(0, 1, 0) // Head is up
-//	);
-//
-//	// Model matrix : an identity matrix (model will be at the origin)
-//	modelMatrix = Matrix4f(0.0f);
-//	Renderer::update();
-//
-//	shader->updateUniform("mvp", mvp, EMatrix4);
-}
+	projectionMatrix = frustum(-fW, fW, -fH, fH, zNear, zFar);
 
-void PerspectiveRenderer::update () {
+	viewMatrix = lookAt(
+		Vector3f(4, 3, -3), // Camera is at (4,3,-3), in world space
+		Vector3f(0, 0, 0), // And looks at the origin
+		Vector3f(0, 1, 0) // Head is up
+	);
+
+	modelMatrix = Matrix4f::Identity();
+
+	mvp = projectionMatrix * viewMatrix * modelMatrix;
 }
 
 void PerspectiveRenderer::preProcess () {
+	Renderer::preProcess();
+	shader->bind();
+	shader->uploadIndices(mesh->getIndices());
+	shader->uploadAttrib("position", mesh->getVertices());
+	shader->setUniform("intensity", 0.3f);
+}
 
+void PerspectiveRenderer::update () {
+	shader->bind();
+	shader->setUniform("mvp", mvp);
 }
 
 void PerspectiveRenderer::draw() {
-
+	shader->bind();
+	shader->drawIndexed(GL_TRIANGLES, 0, mesh->getNumFaces());
 }
 
 void PerspectiveRenderer::cleanUp () {

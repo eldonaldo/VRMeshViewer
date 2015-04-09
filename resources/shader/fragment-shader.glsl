@@ -1,9 +1,10 @@
 #version 330
 
-in vec4 ex_Color;
+uniform mat4 mvp;
+uniform float intensity;
 
-out vec4 out_Color;
+out vec4 color;
 
 void main (void) {
-	out_Color = ex_Color;
+	color = vec4(vec3(intensity), 1.0);
 }
