@@ -107,14 +107,16 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 	if (!renderer)
 		throw VRException("No renderer attached. Viewer can not display the object.");
 
+	// Renderer pre processing
 	renderer->setMesh(mesh);
 	renderer->preProcess();
 
-	// Render loop
+	// Init time t0 for FPS calculation
 	t0 = glfwGetTime();
 
+	// Render loop
 	while (!glfwWindowShouldClose(window)) {
-		// Clear
+		// Clear buffers and make sure proper context is used
 		glfwMakeContextCurrent(window);
 		glfwGetWindowSize(window, &width, &height);
 		glViewport(0, 0, width, height);
@@ -124,14 +126,16 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		if (appFPS)
 			calcAndAppendFPS();
 
+		// Draw using attached renderer
 		renderer->update();
 		renderer->draw();
 
 		glfwSwapBuffers(window);
-//		glfwWaitEvents();
 		glfwPollEvents();
+//		glfwWaitEvents();
 	}
 
+	// Renderer cleapup
 	renderer->cleanUp();
 }
 
