@@ -67,12 +67,17 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 #endif
 
 	// Set callbacks
-	glfwSetKeyCallback(window, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
+	glfwSetKeyCallback(window, [] (GLFWwindow *window, int key, int scancode, int action, int mods) {
 		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-			glfwSetWindowShouldClose(w, 1);
+			glfwSetWindowShouldClose(window, 1);
 	});
 
-	glfwSetWindowSizeCallback(window, [] (GLFWwindow* window, int width, int height) {
+	glfwSetMouseButtonCallback(window, [] (GLFWwindow *window, int button, int action, int mods) {
+		if (button == GLFW_MOUSE_BUTTON_1  && action == GLFW_PRESS)
+			std::cout << "click" << std::endl;
+	});
+
+	glfwSetWindowSizeCallback(window, [] (GLFWwindow *window, int width, int height) {
 		glViewport(0, 0, width, height);
 	});
 

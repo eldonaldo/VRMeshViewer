@@ -7,7 +7,9 @@
 using namespace VR_NS;
 
 int main (int argc, char *argv[]) {
-	int width = 800, height = 600;
+
+	// Window width and height
+	int width = 1200, height = 900;
 
 	try {
 
@@ -22,7 +24,8 @@ int main (int argc, char *argv[]) {
 		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 45.0, width / height, 0.1, 100.0));
 
 		// Load mesh
-		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/cube/cube.obj");
+		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/dragon/dragon.obj");
+		std::cout << mesh->info() << std::endl;
 
 		// Configure
 		viewer.setRenderer(renderer);

@@ -15,10 +15,14 @@ public:
 	/**
 	 * @brief Copy constructor
 	 *
+	 * @param name Mesh name/path
 	 * @param V Vertices matrix
 	 * @param F Indices (faces) matrix
 	 */
-	Mesh (MatrixXf &V, MatrixXu &F) : vertices(V), indices(F) { };
+	Mesh (std::string &name, MatrixXf &V, MatrixXu &F)
+		: name(name), vertices(V), indices(F) {
+
+	};
 
 	/**
 	 * @brief Default destructor
@@ -48,11 +52,31 @@ public:
 	 *
 	 * @return Number of vertices
 	 */
-	const unsigned int getNumFaces () const {
+	unsigned int getNumFaces () const {
 		return indices.cols();
 	}
 
+	/**
+	 * @brief Returns some info about the mesh
+	 *
+	 * @return Brief mesh description
+	 */
+	std::string info () const {
+		return tfm::format(
+			"Mesh[\n"
+			"	name = %s\n"
+			"	vertices = %d\n"
+			"	faces = %d\n"
+			"]",
+			name,
+			vertices.cols(),
+			indices.cols()
+		);
+	}
+
 private:
+
+	std::string name; ///< Object name
 	MatrixXf vertices; ///< Nx3 vertice matrix
 	MatrixXu indices; ///< Mx3 index matrix
 };
