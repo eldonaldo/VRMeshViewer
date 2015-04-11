@@ -15,6 +15,7 @@ int main (int argc, char *argv[]) {
 
 		// Must be first call. This sets up the OpenGL contenxt
 		Viewer viewer("Virtual Reality Mesh Viewer", width, height);
+		std::cout << viewer.info() << std::endl;
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();

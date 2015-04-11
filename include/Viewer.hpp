@@ -49,6 +49,13 @@ public:
 	 */
 	virtual void display (std::shared_ptr<Mesh> &mesh) throw ();
 
+	/**
+	 * @brief Retrieve some OpenGL infos
+	 *
+	 * @return Supported OpenGL Versions
+	 */
+	std::string info ();
+
 protected:
 
 
@@ -71,6 +78,9 @@ protected:
 	bool appFPS = true; ///< If true, then the current FPS count is appended to the window title
 	bool fullscreen; ///< Need fullscreen?
 	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
+	Arcball arcball; ///< Arcball
+	bool arcballActive = false; ///< Needed to determine when to use the arcball on a mouse button click
+	Vector2i lastPos; ///< Last click position used for the arcball
 };
 
 VR_NAMESPACE_END

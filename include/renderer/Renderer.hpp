@@ -64,6 +64,55 @@ public:
 	 */
 	virtual void cleanUp () = 0;
 
+	/**
+	 * @return Mode Matrix
+	 */
+	const Matrix4f& getModelMatrix () const {
+		return modelMatrix;
+	}
+
+	/**
+	 * @param modelMatrix Model Matrix
+	 */
+	void setModelMatrix (const Matrix4f& modelMatrix) {
+		this->modelMatrix = modelMatrix;
+	}
+
+	/**
+	 * @return MVP Matrix
+	 */
+	const Matrix4f& getMvp () const {
+		return mvp;
+	}
+
+	/**
+	 * @return Projection Matrix
+	 */
+	const Matrix4f& getProjectionMatrix () const {
+		return projectionMatrix;
+	}
+
+	/**
+	 * @param projectionMatrix Projection Matrix
+	 */
+	void setProjectionMatrix (const Matrix4f& projectionMatrix) {
+		this->projectionMatrix = projectionMatrix;
+	}
+
+	/**
+	 * @return View Matrix
+	 */
+	const Matrix4f& getViewMatrix () const {
+		return viewMatrix;
+	}
+
+	/**
+	 * @param viewMatrix View Matrix
+	 */
+	void setViewMatrix (const Matrix4f& viewMatrix) {
+		this->viewMatrix = viewMatrix;
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh

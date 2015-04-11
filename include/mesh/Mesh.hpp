@@ -64,10 +64,10 @@ public:
 	std::string info () const {
 		return tfm::format(
 			"Mesh[\n"
-			"	name = %s\n"
-			"	vertices = %d\n"
+			"	name = %s,\n"
+			"	vertices = %d,\n"
 			"	faces = %d\n"
-			"]",
+			"]\n",
 			name,
 			vertices.cols(),
 			indices.cols()

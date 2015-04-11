@@ -27,6 +27,8 @@ void PerspectiveRenderer::preProcess () {
 }
 
 void PerspectiveRenderer::update () {
+	mvp = projectionMatrix * viewMatrix * modelMatrix;
+
 	shader->bind();
 	shader->setUniform("mvp", mvp);
 }
