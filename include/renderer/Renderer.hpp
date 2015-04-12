@@ -65,51 +65,56 @@ public:
 	virtual void cleanUp () = 0;
 
 	/**
+	 * @return Brief info about the renderer
+	 */
+	virtual std::string info () = 0;
+
+	/**
 	 * @return Mode Matrix
 	 */
-	const Matrix4f& getModelMatrix () const {
+	const Matrix4f &getModelMatrix () const {
 		return modelMatrix;
 	}
 
 	/**
 	 * @param modelMatrix Model Matrix
 	 */
-	void setModelMatrix (const Matrix4f& modelMatrix) {
+	void setModelMatrix (const Matrix4f &modelMatrix) {
 		this->modelMatrix = modelMatrix;
 	}
 
 	/**
 	 * @return MVP Matrix
 	 */
-	const Matrix4f& getMvp () const {
+	const Matrix4f &getMvp () const {
 		return mvp;
 	}
 
 	/**
 	 * @return Projection Matrix
 	 */
-	const Matrix4f& getProjectionMatrix () const {
+	const Matrix4f &getProjectionMatrix () const {
 		return projectionMatrix;
 	}
 
 	/**
 	 * @param projectionMatrix Projection Matrix
 	 */
-	void setProjectionMatrix (const Matrix4f& projectionMatrix) {
+	void setProjectionMatrix (const Matrix4f &projectionMatrix) {
 		this->projectionMatrix = projectionMatrix;
 	}
 
 	/**
 	 * @return View Matrix
 	 */
-	const Matrix4f& getViewMatrix () const {
+	const Matrix4f &getViewMatrix () const {
 		return viewMatrix;
 	}
 
 	/**
 	 * @param viewMatrix View Matrix
 	 */
-	void setViewMatrix (const Matrix4f& viewMatrix) {
+	void setViewMatrix (const Matrix4f &viewMatrix) {
 		this->viewMatrix = viewMatrix;
 	}
 

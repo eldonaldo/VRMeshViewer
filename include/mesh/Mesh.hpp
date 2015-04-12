@@ -25,6 +25,19 @@ public:
 	};
 
 	/**
+	 * @brief Copy constructor
+	 *
+	 * @param name Mesh name/path
+	 * @param V Vertices matrix
+	 * @param F Indices (faces) matrix
+	 * @param N Normal matrix
+	 */
+	Mesh (std::string &name, MatrixXf &V, MatrixXu &F, MatrixXf &N)
+		: name(name), vertices(V), indices(F), normals(N) {
+
+	};
+
+	/**
 	 * @brief Default destructor
 	 */
 	virtual ~Mesh () = default;
@@ -48,6 +61,15 @@ public:
 	}
 
 	/**
+	 * @brief Returns the normal matrix
+	 *
+	 * @return Normal matrix
+	 */
+	const MatrixXf& getNormals () const {
+		return normals;
+	}
+
+	/**
 	 * @brief Returns the number of vertices
 	 *
 	 * @return Number of vertices
@@ -64,12 +86,14 @@ public:
 	std::string info () const {
 		return tfm::format(
 			"Mesh[\n"
-			"	name = %s,\n"
-			"	vertices = %d,\n"
-			"	faces = %d\n"
-			"]\n",
+			"  name = %s,\n"
+			"  vertices = %d,\n"
+			"  normals = %d,\n"
+			"  faces = %d\n"
+			"]",
 			name,
 			vertices.cols(),
+			normals.cols(),
 			indices.cols()
 		);
 	}
@@ -77,7 +101,8 @@ public:
 private:
 
 	std::string name; ///< Object name
-	MatrixXf vertices; ///< Nx3 vertice matrix
+	MatrixXf vertices; ///< Nx3 vertex matrix
+	MatrixXf normals; ///< Nx3 normal matrix
 	MatrixXu indices; ///< Mx3 index matrix
 };
 

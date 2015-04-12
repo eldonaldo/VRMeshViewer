@@ -54,7 +54,22 @@ public:
 	 *
 	 * @return Supported OpenGL Versions
 	 */
-	std::string info ();
+	std::string info () {
+		return tfm::format(
+			"Viewer[\n"
+			"  Renderer = %s,\n"
+			"  OpenGL version supported on this machine = %s,\n"
+			"  Acquired OpenGL version = %s,\n"
+			"  Renderer = %s,\n"
+			"  Mesh = %s\n"
+			"]\n",
+			glGetString(GL_RENDERER),
+			glGetString(GL_VERSION),
+			glfwGetVersionString(),
+			indent((renderer ? renderer->info() : "null")),
+			indent((mesh ? mesh->info() : "null"))
+		);
+	}
 
 protected:
 
@@ -78,8 +93,9 @@ protected:
 	bool appFPS = true; ///< If true, then the current FPS count is appended to the window title
 	bool fullscreen; ///< Need fullscreen?
 	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
+	std::shared_ptr<Mesh> mesh; ///< Pointer to mesh
 	Arcball arcball; ///< Arcball
-	bool arcballActive = false; ///< Needed to determine when to use the arcball on a mouse button click
+	bool mouseClickLeft = false; ///< Needed to determine when to use the arcball on a mouse button click
 	Vector2i lastPos; ///< Last click position used for the arcball
 };
 

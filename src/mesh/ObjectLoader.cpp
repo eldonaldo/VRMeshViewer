@@ -2,6 +2,9 @@
 
 VR_NAMESPACE_BEGIN
 
+// Need to redefine here. Otherwise the Eclipse indexer has some problems ... don't know why
+typedef Eigen::Matrix<float, 3, 1> Normal3f;
+
 std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 	using namespace std;
 
@@ -15,8 +18,11 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 	vector<Vector3ui> indices;
 	vector<Vector3ui> normalIndices;
 	vector<Vector3ui> texIndices;
-	vector<Vector3f> normals;
+	vector<Normal3f> normals;
 	vector<Vector2f> texCoords;
+
+	// Acceleration data structure to calculate per vertex normal
+	std::map<unsigned int, std::vector<unsigned int>> nTable;
 
 	// Process input
 	while (file.good()) {
@@ -77,6 +83,11 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 			// We need the array/vector index which is one below
 			ia--; ib--; ic--;
 			indices.push_back(Vector3ui(ia, ib, ic));
+
+			// Update look up table
+			nTable[ia].push_back(indices.size() - 1);
+			nTable[ib].push_back(indices.size() - 1);
+			nTable[ic].push_back(indices.size() - 1);
 		} else if (line.substr(0, 3) == "vn ") {
 			// Vertex normal
 			istringstream s(line.substr(3));
@@ -91,6 +102,7 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 			texCoords.push_back(Vector2f(u, v));
 		} else if (line.substr(0, 7) == "mtllib ") {
 			// Material library
+			// TODO: Finish
 			ObjectLoader::loadMTL(line.substr(7));
 
 		}
@@ -98,20 +110,51 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 
 	file.close();
 
-	// TODO: Interpolate normals if not available
+	// Calculate per vertex normals if not present
+	if (normals.size() == 0) {
+		std::vector<Normal3f> faceNormals(indices.size());
 
-	/* Copy contents into an Eigen matrix */
+		// First we compute the per face normals
+		for (unsigned int i = 0; i < indices.size(); i++) {
+			Vector3f A = vertices[indices[i].x()], B = vertices[indices[i].y()], C = vertices[indices[i].z()];
+			faceNormals[i] = (((B - A).cross(C - A)).normalized());
+		}
+
+		// Compute per vertex normals
+		for (unsigned int i = 0; i < vertices.size(); i++) {
+			Normal3f n(0.0, 0.0, 0.0);
+
+			// Search adjacent faces for that vertex
+			for (unsigned int j : nTable[i])
+				n += faceNormals[j];
+
+			// We normalize later
+			normals.push_back(n);
+		}
+	}
+
+
+	/* Copy contents into Eigen matrices */
+	// Vertices
 	unsigned int n = vertices.size();
 	MatrixXf V(3, n);
 	for (int i = 0; i < n; i++)
 		V.col(i) = vertices[i];
 
+	// Normals
+	n = normals.size();
+	MatrixXf N(3, n);
+	for (int i = 0; i < n; i++) {
+		N.col(i) = normals[i].normalized();
+	}
+
+	// Inddices
 	unsigned int m = indices.size();
 	MatrixXu F(3, m);
 	for (int i = 0; i < m; i++)
 		F.col(i) = indices[i];
 
-	return make_shared<Mesh>(path, V, F);
+	return make_shared<Mesh>(path, V, F, N);
 }
 
 void ObjectLoader::loadMTL (std::string path) throw () {

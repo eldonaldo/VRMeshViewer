@@ -53,6 +53,26 @@ public:
 	 */
 	virtual void cleanUp ();
 
+	/**
+	 * @return Brief info about the renderer
+	 */
+	virtual std::string info () {
+		return tfm::format(
+			"PerspectiveRenderer[\n"
+			"  FOV = %d°,\n"
+			"  aspectRatio = %d,\n"
+			"  zNear = %d,\n"
+			"  zFar = %d,\n"
+			"  Frustum Width = %d,\n"
+			"  Frustum Height = %d,\n"
+			"]",
+			fov,
+			aspectRatio,
+			zNear, zFar,
+			fH, fW
+		);
+	}
+
 private:
 	float fov; ///> Field of view
 	float aspectRatio; ///< Width / height

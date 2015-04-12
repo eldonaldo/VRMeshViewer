@@ -2,7 +2,9 @@
 
 #include "common.hpp"
 #include "Mesh.hpp"
+#include "Eigen/Geometry"
 #include <fstream>
+#include <map>
 
 VR_NAMESPACE_BEGIN
 

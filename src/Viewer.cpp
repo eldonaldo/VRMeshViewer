@@ -71,7 +71,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
     // Setup arcball
     arcball.setSize(Vector2i(width, height));
-    arcball.setSpeedFactor(.3);
+    arcball.setSpeedFactor(0.2);
 
 	// Set callbacks
 	glfwSetKeyCallback(window, [] (GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -81,18 +81,21 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse click callback */
 	glfwSetMouseButtonCallback(window, [] (GLFWwindow *window, int button, int action, int mods) {
+		__cbref->mouseClickLeft = false;
+
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-			__cbref->arcball.button(__cbref->lastPos, true);
-		else
-			__cbref->arcball.button(__cbref->lastPos, false);
+			__cbref->mouseClickLeft = true;
 	});
 
 	/* Mouse movement callback */
 	glfwSetCursorPosCallback(window, [] (GLFWwindow *window, double x, double y) {
+		if (__cbref->mouseClickLeft && !__cbref->arcball.active())
+			__cbref->lastPos = Vector2i(int(x), int(y));
+
+		__cbref->arcball.button(__cbref->lastPos, __cbref->mouseClickLeft);
 		if (__cbref->arcball.motion(Vector2i(int(x), int(y))))
 			__cbref->renderer->setModelMatrix(__cbref->renderer->getModelMatrix() * __cbref->arcball.matrix(__cbref->renderer->getViewMatrix()));
-		else
-			__cbref->lastPos = Vector2i(int(x), int(y));
+//			__cbref->renderer->setViewMatrix(__cbref->renderer->getViewMatrix() * __cbref->arcball.matrix(__cbref->renderer->getViewMatrix()));
 	});
 
 	/* Window size callback */
@@ -105,19 +108,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// Set reference for callback functions
 	__cbref = this;
-}
-
-std::string Viewer::info () {
-	return tfm::format(
-		"Viewer[\n"
-		"	Renderer = %s,\n"
-		"	OpenGL version supported on this machine = %s,\n"
-		"	Acquired OpenGL version = %s\n"
-		"]\n",
-		glGetString(GL_RENDERER),
-		glGetString(GL_VERSION),
-		glfwGetVersionString()
-	);
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -146,8 +136,12 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		throw VRException("No renderer attached. Viewer can not display the object.");
 
 	// Renderer pre processing
+	this->mesh = mesh;
 	renderer->setMesh(mesh);
 	renderer->preProcess();
+
+	// Print some info
+	std::cout << info() << std::endl;
 
 	// Init time t0 for FPS calculation
 	t0 = glfwGetTime();

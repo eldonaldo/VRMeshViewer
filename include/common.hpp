@@ -52,7 +52,8 @@ using Eigen::MatrixXf;
 VR_NAMESPACE_BEGIN
 
 // Some typedefs
-typedef Vector3f Color3f;
+typedef Eigen::Matrix<float, 3, 1> Color3f;
+typedef Eigen::Matrix<float, 3, 1> Normal3f;
 typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
 typedef Eigen::Matrix<unsigned int, 3, 1> Vector3ui;
@@ -108,5 +109,8 @@ inline float degToRad (float deg) {
 inline float radToDeg (float rad) {
 	return rad * float(180.0 / M_PI);
 }
+
+/// Indent a string by the specified number of spaces
+extern std::string indent (const std::string &string, int amount = 2);
 
 VR_NAMESPACE_END

@@ -23,13 +23,21 @@ void PerspectiveRenderer::preProcess () {
 	shader->bind();
 	shader->uploadIndices(mesh->getIndices());
 	shader->uploadAttrib("position", mesh->getVertices());
-	shader->setUniform("intensity", 0.3f);
+	shader->uploadAttrib("normal", mesh->getNormals());
+
+	// Model material intensity
+	shader->setUniform("intensity", 0.8f);
+
+	// Create virtual point light
+	shader->setUniform("light.position", Vector3f(4.0, 3.0, -3.0)); // Camera position
+	shader->setUniform("light.intensity", Vector3f(1.0, 1.0, 1.0));
 }
 
 void PerspectiveRenderer::update () {
 	mvp = projectionMatrix * viewMatrix * modelMatrix;
 
 	shader->bind();
+	shader->setUniform("modelMatrix", modelMatrix);
 	shader->setUniform("mvp", mvp);
 }
 
