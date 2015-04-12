@@ -41,31 +41,31 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 			unsigned int ia, ib, ic;
 			s >> a; s >> b; s >> c;
 
-			// Need to determine which format the faces are stored ([a b c] OR [a/b c/d e/f] OR [a/b/c d/e/f g/h/i] OR [a//c d//f g//i])
+			// Need to determine which format the faces are stored ([v1 v2 v3] OR [v1/vt1 v2/vt2 v3/vt3] OR [v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3] OR [v1//vn1 v2//vn2 v3//vn3])
 			if (a.find("/") != string::npos) {
-				// Format [a/b c/d e/f] OR [a/b/c d/e/f g/h/i]
+				// Format [v1/vt1 v2/vt2 v3/vt3] OR [v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3]
 				string indexA = a.substr(0, a.find("/")), indexB = b.substr(0, b.find("/")), indexC = c.substr(0, c.find("/"));
 				istringstream (indexA) >> ia; istringstream (indexB) >> ib; istringstream (indexC) >> ic;
 
 				/* We need to parse the normal und tex coordinate indices as well */
-				unsigned int na, nb, nc;
+				unsigned int na, nb, nc; // Normal coordinate indices
+				unsigned int ta, tb, tc; // Tex coordinate indices
 				string endA = a.substr(a.find("/") + 1, a.length()), endB = b.substr(b.find("/") + 1, b.length()), endC = c.substr(c.find("/") + 1, c.length());
+
 				if (endA.find("/") == string::npos) {
-					// Format [a/b d/e g/h]
-					istringstream(endA) >> na; istringstream(endB) >> nb; istringstream(endC) >> nc;
+					// Format [v1/vt1 v2/vt2 v3/vt3]
+					istringstream(endA) >> ta; istringstream(endB) >> tb; istringstream(endC) >> tc;
 				} else {
 					if (endA.find("/") == 0) {
-						// Format [a//b d//e g//h]
+						// [v1//vn1 v2//vn2 v3//vn3]
 						istringstream(endA.substr(1)) >> na; istringstream(endB.substr(1)) >> nb; istringstream(endC.substr(1)) >> nc;
 					} else {
-						// Format [a/b/c d/e/f g/h/i]
+						// Format [v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3]
 						// Normal indices
 						string normalA = endA.substr(endA.find("/") + 1, endA.length());
 						string normalB = endB.substr(endB.find("/") + 1, endB.length());
 						string normalC = endC.substr(endC.find("/") + 1, endC.length());
 
-						// Tex coordinate indices
-						unsigned int ta, tb, tc;
 						string texA = endA.substr(0, endA.find("/"));
 						string texB = endA.substr(0, endB.find("/"));
 						string texC = endA.substr(0, endC.find("/"));
@@ -73,8 +73,9 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 						istringstream(texA) >> ta; istringstream(texB) >> tb; istringstream(texC) >> tc;
 						texIndices.push_back(Vector3ui(ta, tb, tc));
 					}
+					na--; nb--; nc--;
+					normalIndices.push_back(Vector3ui(na, nb, nc));
 				}
-				normalIndices.push_back(Vector3ui(na, nb, nc));
 			} else {
 				// Format [a b c]
 				istringstream (a) >> ia; istringstream (b) >> ib; istringstream (c) >> ic;
@@ -131,8 +132,23 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 			// We normalize later
 			normals.push_back(n);
 		}
-	}
+	} else {
+		assert(normals.size() == vertices.size());
 
+		if (normalIndices.size() > 0) {
+			assert(normalIndices.size() == indices.size());
+
+			// Adjust normal vector such that it matches the vertices vector regarding the indices
+			std::vector<Vector3f> tmpNormal(vertices.size());
+			for (unsigned int i = 0; i < indices.size(); i++) {
+				unsigned int A = indices[i].x(), B = indices[i].y(), C = indices[i].z();
+				unsigned int NA = normalIndices[i].x(), NB = normalIndices[i].y(), NC = normalIndices[i].z();
+				tmpNormal[A] = normals[NA]; tmpNormal[B] = normals[NB]; tmpNormal[C] = normals[NC];
+			}
+
+			std::swap(normals, tmpNormal);
+		}
+	}
 
 	/* Copy contents into Eigen matrices */
 	// Vertices
