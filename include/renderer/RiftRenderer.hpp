@@ -1,33 +1,36 @@
 #pragma once
 
 #include "common.hpp"
-#include "renderer/Renderer.hpp"
-#include "GLUtil.hpp"
+#include "renderer/PerspectiveRenderer.hpp"
 
 VR_NAMESPACE_BEGIN
 
 /**
- * @brief Perspective Renderer
+ * @brief RiftRenderer Renderer
  *
- * This renderer renders the scene in a normal
- * perspective camera.
+ * This renderer renders the scene to the Oculus Rift DK2.
  */
-class PerspectiveRenderer : public Renderer {
+class RiftRenderer : public PerspectiveRenderer {
 public:
 	/**
 	 * @brief Default constructor
+	 *
+	 * Parameters are passed to the PerspectiveRenderer class.
 	 *
 	 * @param fov Field of view
 	 * @param aspectRatio Width / height
 	 * @param zNear Near z clipping plane
 	 * @param zFar Far z clipping  plane
 	 */
-	PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar);
+	RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar)
+		: PerspectiveRenderer(shader, fov, aspectRatio, zNear, zFar) {
+
+	}
 
 	/**
 	 * @brief Default destructor
 	 */
-	virtual ~PerspectiveRenderer () = default;
+	virtual ~RiftRenderer () = default;
 
 	/**
 	 * @brief Updates the state
@@ -58,7 +61,7 @@ public:
 	 */
 	virtual std::string info () {
 		return tfm::format(
-			"PerspectiveRenderer[\n"
+			"RiftRenderer[\n"
 			"  FOV = %d°,\n"
 			"  aspectRatio = %d,\n"
 			"  zNear = %d,\n"
@@ -73,12 +76,6 @@ public:
 		);
 	}
 
-protected:
-
-	float fov; ///> Field of view
-	float aspectRatio; ///< Width / height
-	float zNear, zFar; ///< Clipping planes
-	float fH, fW; ///< Frustum width and height
 };
 
 VR_NAMESPACE_END

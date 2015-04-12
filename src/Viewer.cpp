@@ -22,6 +22,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	// Enable multi sampling
+	glfwWindowHint(GLFW_SAMPLES, 2);
+
 	if (fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
@@ -56,9 +59,10 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwSwapInterval(0);
 	glfwSwapBuffers(window);
 
-	// Enable depth testing
+	// Enable depth testing and multi sampling
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	glEnable(GL_MULTISAMPLE);
 
 #if defined(PLATFORM_APPLE)
     /* Poll for events once before starting a potentially
@@ -161,8 +165,8 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		renderer->draw();
 
 		glfwSwapBuffers(window);
-		glfwPollEvents();
-//		glfwWaitEvents();
+//		glfwPollEvents();
+		glfwWaitEvents();
 	}
 
 	// Renderer cleapup

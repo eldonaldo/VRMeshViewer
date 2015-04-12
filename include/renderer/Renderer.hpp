@@ -70,10 +70,17 @@ public:
 	virtual std::string info () = 0;
 
 	/**
-	 * @return Mode Matrix
+	 * @return Model Matrix
 	 */
 	const Matrix4f &getModelMatrix () const {
 		return modelMatrix;
+	}
+
+	/**
+	 * @return Transpose inverse model matrix
+	 */
+	const Matrix3f &getNormalMatrix () const {
+		return normalMatrix;
 	}
 
 	/**
@@ -81,6 +88,12 @@ public:
 	 */
 	void setModelMatrix (const Matrix4f &modelMatrix) {
 		this->modelMatrix = modelMatrix;
+		mvp = projectionMatrix * viewMatrix * modelMatrix;
+
+		// Calculate normal matrix for normal transformation
+		Matrix3f tmp = modelMatrix.topLeftCorner<3, 3>();
+		Matrix3f inv = tmp.inverse();
+		normalMatrix = inv.transpose();
 	}
 
 	/**
@@ -102,6 +115,7 @@ public:
 	 */
 	void setProjectionMatrix (const Matrix4f &projectionMatrix) {
 		this->projectionMatrix = projectionMatrix;
+		mvp = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
 	/**
@@ -116,14 +130,19 @@ public:
 	 */
 	void setViewMatrix (const Matrix4f &viewMatrix) {
 		this->viewMatrix = viewMatrix;
+		mvp = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
+
+private:
+
 	Matrix4f viewMatrix; ///< View matrix
 	Matrix4f modelMatrix; ///< Model matrix
+	Matrix3f normalMatrix; ///< Transpose inverse model matrix
 	Matrix4f projectionMatrix; ///< Projection matrix
 	Matrix4f mvp; ///< MVP matrix
 };

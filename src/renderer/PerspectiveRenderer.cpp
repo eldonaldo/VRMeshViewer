@@ -5,17 +5,15 @@ VR_NAMESPACE_BEGIN
 PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar)
 	: Renderer(shader), fov(fov), aspectRatio(aspectRatio), zNear(zNear), zFar(zFar), fH(tan(fov / 360 * M_PI ) * zNear), fW(fH * aspectRatio) {
 
-	projectionMatrix = frustum(-fW, fW, -fH, fH, zNear, zFar);
+	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 
-	viewMatrix = lookAt(
+	setViewMatrix(lookAt(
 		Vector3f(4, 3, -3), // Camera is at (4,3,-3), in world space
 		Vector3f(0, 0, 0), // And looks at the origin
 		Vector3f(0, 1, 0) // Head is up
-	);
+	));
 
-	modelMatrix = Matrix4f::Identity();
-
-	mvp = projectionMatrix * viewMatrix * modelMatrix;
+	setModelMatrix(Matrix4f::Identity());
 }
 
 void PerspectiveRenderer::preProcess () {
@@ -34,11 +32,11 @@ void PerspectiveRenderer::preProcess () {
 }
 
 void PerspectiveRenderer::update () {
-	mvp = projectionMatrix * viewMatrix * modelMatrix;
-
+	// Need to send every time because of the arcball rotation
 	shader->bind();
-	shader->setUniform("modelMatrix", modelMatrix);
-	shader->setUniform("mvp", mvp);
+	shader->setUniform("modelMatrix", getModelMatrix());
+	shader->setUniform("normalMatrix", getNormalMatrix());
+	shader->setUniform("mvp", getMvp());
 }
 
 void PerspectiveRenderer::draw() {

@@ -73,6 +73,7 @@ add_executable(VRMeshViewer
 	include/mesh/ObjectLoader.hpp
 	include/renderer/Renderer.hpp
 	include/renderer/PerspectiveRenderer.hpp
+	include/renderer/RiftRenderer.hpp
 #	include/mesh/Texture.hpp
 	
 	# Source code files
@@ -83,6 +84,7 @@ add_executable(VRMeshViewer
 	src/mesh/Mesh.cpp
 	src/mesh/ObjectLoader.cpp
 	src/renderer/PerspectiveRenderer.cpp
+	src/renderer/RiftRenderer.cpp
 #	src/mesh/Texture.cpp
 )
 

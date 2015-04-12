@@ -9,6 +9,7 @@ struct Light {
 uniform Light light;
 uniform float intensity;
 uniform mat4 modelMatrix;
+uniform mat3 normalMatrix;
 
 in vec3 vertexNormal;
 in vec3 vertexPosition;
@@ -16,8 +17,7 @@ in vec3 vertexPosition;
 out vec4 color;
 
 void main () {
-	// Normal matrix in world coodinates
-	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
+	// Transform normal
 	vec3 normal = normalize(normalMatrix * vertexNormal);
 	
 	// Position of fragment in world coodinates

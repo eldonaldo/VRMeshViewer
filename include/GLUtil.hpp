@@ -135,6 +135,11 @@ public:
         glUniformMatrix4fv(uniform(name, warn), 1, GL_FALSE, mat.data());
     }
 
+    /// Initialize a uniform parameter with a 3x3 matrix
+    void setUniform(const std::string &name, const Matrix3f &mat, bool warn = true) {
+        glUniformMatrix3fv(uniform(name, warn), 1, GL_FALSE, mat.data());
+    }
+
     /// Initialize a uniform parameter with an integer value
     void setUniform(const std::string &name, int value, bool warn = true) {
         glUniform1i(uniform(name, warn), value);

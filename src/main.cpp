@@ -3,6 +3,7 @@
 #include "GLUtil.hpp"
 #include "mesh/ObjectLoader.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
+#include "renderer/RiftRenderer.hpp"
 
 using namespace VR_NS;
 
@@ -13,7 +14,7 @@ int main (int argc, char *argv[]) {
 
 	try {
 
-		// Must be first call. This sets up the OpenGL contenxt
+		// Must be first call. This sets up the OpenGL context
 		Viewer viewer("Virtual Reality Mesh Viewer", width, height);
 
 		// Create shader
@@ -21,7 +22,8 @@ int main (int argc, char *argv[]) {
 		shader->initFromFiles("std-shader", "resources/shader/vertex-shader.glsl", "resources/shader/fragment-shader.glsl");
 
 		// Create an appropriate renderer
-		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 45.0, float(width) / float(height), 0.1, 100.0));
+//		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 45.0, float(width) / float(height), 0.1, 100.0));
+		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 45.0, float(width) / float(height), 0.1, 100.0));
 
 		// Load mesh
 		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/dragon/dragon.obj");
