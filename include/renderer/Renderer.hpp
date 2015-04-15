@@ -70,6 +70,14 @@ public:
 	virtual std::string info () = 0;
 
 	/**
+	 * @brief Attach the rift to the renderer
+	 * @param h Head mounted device
+	 */
+	void attachOVR (ovrHmd &h) {
+		hmd = h;
+	}
+
+	/**
 	 * @return Model Matrix
 	 */
 	const Matrix4f &getModelMatrix () const {
@@ -137,6 +145,7 @@ protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
+	ovrHmd hmd; ///< Head mounted device
 
 private:
 

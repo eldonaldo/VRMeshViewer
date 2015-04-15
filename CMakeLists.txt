@@ -11,6 +11,7 @@ include(ExternalProject)
 # External dependencies
 # =========================================
 
+# GLFW
 ExternalProject_Add(glfw_p
 	URL "${CMAKE_SOURCE_DIR}/ext/glfw"
 	PREFIX "ext_build"
@@ -18,7 +19,15 @@ ExternalProject_Add(glfw_p
 	INSTALL_COMMAND ""
 )
 
-if(WIN32)
+# Rift SDK
+# Create debug symbols
+set(OVR_DEBUG_BUILD 1)
+
+# The primary SDK artifact, a static library for Oculus access 
+add_subdirectory(ext/ovr)
+set(extra_libs ovr)
+
+if (WIN32)
 	# Windows needs GLEW
 	ExternalProject_Add(glew_p
 		URL "${CMAKE_SOURCE_DIR}/ext/glew"
@@ -31,7 +40,7 @@ if(WIN32)
 	add_definitions (/D "_CRT_SECURE_NO_WARNINGS")
 	
 	include_directories(ext/glew/include)
-	set(extra_libs opengl32
+	set(extra_libs ${extra_libs} opengl32
 		$<$<CONFIG:Debug>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/Debug/glew.lib>
 		$<$<CONFIG:Release>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/Release/glew.lib>
 		$<$<CONFIG:RelWithDebInfo>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/RelWithDebInfo/glew.lib>
@@ -40,15 +49,18 @@ if(WIN32)
 elseif (APPLE)
 	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 	
-	# Find standard libraries needed for OpenGL/GLFW
+	# Find standard libraries needed for the Rift and GLFW
 	find_library(cocoa_library Cocoa)
 	find_library(opengl_library OpenGL)
 	find_library(corevideo_library CoreVideo)
+	find_library(core_foundation CoreFoundation)
+    find_library(core_graphics CoreGraphics)
 	find_library(iokit_library IOKit)
-	set(extra_libs ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
-elseif("${CMAKE_SYSTEM}" MATCHES "Linux")
+	
+	set(extra_libs ${extra_libs} ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library} ${core_foundation} ${core_graphics})
+elseif ("${CMAKE_SYSTEM}" MATCHES "Linux")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	set(extra_libs GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl)
+	set(extra_libs ${extra_libs} GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl)
 endif()
 
 # Set include directories
@@ -58,6 +70,7 @@ include_directories(
 	ext/tinyformat
 	ext/filesystem
 	ext/stb_image
+	ext/ovr/LibOVR/include
 	include
 	${CMAKE_BINARY_DIR}
 )

@@ -13,6 +13,21 @@
 	#define PLATFORM_LINUX
 #endif
 
+// Expose Rift to GLFW
+#if defined(PLATFORM_WINDOWS)
+ #define GLFW_EXPOSE_NATIVE_WIN32
+ #define GLFW_EXPOSE_NATIVE_WGL
+ #define OVR_OS_WIN32
+#elif defined(PLATFORM_APPLE)
+ #define GLFW_EXPOSE_NATIVE_COCOA
+ #define GLFW_EXPOSE_NATIVE_NSGL
+ #define OVR_OS_MAC
+#elif defined(PLATFORM_LINUX)
+ #define GLFW_EXPOSE_NATIVE_X11
+ #define GLFW_EXPOSE_NATIVE_GLX
+ #define OVR_OS_LINUX
+#endif
+
 // Include the basis usages
 #include "Eigen/Core"
 #include <stdint.h>
@@ -28,6 +43,8 @@
     #define GL_GLEXT_PROTOTYPES
 #endif
 #include "GLFW/glfw3.h"
+//#include <GLFW/glfw3native.h> // Needed for the Rift
+#include "OVR_CAPI.h"
 #include "tinyformat.h"
 
 // Convenience definitions

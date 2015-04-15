@@ -97,6 +97,7 @@ protected:
 	Arcball arcball; ///< Arcball
 	bool mouseClickLeft = false; ///< Needed to determine when to use the arcball on a mouse button click
 	Vector2i lastPos; ///< Last click position used for the arcball
+	ovrHmd hmd; ///< OVR head mounted device (a.k.a the rift)
 };
 
 VR_NAMESPACE_END

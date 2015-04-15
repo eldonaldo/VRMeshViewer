@@ -12,9 +12,16 @@ Viewer *__cbref;
 Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen) throw ()
 	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0) {
 
+	// LibOVR need to be initialized before GLFW
+	ovr_Initialize();
+	hmd = ovrHmd_Create(0);
+	if (!hmd)
+		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+//		throw VRException("Could not start the Rift");
+
 	// Initialize GLFW
 	if (!glfwInit())
-		throw VRException("Could not not start GFLW");
+		throw VRException("Could not start GFLW");
 
 	// Request OpenGL compatible 3.3 context with the core profile enabled
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -73,6 +80,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
     glfwPollEvents();
 #endif
 
+
     // Setup arcball
     arcball.setSize(Vector2i(width, height));
     arcball.setSpeedFactor(0.2);
@@ -99,7 +107,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 		__cbref->arcball.button(__cbref->lastPos, __cbref->mouseClickLeft);
 		if (__cbref->arcball.motion(Vector2i(int(x), int(y))))
 			__cbref->renderer->setModelMatrix(__cbref->renderer->getModelMatrix() * __cbref->arcball.matrix(__cbref->renderer->getViewMatrix()));
-//			__cbref->renderer->setViewMatrix(__cbref->renderer->getViewMatrix() * __cbref->arcball.matrix(__cbref->renderer->getViewMatrix()));
+//			__cbref->renderer->setViewMatrix(__cbref->arcball.matrix(__cbref->renderer->getViewMatrix()) * __cbref->renderer->getViewMatrix());
+//			__cbref->renderer->setViewMatrix(__cbref->renderer->getViewMatrix() * __cbref->arcball.matrix(__cbref->renderer->getViewMatrix()).inverse());
 	});
 
 	/* Window size callback */
@@ -112,6 +121,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// Set reference for callback functions
 	__cbref = this;
+    std::cout << "Width: " << width << ", Height: " << height <<std::endl;
+    std::cout << "FBWidth: " << FBWidth << ", FBHeight: " << FBHeight<<std::endl;
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -174,6 +185,10 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 }
 
 Viewer::~Viewer () {
+	// Destroy the rift
+	ovrHmd_Destroy(hmd);
+	ovr_Shutdown();
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
