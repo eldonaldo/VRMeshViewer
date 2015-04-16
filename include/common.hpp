@@ -43,8 +43,9 @@
     #define GL_GLEXT_PROTOTYPES
 #endif
 #include "GLFW/glfw3.h"
-//#include <GLFW/glfw3native.h> // Needed for the Rift
+#include <GLFW/glfw3native.h> // Needed for the Rift
 #include "OVR_CAPI.h"
+#include <OVR_CAPI_GL.h>
 #include "tinyformat.h"
 
 // Convenience definitions

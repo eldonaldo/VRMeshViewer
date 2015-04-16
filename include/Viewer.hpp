@@ -10,10 +10,8 @@ VR_NAMESPACE_BEGIN
  * @brief Basis mesh viewer class.
  *
  * This class uses GLFW to construct a OS specific
- * window and allows all modern extension to be loaded with GLEW.
- *
- * The desired OpenGL context version can be specified in the commons.hpp
- * header file.
+ * window and allows all modern extension to be loaded with GLEW on
+ * windows machines.
  */
 class Viewer {
 public:
@@ -97,7 +95,6 @@ protected:
 	Arcball arcball; ///< Arcball
 	bool mouseClickLeft = false; ///< Needed to determine when to use the arcball on a mouse button click
 	Vector2i lastPos; ///< Last click position used for the arcball
-	ovrHmd hmd; ///< OVR head mounted device (a.k.a the rift)
 };
 
 VR_NAMESPACE_END

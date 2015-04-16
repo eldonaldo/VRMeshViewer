@@ -275,32 +275,53 @@ void GLShader::free() {
     }
 }
 
-void GLFramebuffer::init(const Vector2i &size, int nSamples) {
+void GLFramebuffer::init(const Vector2i &size, int nSamples, bool nUseTexture = false) {
     mSize = size;
     mSamples = nSamples;
+    useTexture = nUseTexture;
 
-    glGenRenderbuffers(1, &mColor);
-    glBindRenderbuffer(GL_RENDERBUFFER, mColor);
+    if (!useTexture) {
+		// Use renderbuffer
+		glGenRenderbuffers(1, &mColor);
+		glBindRenderbuffer(GL_RENDERBUFFER, mColor);
 
-    if (nSamples == 1)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, size.x(), size.y());
-    else
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, nSamples, GL_RGBA8, size.x(), size.y());
+		if (nSamples == 1)
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, size.x(), size.y());
+		else
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, nSamples, GL_RGBA8, size.x(), size.y());
 
-    glGenRenderbuffers(1, &mDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, mDepth);
+		glGenRenderbuffers(1, &mDepth);
+		glBindRenderbuffer(GL_RENDERBUFFER, mDepth);
 
-    if (nSamples == 1)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x(), size.y());
-    else
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, nSamples, GL_DEPTH24_STENCIL8, size.x(), size.y());
+		if (nSamples == 1)
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x(), size.y());
+		else
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, nSamples, GL_DEPTH24_STENCIL8, size.x(), size.y());
+
+    } else {
+    	// Use texture
+    	glGenTextures(1, &mColor);
+    	glBindTexture(GL_TEXTURE_2D, mColor);
+    	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x(), size.y(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glGenRenderbuffers(1, &mDepth);
+		glBindRenderbuffer(GL_RENDERBUFFER, mDepth);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size.x(), size.y());
+    }
 
     glGenFramebuffers(1, &mFramebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
 
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mColor);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepth);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepth);
+    if (!useTexture) {
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mColor);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepth);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepth);
+    } else {
+    	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColor, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepth);
+    }
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -313,8 +334,13 @@ void GLFramebuffer::init(const Vector2i &size, int nSamples) {
 }
 
 void GLFramebuffer::free() {
-    glDeleteRenderbuffers(1, &mColor);
-    glDeleteRenderbuffers(1, &mDepth);
+	if (!useTexture) {
+		glDeleteRenderbuffers(1, &mColor);
+		glDeleteRenderbuffers(1, &mDepth);
+	} else {
+		glDeleteTextures(1, &mColor);
+		glDeleteRenderbuffers(1, &mDepth);
+	}
 }
 
 void GLFramebuffer::bind() {

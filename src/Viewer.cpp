@@ -14,10 +14,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
-	hmd = ovrHmd_Create(0);
-	if (!hmd)
-		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
-//		throw VRException("Could not start the Rift");
 
 	// Initialize GLFW
 	if (!glfwInit())
@@ -67,8 +63,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwSwapBuffers(window);
 
 	// Enable depth testing and multi sampling
+//	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 	glEnable(GL_MULTISAMPLE);
 
 #if defined(PLATFORM_APPLE)
@@ -117,6 +114,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 		glfwGetFramebufferSize(window, &(__cbref->FBWidth), &(__cbref->FBHeight));
 		__cbref->width = width; __cbref->height = height;
 		__cbref->arcball.setSize(Vector2i(width, height));
+		if (__cbref->renderer)
+			__cbref->renderer->updateFBSize(__cbref->FBWidth, __cbref->FBHeight);
 	});
 
 	// Set reference for callback functions
@@ -153,6 +152,8 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 	// Renderer pre processing
 	this->mesh = mesh;
 	renderer->setMesh(mesh);
+	renderer->setWindow(window);
+	renderer->updateFBSize(FBWidth, FBHeight);
 	renderer->preProcess();
 
 	// Print some info
@@ -163,16 +164,16 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 
 	// Render loop
 	while (!glfwWindowShouldClose(window)) {
-		// Clear buffers and make sure proper context is used
-		glfwMakeContextCurrent(window);
-		glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		if (appFPS)
 			calcAndAppendFPS();
 
-		// Draw using attached renderer
+		// Update state
 		renderer->update();
+
+		// Clear buffers
+		renderer->clear(background);
+
+		// Draw using attached renderer
 		renderer->draw();
 
 		glfwSwapBuffers(window);
@@ -185,12 +186,9 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 }
 
 Viewer::~Viewer () {
-	// Destroy the rift
-	ovrHmd_Destroy(hmd);
-	ovr_Shutdown();
-
 	glfwDestroyWindow(window);
 	glfwTerminate();
+	renderer.release();
 }
 
 VR_NAMESPACE_END

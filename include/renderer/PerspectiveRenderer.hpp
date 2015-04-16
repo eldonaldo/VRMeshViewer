@@ -22,7 +22,7 @@ public:
 	 * @param zNear Near z clipping plane
 	 * @param zFar Far z clipping  plane
 	 */
-	PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar);
+	PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar);
 
 	/**
 	 * @brief Default destructor
@@ -56,7 +56,7 @@ public:
 	/**
 	 * @return Brief info about the renderer
 	 */
-	virtual std::string info () {
+	virtual const std::string info () const {
 		return tfm::format(
 			"PerspectiveRenderer[\n"
 			"  FOV = %d°,\n"
@@ -73,9 +73,17 @@ public:
 		);
 	}
 
+	/**
+	 * @brief Returns the class type
+	 */
+	const RendererType getClassType () const {
+		return ENormalRenderer;
+	}
+
 protected:
 
 	float fov; ///> Field of view
+	float width, height; ///< Width and height
 	float aspectRatio; ///< Width / height
 	float zNear, zFar; ///< Clipping planes
 	float fH, fW; ///< Frustum width and height

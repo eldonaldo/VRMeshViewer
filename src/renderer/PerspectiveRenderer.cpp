@@ -2,8 +2,8 @@
 
 VR_NAMESPACE_BEGIN
 
-PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar)
-	: Renderer(shader), fov(fov), aspectRatio(aspectRatio), zNear(zNear), zFar(zFar), fH(tan(fov / 360 * M_PI ) * zNear), fW(fH * aspectRatio) {
+PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
+	: Renderer(shader), fov(fov), width(width), height(height), zNear(zNear), zFar(zFar), aspectRatio(width / height), fH(tan(fov / 360 * M_PI ) * zNear), fW(fH * aspectRatio) {
 
 	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 

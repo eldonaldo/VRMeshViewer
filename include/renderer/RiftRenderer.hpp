@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
+#include "OVR_Math.h"
 
 VR_NAMESPACE_BEGIN
 
@@ -12,6 +13,7 @@ VR_NAMESPACE_BEGIN
  */
 class RiftRenderer : public PerspectiveRenderer {
 public:
+
 	/**
 	 * @brief Default constructor
 	 *
@@ -22,15 +24,19 @@ public:
 	 * @param zNear Near z clipping plane
 	 * @param zFar Far z clipping  plane
 	 */
-	RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float aspectRatio, float zNear, float zFar)
-		: PerspectiveRenderer(shader, fov, aspectRatio, zNear, zFar) {
-
-	}
+	RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar);
 
 	/**
 	 * @brief Default destructor
 	 */
-	virtual ~RiftRenderer () = default;
+	virtual ~RiftRenderer ();
+
+	/**
+	 * @brief Clears the buffers and background
+	 *
+	 * @param background Background color
+	 */
+	virtual void clear (Vector3f background);
 
 	/**
 	 * @brief Updates the state
@@ -56,10 +62,12 @@ public:
 	 */
 	virtual void cleanUp ();
 
+//	GLFWMonitor *getHmdDisplay ();
+
 	/**
 	 * @return Brief info about the renderer
 	 */
-	virtual std::string info () {
+	virtual const std::string info () const {
 		return tfm::format(
 			"RiftRenderer[\n"
 			"  FOV = %d°,\n"
@@ -68,14 +76,33 @@ public:
 			"  zFar = %d,\n"
 			"  Frustum Width = %d,\n"
 			"  Frustum Height = %d,\n"
+			"  OVR[\n"
+			"    Type = %s\n"
+			"  ]\n"
 			"]",
 			fov,
 			aspectRatio,
 			zNear, zFar,
-			fH, fW
+			fH, fW,
+			hmd->ProductName
 		);
 	}
 
+	/**
+	 * @brief Returns the class type
+	 */
+	const RendererType getClassType () const {
+		return EHMDRenderer;
+	}
+
+protected:
+	ovrHmd hmd; ///< Head mounted device
+	GLFramebuffer frameBuffer; ///< The framebuffer which we draw to with the rift
+	ovrGLTexture eyeTexture[2];
+	ovrRecti eyeRenderViewport[2]; ///< Viewport for left and right eye
+	ovrEyeRenderDesc eyeRenderDesc[2];
+	ovrGLConfig cfg; ///< Oculus config
+	OVR::Sizei renderTargetSize; ///< Render buffer/texture size
 };
 
 VR_NAMESPACE_END

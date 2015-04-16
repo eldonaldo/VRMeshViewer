@@ -7,6 +7,19 @@
 VR_NAMESPACE_BEGIN
 
 /**
+ * Forward declaration
+ */
+class Viewer;
+
+/**
+ * @brief Available renderer types
+ */
+enum RendererType {
+	ENormalRenderer,
+	EHMDRenderer
+};
+
+/**
  *
  */
 class Renderer {
@@ -24,6 +37,16 @@ public:
 	 */
 	virtual ~Renderer () {
 		shader->free();
+	}
+
+	/**
+	 * @brief Clears the buffers and background
+	 *
+	 * @param background Background color
+	 */
+	virtual void clear (Vector3f background) {
+		glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	/**
@@ -67,14 +90,13 @@ public:
 	/**
 	 * @return Brief info about the renderer
 	 */
-	virtual std::string info () = 0;
+	virtual const std::string info () const = 0;
 
 	/**
-	 * @brief Attach the rift to the renderer
-	 * @param h Head mounted device
+	 * @brief Returns the class type
 	 */
-	void attachOVR (ovrHmd &h) {
-		hmd = h;
+	const RendererType getClassType () const {
+		return ENormalRenderer;
 	}
 
 	/**
@@ -141,11 +163,29 @@ public:
 		mvp = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
+	/**
+	 * @brief Updates the frame buffer size
+	 * @param w Width
+	 * @param h Height
+	 */
+	void updateFBSize (float w, float h) {
+		FBWidth = w;
+		FBHeight = h;
+	}
+
+	/**
+	 * @brief Handle to the GFLW window for rendering
+	 */
+	void setWindow (GLFWwindow *w) {
+		window = w;
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
-	ovrHmd hmd; ///< Head mounted device
+	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
+	GLFWwindow *window; ///< GFLW window handle
 
 private:
 

@@ -200,10 +200,10 @@ protected:
 /// Helper class for creating framebuffer objects
 class GLFramebuffer {
 public:
-    GLFramebuffer() : mFramebuffer(0), mDepth(0), mColor(0), mSamples(0) { }
+    GLFramebuffer() : mFramebuffer(0), mDepth(0), mColor(0), mSamples(0), useTexture(false) { }
 
     /// Create a new framebuffer with the specified size and number of MSAA samples
-    void init(const Vector2i &size, int nSamples);
+    void init(const Vector2i &size, int nSamples, bool nUseTexture);
 
     /// Release all associated resources
     void free();
@@ -222,10 +222,18 @@ public:
 
     /// Return the number of MSAA samples
     int samples() const { return mSamples; }
+
+    /// Return renderbuffer handle
+    GLuint getColor () const { return mColor; }
+
+    /// Return renderbuffer handle
+    GLuint getDepth () const { return mDepth; }
+
 protected:
     GLuint mFramebuffer, mDepth, mColor;
     Vector2i mSize;
     int mSamples;
+    bool useTexture;
 };
 
 /// Arcball helper class to interactively rotate objects on-screen
