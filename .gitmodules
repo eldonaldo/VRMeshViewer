@@ -12,4 +12,4 @@
 	url = https://github.com/glfw/glfw
 [submodule "ext/ovr"]
 	path = ext/ovr
-	url = https://github.com/jherico/OculusSDK
+	url=https://github.com/nicoprevitali/OculusSDK
