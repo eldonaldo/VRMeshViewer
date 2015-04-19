@@ -43,9 +43,9 @@
     #define GL_GLEXT_PROTOTYPES
 #endif
 #include "GLFW/glfw3.h"
-#include <GLFW/glfw3native.h> // Needed for the Rift
+//#include <GLFW/glfw3native.h> // Needed for the Rift
 #include "OVR_CAPI.h"
-#include <OVR_CAPI_GL.h>
+#include "OVR_Math.h"
 #include "tinyformat.h"
 
 // Convenience definitions
@@ -75,6 +75,11 @@ typedef Eigen::Matrix<float, 3, 1> Normal3f;
 typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
 typedef Eigen::Matrix<unsigned int, 3, 1> Vector3ui;
+
+typedef OVR::Matrix4f OMatrix4f;
+typedef OVR::Matrix3f OMatrix3f;
+typedef OVR::Vector3f OVector3f;
+typedef OVR::Quatf OQuatf;
 
 /// Stores an RGBA color value
 class Color : public Eigen::Vector4f {

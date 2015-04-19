@@ -8,7 +8,7 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 
 	setViewMatrix(lookAt(
-		Vector3f(4, 3, -3), // Camera is at (4,3,-3), in world space
+		Vector3f(0, 0, 5), // Camera is at (0,0,10), in world space
 		Vector3f(0, 0, 0), // And looks at the origin
 		Vector3f(0, 1, 0) // Head is up
 	));
@@ -27,7 +27,7 @@ void PerspectiveRenderer::preProcess () {
 	shader->setUniform("intensity", 0.8f);
 
 	// Create virtual point light
-	shader->setUniform("light.position", Vector3f(4.0, 3.0, -3.0)); // Camera position
+	shader->setUniform("light.position", Vector3f(0, 0, 5.0)); // Camera position
 	shader->setUniform("light.intensity", Vector3f(1.0, 1.0, 1.0));
 }
 

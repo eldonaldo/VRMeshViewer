@@ -10,7 +10,7 @@ Viewer *__cbref;
 #endif
 
 Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen) throw ()
-	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0) {
+	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0), scaleMatrix(Matrix4f::Identity()) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -53,7 +53,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// Default view port and reset all pixels to black
 	background = Vector3f(0.8f, 0.8f, 0.8f);
-//	background = Vector3f(0.0f, 0.0f, 0.0f);
 
 	glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
 	glViewport(0, 0, FBWidth, FBHeight);
@@ -80,7 +79,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
     // Setup arcball
     arcball.setSize(Vector2i(width, height));
-    arcball.setSpeedFactor(0.2);
 
 	// Set callbacks
 	glfwSetKeyCallback(window, [] (GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -90,22 +88,24 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse click callback */
 	glfwSetMouseButtonCallback(window, [] (GLFWwindow *window, int button, int action, int mods) {
-		__cbref->mouseClickLeft = false;
-
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-			__cbref->mouseClickLeft = true;
+		if (button == GLFW_MOUSE_BUTTON_LEFT)
+			__cbref->arcball.button(__cbref->lastPos, action == GLFW_PRESS);
 	});
 
 	/* Mouse movement callback */
 	glfwSetCursorPosCallback(window, [] (GLFWwindow *window, double x, double y) {
-		if (__cbref->mouseClickLeft && !__cbref->arcball.active())
-			__cbref->lastPos = Vector2i(int(x), int(y));
+		__cbref->lastPos = Vector2i(int(x), int(y));
+		__cbref->arcball.motion(__cbref->lastPos);
+	});
 
-		__cbref->arcball.button(__cbref->lastPos, __cbref->mouseClickLeft);
-		if (__cbref->arcball.motion(Vector2i(int(x), int(y))))
-			__cbref->renderer->setModelMatrix(__cbref->renderer->getModelMatrix() * __cbref->arcball.matrix(__cbref->renderer->getViewMatrix()));
-//			__cbref->renderer->setViewMatrix(__cbref->arcball.matrix(__cbref->renderer->getViewMatrix()) * __cbref->renderer->getViewMatrix());
-//			__cbref->renderer->setViewMatrix(__cbref->renderer->getViewMatrix() * __cbref->arcball.matrix(__cbref->renderer->getViewMatrix()).inverse());
+	/* Mouse wheel callback */
+	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
+		float scale = 0.02f * y;
+		__cbref->scaleMatrix += Matrix4f::Identity() * 0.02f * y;
+		__cbref->scaleMatrix(3, 3) = 1.f;
+
+		if (__cbref->scaleMatrix(0, 0) <= 0)
+			__cbref->scaleMatrix = Matrix4f::Zero();
 	});
 
 	/* Window size callback */
@@ -113,15 +113,12 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 		glViewport(0, 0, width, height);
 		glfwGetFramebufferSize(window, &(__cbref->FBWidth), &(__cbref->FBHeight));
 		__cbref->width = width; __cbref->height = height;
-		__cbref->arcball.setSize(Vector2i(width, height));
 		if (__cbref->renderer)
 			__cbref->renderer->updateFBSize(__cbref->FBWidth, __cbref->FBHeight);
 	});
 
 	// Set reference for callback functions
 	__cbref = this;
-    std::cout << "Width: " << width << ", Height: " << height <<std::endl;
-    std::cout << "FBWidth: " << FBWidth << ", FBHeight: " << FBHeight<<std::endl;
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -167,6 +164,9 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		if (appFPS)
 			calcAndAppendFPS();
 
+		// Arcball rotationa and scaling
+		renderer->setModelMatrix(scaleMatrix * arcball.matrix(renderer->getViewMatrix()));
+
 		// Update state
 		renderer->update();
 
@@ -188,6 +188,8 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 Viewer::~Viewer () {
 	glfwDestroyWindow(window);
 	glfwTerminate();
+
+	// LibOVR must be shutdown after GLFW
 	renderer.release();
 }
 

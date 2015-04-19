@@ -55,12 +55,16 @@ public:
 	std::string info () {
 		return tfm::format(
 			"Viewer[\n"
+			"  Size = %s,\n"
+			"  FBSize = %s,\n"
 			"  Renderer = %s,\n"
 			"  OpenGL version supported on this machine = %s,\n"
 			"  Acquired OpenGL version = %s,\n"
 			"  Renderer = %s,\n"
 			"  Mesh = %s\n"
 			"]\n",
+			toString(width) + " x " + toString(height),
+			toString(FBWidth) + " x " + toString(FBHeight),
 			glGetString(GL_RENDERER),
 			glGetString(GL_VERSION),
 			glfwGetVersionString(),
@@ -93,7 +97,7 @@ protected:
 	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
 	std::shared_ptr<Mesh> mesh; ///< Pointer to mesh
 	Arcball arcball; ///< Arcball
-	bool mouseClickLeft = false; ///< Needed to determine when to use the arcball on a mouse button click
+	Matrix4f scaleMatrix; ///< Scale matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
 };
 

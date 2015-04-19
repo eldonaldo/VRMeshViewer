@@ -28,7 +28,7 @@ public:
 	 * @brief Default constructor
 	 */
 	Renderer (std::shared_ptr<GLShader> &s)
-		: shader(s) {
+		: shader(s), FBWidth(0), FBHeight(0), window(nullptr) {
 
 	};
 

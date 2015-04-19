@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
 #include "OVR_Math.h"
+#include "OVR_CAPI_GL.h"
 
 VR_NAMESPACE_BEGIN
 
@@ -98,9 +99,9 @@ public:
 protected:
 	ovrHmd hmd; ///< Head mounted device
 	GLFramebuffer frameBuffer; ///< The framebuffer which we draw to with the rift
-	ovrGLTexture eyeTexture[2];
+	ovrGLTexture eyeTexture[2]; ///< OpenGL Rift textures
 	ovrRecti eyeRenderViewport[2]; ///< Viewport for left and right eye
-	ovrEyeRenderDesc eyeRenderDesc[2];
+	ovrEyeRenderDesc eyeRenderDesc[2]; ///< Render structure
 	ovrGLConfig cfg; ///< Oculus config
 	OVR::Sizei renderTargetSize; ///< Render buffer/texture size
 };

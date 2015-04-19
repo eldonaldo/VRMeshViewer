@@ -5,6 +5,12 @@ VR_NAMESPACE_BEGIN
 RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
 	: PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
 
+	// Reset all
+	setViewMatrix(Matrix4f::Identity());
+	setProjectionMatrix(Matrix4f::Identity());
+	setModelMatrix(Matrix4f::Identity());
+
+	// Oculus setup
 	hmd = ovrHmd_Create(0);
 	if (!hmd)
 		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
@@ -38,7 +44,7 @@ void RiftRenderer::preProcess () {
 	renderTargetSize.w = recommenedTex0Size.w + recommenedTex1Size.w;
 	renderTargetSize.h = std::max(recommenedTex0Size.h, recommenedTex1Size.h);
 
-	// Generate Framebuffer for rendering
+	// Generate framebuffer for rendering
 	int multiSample = 1;
 	frameBuffer.init(Vector2i(renderTargetSize.w, renderTargetSize.h), multiSample, true);
 	frameBuffer.release();
@@ -49,20 +55,22 @@ void RiftRenderer::preProcess () {
 	eyeRenderViewport[1].Pos = OVR::Vector2i((renderTargetSize.w + 1) / 2, 0);
 	eyeRenderViewport[1].Size = eyeRenderViewport[0].Size;
 
-	// Texture for the left eye
+	// Rendering texture for the left eye
 	eyeTexture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
 	eyeTexture[0].OGL.Header.TextureSize = renderTargetSize;
 	eyeTexture[0].OGL.Header.RenderViewport = eyeRenderViewport[0];
 	eyeTexture[0].OGL.TexId = frameBuffer.getColor();
 
-	// Texture for the right eye
+	// Rendering texture for the right eye
 	eyeTexture[1] = eyeTexture[0];
 	eyeTexture[1].OGL.Header.RenderViewport = eyeRenderViewport[1];
 
 	// Configure the Rift to use OpenGL
 	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
 	cfg.OGL.Header.BackBufferSize = OVR::Sizei(FBWidth, FBHeight);
-	cfg.OGL.Header.Multisample = multiSample;
+	cfg.OGL.Header.Multisample = 0;
+
+// Need to attach window for direct rendering on windows (only supported in windows)
 #if defined(PLATFORM_WINDOWS)
 	cfg.OGL.Window = glfwGetWin32Window(window);
 	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
@@ -74,32 +82,6 @@ void RiftRenderer::preProcess () {
 	ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
 	ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0);
 }
-
-//GLFWMonitor *RiftRenderer::getHmdDisplay () {
-//int i, count;
-//GLFWmonitor** monitors = glfwGetMonitors(&count);
-//for (i = 0;  i < count;  i++)
-//{
-//#if defined(_WIN32)
-//if (strcmp(glfwGetWin32Monitor(monitors[i]), hmd->DisplayDeviceName) == 0)
-//return monitors[i];
-//#elif defined(__APPLE__)
-//if (glfwGetCocoaMonitor(monitors[i]) == hmd->DisplayId)
-//return monitors[i];
-//#elif defined(__linux__)
-//int xpos, ypos;
-//const GLFWvidmode* mode = glfwGetVideoMode(monitors[i]);
-//glfwGetMonitorPos(monitors[i], &xpos, &ypos);
-//if (hmd->WindowsPos.x == xpos &&
-//hmd->WindowsPos.y == ypos &&
-//hmd->Resolution.w == mode->width &&
-//hmd->Resolution.h == mode->height)
-//{
-//return monitors[i];
-//}
-//#endif
-//}
-//}
 
 void RiftRenderer::update () {
 	PerspectiveRenderer::update();
@@ -117,30 +99,51 @@ void RiftRenderer::clear (Vector3f background) {
 }
 
 void RiftRenderer::draw () {
+	static float yaw(1);
+	static OVector3f pos2(0, 0, 0);
+
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
-//	PerspectiveRenderer::draw();
-
+	// Get eye poses, feeding in correct IPD offset
+	ovrVector3f viewOffset[2] = {eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset};
 	ovrPosef eyeRenderPose[2];
+	ovrHmd_GetEyePoses(hmd, 0, viewOffset, eyeRenderPose, NULL);
+
 	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
 		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
-		eyeRenderPose[eye] = ovrHmd_GetHmdPosePerEye(hmd, eye);
 
-		OVR::Matrix4f MVPMatrix =
-			OVR::Matrix4f(ovrMatrix4f_Projection(eyeRenderDesc[eye].Fov, zNear, zFar, true)) *
-			OVR::Matrix4f::Translation(eyeRenderDesc[eye].HmdToEyeViewOffset) *
-			OVR::Matrix4f(OVR::Quatf(eyeRenderPose[eye].Orientation).Inverted()) *
-			OVR::Matrix4f::Translation(-OVR::Vector3f(eyeRenderPose[eye].Position));
+		// Get view and projection matrices
+		OMatrix4f rollPitchYaw       = OMatrix4f::RotationY(yaw);
+		OMatrix4f finalRollPitchYaw  = rollPitchYaw * OMatrix4f(eyeRenderPose[eye].Orientation);
+		OVector3f finalUp            = finalRollPitchYaw.Transform(OVector3f(0, 1, 0));
+		OVector3f finalForward       = finalRollPitchYaw.Transform(OVector3f(0, 0, -1));
+		OVector3f shiftedEyePos      = pos2 + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
 
-//		mvp << MVPMatrix;
+		OMatrix4f view = OMatrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
+//		OMatrix4f view = OMatrix4f::LookAtRH(
+//			OVector3f(4, 3, -3),
+//			OVector3f(0, 0, 0),
+//			OVector3f(0, 1, 0)
+//		);
+
+		OMatrix4f proj = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], 0.2f, 1000.0f, ovrProjection_RightHanded);
+
+		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
+		Matrix4f p = Eigen::Map<Matrix4f>((float *) proj.M);
+		Vector3f pos(shiftedEyePos.x, shiftedEyePos.y, shiftedEyePos.z);
+
+		setViewMatrix(v);
+		setProjectionMatrix(p);
+
 		shader->bind();
+		shader->setUniform("light.position", pos);
 		shader->setUniform("modelMatrix", getModelMatrix());
 		shader->setUniform("normalMatrix", getNormalMatrix());
-		glUniformMatrix4fv(shader->uniform("mvp"), 1, GL_FALSE, &MVPMatrix.Transposed().M[0][0]);
+		shader->setUniform("mvp", getMvp());
 
-		// Set rendering area on renderbuffer for the current eye
 		glViewport(eyeRenderViewport[eye].Pos.x, eyeRenderViewport[eye].Pos.y, eyeRenderViewport[eye].Size.w, eyeRenderViewport[eye].Size.h);
 
+		// Draw the mesh for each eye
 		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getNumFaces());
 	}
 
@@ -149,6 +152,7 @@ void RiftRenderer::draw () {
 }
 
 void RiftRenderer::cleanUp () {
+	// LibOVR must be shutdown after GLFW, thus no destroy calls here
 	PerspectiveRenderer::cleanUp();
 }
 
