@@ -36,12 +36,16 @@
 #if defined(PLATFORM_APPLE)
 	#define GLFW_INCLUDE_GLCOREARB
 #elif defined(PLATFORM_WINDOWS)
+	#define NOMINMAX
 	#include <windows.h>
     #define GLEW_STATIC
     #include <GL/glew.h>
+	#define _USE_MATH_DEFINES
 #else
     #define GL_GLEXT_PROTOTYPES
 #endif
+#include <memory>
+#include <math.h>
 #include "GLFW/glfw3.h"
 //#include <GLFW/glfw3native.h> // Needed for the Rift
 #include "OVR_CAPI.h"
