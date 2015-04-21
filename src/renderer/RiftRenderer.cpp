@@ -59,9 +59,9 @@ void RiftRenderer::preProcess () {
 
 // Need to attach window for direct rendering on windows (only supported in windows)
 #if defined(PLATFORM_WINDOWS)
-	cfg.OGL.Window = glfwGetWin32Window(window);
-	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
-		ovrHmd_AttachToWindow(hmd, window, NULL, NULL);
+	//cfg.OGL.Window = glfwGetWin32Window(window);
+	//if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+	//	ovrHmd_AttachToWindow(hmd, window, NULL, NULL);
 #endif
 
 	// We use distortion rendering

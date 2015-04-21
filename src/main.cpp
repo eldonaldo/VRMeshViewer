@@ -37,6 +37,7 @@ int main (int argc, char *argv[]) {
 
 	} catch (std::runtime_error &e) {
 		std::cout << "Runtime error: "<< e.what() << std::endl;
+		std::cin.get();
 		return -1;
 	}
 
