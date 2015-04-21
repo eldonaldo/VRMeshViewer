@@ -36,6 +36,12 @@ if(WIN32)
 		$<$<CONFIG:Release>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/Release/glew.lib>
 		$<$<CONFIG:RelWithDebInfo>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/RelWithDebInfo/glew.lib>
 		$<$<CONFIG:MinSizeRel>:${CMAKE_BINARY_DIR}/ext_build/src/glew_p-build/MinSizeRel/glew.lib>
+
+		$<$<CONFIG:Debug>:${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src/Debug/glfw3.lib>
+		$<$<CONFIG:Release>:${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src/Release/glfw3.lib>
+		$<$<CONFIG:RelWithDebInfo>:${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src/RelWithDebInfo/glfw3.lib>
+		$<$<CONFIG:MinSizeRel>:${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src/MinSizeRel/glfw3.lib>
+		${GLFW_LIBRARIES}
 	)
 elseif (APPLE)
 	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
@@ -45,10 +51,10 @@ elseif (APPLE)
 	find_library(opengl_library OpenGL)
 	find_library(corevideo_library CoreVideo)
 	find_library(iokit_library IOKit)
-	set(extra_libs ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
+	set(extra_libs ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library} glfw3 ${GLFW_LIBRARIES})
 elseif("${CMAKE_SYSTEM}" MATCHES "Linux")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	set(extra_libs GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl)
+	set(extra_libs GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread dl glfw3 ${GLFW_LIBRARIES})
 endif()
 
 # Set include directories
@@ -91,12 +97,11 @@ add_executable(VRMeshViewer
 # Make sure to build in the right order
 add_dependencies(VRMeshViewer glfw_p)
 if(WIN32)
-  add_dependencies(VRMeshViewer glew_p)
+	add_dependencies(VRMeshViewer glew_p)
 endif()
 
 # Link to dependent libraries
-link_directories(${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src)
-target_link_libraries(VRMeshViewer glfw3 ${extra_libs})
+target_link_libraries(VRMeshViewer ${extra_libs})
 
 # Copy resources
 file(COPY resources DESTINATION ${CMAKE_BINARY_DIR})
