@@ -59,7 +59,7 @@ public:
 	virtual const std::string info () const {
 		return tfm::format(
 			"PerspectiveRenderer[\n"
-			"  FOV = %d°,\n"
+			"  FOV = %d deg,\n"
 			"  aspectRatio = %d,\n"
 			"  zNear = %d,\n"
 			"  zFar = %d,\n"

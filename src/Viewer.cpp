@@ -14,10 +14,18 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
+	hmd = ovrHmd_Create(0);
+	if (!hmd)
+		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+		if (!hmd)
+			throw VRException("Could not start the Rift");
+
+	if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
+		throw VRException("The Rift does not support all of the necessary sensors");
 
 	// Initialize GLFW
 	if (!glfwInit())
-		throw VRException("Could not start GFLW");
+		throw VRException("Could not start GLFW");
 
 	// Request OpenGL compatible 3.3 context with the core profile enabled
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -147,7 +155,7 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		throw VRException("No renderer attached. Viewer can not display the object.");
 
 	// Renderer pre processing
-	this->mesh = mesh;
+	renderer->setHmd(hmd);
 	renderer->setMesh(mesh);
 	renderer->setWindow(window);
 	renderer->updateFBSize(FBWidth, FBHeight);
@@ -189,8 +197,11 @@ Viewer::~Viewer () {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-	// LibOVR must be shutdown after GLFW
-	renderer.release();
+	// Destroy the rift. Needs to be called after glfwTerminate
+	if (hmd) {
+		ovrHmd_Destroy(hmd);
+		ovr_Shutdown();
+	}
 }
 
 VR_NAMESPACE_END

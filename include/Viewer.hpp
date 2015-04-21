@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "mesh/Mesh.hpp"
 #include "renderer/Renderer.hpp"
+#include "renderer/RiftRenderer.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -57,7 +58,7 @@ public:
 			"Viewer[\n"
 			"  Size = %s,\n"
 			"  FBSize = %s,\n"
-			"  Renderer = %s,\n"
+			"  Engine = %s,\n"
 			"  OpenGL version supported on this machine = %s,\n"
 			"  Acquired OpenGL version = %s,\n"
 			"  Renderer = %s,\n"
@@ -75,7 +76,6 @@ public:
 
 protected:
 
-
 	/**
 	 * @brief Displays the FPS count in the title of the window and returns the calculated FPS
 	 */
@@ -83,6 +83,7 @@ protected:
 
 protected:
 
+	ovrHmd hmd; ///< Head mounted device
 	GLFWwindow *window; ///< GLFW window pointer
 	const std::string title; ///< Window title
 	int FBWidth, FBHeight; ///< Framebuffer size

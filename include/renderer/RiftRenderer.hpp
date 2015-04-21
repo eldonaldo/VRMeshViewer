@@ -63,8 +63,6 @@ public:
 	 */
 	virtual void cleanUp ();
 
-//	GLFWMonitor *getHmdDisplay ();
-
 	/**
 	 * @return Brief info about the renderer
 	 */
@@ -97,7 +95,7 @@ public:
 	}
 
 protected:
-	ovrHmd hmd; ///< Head mounted device
+
 	GLFramebuffer frameBuffer; ///< The framebuffer which we draw to with the rift
 	ovrGLTexture eyeTexture[2]; ///< OpenGL Rift textures
 	ovrRecti eyeRenderViewport[2]; ///< Viewport for left and right eye

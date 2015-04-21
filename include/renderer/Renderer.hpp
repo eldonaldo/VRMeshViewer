@@ -180,12 +180,20 @@ public:
 		window = w;
 	}
 
+	/**
+	 * @brief Sets the pointer to the Hmd
+	 */
+	void setHmd (ovrHmd h) {
+		hmd = h;
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
 	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
 	GLFWwindow *window; ///< GFLW window handle
+	ovrHmd hmd; ///< Head mounted device
 
 private:
 

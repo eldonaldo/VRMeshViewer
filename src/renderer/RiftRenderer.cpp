@@ -10,33 +10,20 @@ RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float 
 	setProjectionMatrix(Matrix4f::Identity());
 	setModelMatrix(Matrix4f::Identity());
 
-	// Oculus setup
-	hmd = ovrHmd_Create(0);
-	if (!hmd)
-		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
-		if (!hmd)
-			throw VRException("Could not start the Rift");
-
-	// Initialize and enable sensors
-	if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
-		throw VRException("Rift does not support all of the necessary sensors");
 }
 
 RiftRenderer::~RiftRenderer() {
-	// Destroy the rift. Needs to be called after glfwTerminate
-	ovrHmd_Destroy(hmd);
-	ovr_Shutdown();
+
 }
 
 void RiftRenderer::preProcess () {
 	PerspectiveRenderer::preProcess();
 
-	ovrFovPort eyeFov[2] = {
-		hmd->DefaultEyeFov[0],
-		hmd->DefaultEyeFov[1]
-	};
+	if (hmd == nullptr)
+		throw new VRException("HMD not set! Can't do pre processing for the Rift");
 
 	// Configure Stereo settings.
+	ovrFovPort eyeFov[2] = { hmd->DefaultEyeFov[0], hmd->DefaultEyeFov[1] };
 	OVR::Sizei recommenedTex0Size = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, eyeFov[0], 1.0f);
 	OVR::Sizei recommenedTex1Size = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, eyeFov[1], 1.0f);
 
@@ -87,10 +74,10 @@ void RiftRenderer::update () {
 	PerspectiveRenderer::update();
 
 	// Query the HMD for the current tracking state.
-	ovrTrackingState ts  = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-	if (ts.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked)) {
-		ovrPoseStatef pose = ts.HeadPose;
-	}
+//	ovrTrackingState ts  = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
+//	if (ts.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked)) {
+//		ovrPoseStatef pose = ts.HeadPose;
+//	}
 }
 
 void RiftRenderer::clear (Vector3f background) {
@@ -99,8 +86,9 @@ void RiftRenderer::clear (Vector3f background) {
 }
 
 void RiftRenderer::draw () {
-	static float yaw(1);
-	static OVector3f pos2(0, 0, 0);
+//	static float yaw(1);
+//	static OVector3f pos2(0, 0, 0);
+//	pos2.y = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, pos2.y);
 
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
@@ -113,30 +101,38 @@ void RiftRenderer::draw () {
 		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
 
 		// Get view and projection matrices
-		OMatrix4f rollPitchYaw       = OMatrix4f::RotationY(yaw);
-		OMatrix4f finalRollPitchYaw  = rollPitchYaw * OMatrix4f(eyeRenderPose[eye].Orientation);
-		OVector3f finalUp            = finalRollPitchYaw.Transform(OVector3f(0, 1, 0));
-		OVector3f finalForward       = finalRollPitchYaw.Transform(OVector3f(0, 0, -1));
-		OVector3f shiftedEyePos      = pos2 + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
+//		OMatrix4f rollPitchYaw       = OMatrix4f::RotationY(yaw);
+//		OMatrix4f finalRollPitchYaw  = rollPitchYaw * OMatrix4f(eyeRenderPose[eye].Orientation);
+//		OVector3f finalUp            = finalRollPitchYaw.Transform(OVector3f(0, 1, 0));
+//		OVector3f finalForward       = finalRollPitchYaw.Transform(OVector3f(0, 0, -1));
+//		OVector3f shiftedEyePos      = pos2 + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
 
-		OMatrix4f view = OMatrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
+//		OMatrix4f view = OMatrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
 //		OMatrix4f view = OMatrix4f::LookAtRH(
 //			OVector3f(4, 3, -3),
 //			OVector3f(0, 0, 0),
 //			OVector3f(0, 1, 0)
 //		);
+//
+//		OMatrix4f proj = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], 0.2f, 1000.0f, ovrProjection_RightHanded);
+//
+//		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
+//		Matrix4f p = Eigen::Map<Matrix4f>((float *) proj.M);
+//		Vector3f pos(shiftedEyePos.x, shiftedEyePos.y, shiftedEyePos.z);
 
-		OMatrix4f proj = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], 0.2f, 1000.0f, ovrProjection_RightHanded);
+//		setViewMatrix(v);
+//		setProjectionMatrix(p);
 
-		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
-		Matrix4f p = Eigen::Map<Matrix4f>((float *) proj.M);
-		Vector3f pos(shiftedEyePos.x, shiftedEyePos.y, shiftedEyePos.z);
+		setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 
-		setViewMatrix(v);
-		setProjectionMatrix(p);
+		setViewMatrix(lookAt(
+			Vector3f(0, 0, 5), // Camera is at (0,0,10), in world space
+			Vector3f(0, 0, 0), // And looks at the origin
+			Vector3f(0, 1, 0) // Head is up
+		));
 
 		shader->bind();
-		shader->setUniform("light.position", pos);
+		shader->setUniform("light.position", Vector3f(0, 0, 5));
 		shader->setUniform("modelMatrix", getModelMatrix());
 		shader->setUniform("normalMatrix", getNormalMatrix());
 		shader->setUniform("mvp", getMvp());
@@ -152,7 +148,6 @@ void RiftRenderer::draw () {
 }
 
 void RiftRenderer::cleanUp () {
-	// LibOVR must be shutdown after GLFW, thus no destroy calls here
 	PerspectiveRenderer::cleanUp();
 }
 
