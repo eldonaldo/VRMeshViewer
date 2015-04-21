@@ -20,7 +20,7 @@ public:
 	/**
 	 * @brief Default constructor
 	 */
-	Viewer (const std::string &title, int width, int height, bool fullscreen = false) throw ();
+	Viewer (const std::string &title, int width, int height, bool fullscreen = false, bool debug = false) throw ();
 
 	/**
 	 * @brief Default constructor
@@ -100,6 +100,7 @@ protected:
 	Arcball arcball; ///< Arcball
 	Matrix4f scaleMatrix; ///< Scale matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
+	bool debug; ///< Debug mode
 };
 
 VR_NAMESPACE_END

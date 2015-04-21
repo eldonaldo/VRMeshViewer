@@ -24,8 +24,11 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 	// Acceleration data structure to calculate per vertex normal
 	std::map<unsigned int, std::vector<unsigned int>> nTable;
 
+	int i = 0;
+
 	// Process input
 	while (file.good()) {
+		i++;
 		getline(file, line);
 
 		if (line.substr(0, 2) == "v ") {
@@ -110,7 +113,7 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 	}
 
 	file.close();
-
+	std::cout << i << std::endl;
 	// Calculate per vertex normals if not present
 	if (normals.size() == 0) {
 		std::vector<Normal3f> faceNormals(indices.size());
@@ -160,10 +163,9 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 	// Normals
 	n = normals.size();
 	MatrixXf N(3, n);
-	for (int i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++)
 		N.col(i) = normals[i].normalized();
-	}
-
+	
 	// Inddices
 	unsigned int m = indices.size();
 	MatrixXu F(3, m);

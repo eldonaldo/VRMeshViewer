@@ -9,16 +9,21 @@ Viewer *__cbref;
 	static bool glewInitialized = false;
 #endif
 
-Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen) throw ()
-	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0), scaleMatrix(Matrix4f::Identity()) {
+Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen, bool debug) throw ()
+	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0), scaleMatrix(Matrix4f::Identity()), debug(debug) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
-	hmd = ovrHmd_Create(0);
-	if (!hmd)
-		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+	if (!debug) {
+		hmd = ovrHmd_Create(0);
 		if (!hmd)
-			throw VRException("Could not start the Rift");
+			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+	} else {
+		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+	}
+		
+	if (!hmd)
+		throw VRException("Could not start the Rift");
 
 	if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
 		throw VRException("The Rift does not support all of the necessary sensors");
@@ -108,8 +113,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		float scale = 0.02f * y;
-		__cbref->scaleMatrix += Matrix4f::Identity() * 0.02f * y;
+		__cbref->scaleMatrix += Matrix4f::Identity() * 0.2f * y;
 		__cbref->scaleMatrix(3, 3) = 1.f;
 
 		if (__cbref->scaleMatrix(0, 0) <= 0)
@@ -184,7 +188,9 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		// Draw using attached renderer
 		renderer->draw();
 
-		glfwSwapBuffers(window);
+		if (renderer->getClassType() != EHMDRenderer)
+			glfwSwapBuffers(window);
+
 //		glfwPollEvents();
 		glfwWaitEvents();
 	}

@@ -47,7 +47,7 @@
 #include <memory>
 #include <math.h>
 #include "GLFW/glfw3.h"
-//#include <GLFW/glfw3native.h> // Needed for the Rift
+#include "GLFW/glfw3native.h"
 #include "OVR_CAPI.h"
 #include "OVR_Math.h"
 #include "tinyformat.h"

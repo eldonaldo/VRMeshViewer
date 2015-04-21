@@ -57,11 +57,11 @@ void RiftRenderer::preProcess () {
 	cfg.OGL.Header.BackBufferSize = OVR::Sizei(FBWidth, FBHeight);
 	cfg.OGL.Header.Multisample = 0;
 
-// Need to attach window for direct rendering on windows (only supported in windows)
+// Need to attach window for direct rendering (only supported on windows)
 #if defined(PLATFORM_WINDOWS)
-	//cfg.OGL.Window = glfwGetWin32Window(window);
-	//if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
-	//	ovrHmd_AttachToWindow(hmd, window, NULL, NULL);
+	cfg.OGL.Window = glfwGetWin32Window(window);
+	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
+		ovrHmd_AttachToWindow(hmd, glfwGetWin32Window(window), NULL, NULL);
 #endif
 
 	// We use distortion rendering

@@ -14,8 +14,8 @@ int main (int argc, char *argv[]) {
 
 	try {
 
-		// Must be first call. This sets up the OpenGL context
-		Viewer viewer("Virtual Reality Mesh Viewer", width, height);
+		// This sets up the OpenGL context and needs the be first call
+		Viewer viewer("Virtual Reality Mesh Viewer", width, height, false, false);
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();
@@ -26,7 +26,10 @@ int main (int argc, char *argv[]) {
 		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 45.0, width, height, 0.01, 10000.0));
 
 		// Load mesh
+		double t0 = glfwGetTime();
 		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/dragon/dragon.obj");
+		double t1 = glfwGetTime();
+		std::cout << t1 - t0 << std::endl;
 //		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/capsule/capsule.obj");
 
 		// Configure
