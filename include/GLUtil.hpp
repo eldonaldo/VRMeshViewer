@@ -211,6 +211,9 @@ public:
     /// Bind the framebuffer boject
     void bind();
 
+    // Clears the FB
+    void clear();
+
     /// Release/unbind the framebuffer object
     void release();
 
@@ -229,9 +232,12 @@ public:
     /// Return renderbuffer handle
     GLuint getDepth () const { return mDepth; }
 
+public:
+
+    Vector2i mSize;
+
 protected:
     GLuint mFramebuffer, mDepth, mColor;
-    Vector2i mSize;
     int mSamples;
     bool useTexture;
 };

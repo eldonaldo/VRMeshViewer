@@ -96,12 +96,10 @@ public:
 
 protected:
 
-	GLFramebuffer frameBuffer; ///< The framebuffer which we draw to with the rift
+	GLFramebuffer frameBuffer[2]; ///< The framebuffer which we draw to with the rift for the left and right eye
 	ovrGLTexture eyeTexture[2]; ///< OpenGL Rift textures
-	ovrRecti eyeRenderViewport[2]; ///< Viewport for left and right eye
 	ovrEyeRenderDesc eyeRenderDesc[2]; ///< Render structure
 	ovrGLConfig cfg; ///< Oculus config
-	OVR::Sizei renderTargetSize; ///< Render buffer/texture size
 };
 
 VR_NAMESPACE_END

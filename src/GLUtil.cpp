@@ -333,6 +333,12 @@ void GLFramebuffer::init(const Vector2i &size, int nSamples, bool nUseTexture = 
     release();
 }
 
+void GLFramebuffer::clear() {
+    bind();
+    glViewport(0, 0, mSize.x(), mSize.y());
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
 void GLFramebuffer::free() {
 	if (!useTexture) {
 		glDeleteRenderbuffers(1, &mColor);

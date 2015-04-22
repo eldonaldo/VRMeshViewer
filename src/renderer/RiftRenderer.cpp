@@ -9,7 +9,6 @@ RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float 
 	setViewMatrix(Matrix4f::Identity());
 	setProjectionMatrix(Matrix4f::Identity());
 	setModelMatrix(Matrix4f::Identity());
-
 }
 
 RiftRenderer::~RiftRenderer() {
@@ -24,44 +23,22 @@ void RiftRenderer::preProcess () {
 
 	// Configure Stereo settings.
 	ovrFovPort eyeFov[2] = { hmd->DefaultEyeFov[0], hmd->DefaultEyeFov[1] };
-	OVR::Sizei recommenedTex0Size = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, eyeFov[0], 1.0f);
-	OVR::Sizei recommenedTex1Size = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, eyeFov[1], 1.0f);
 
-	// Calculate texture dimension needed
-	renderTargetSize.w = recommenedTex0Size.w + recommenedTex1Size.w;
-	renderTargetSize.h = std::max(recommenedTex0Size.h, recommenedTex1Size.h);
+	// Generate framebuffers for left and right eye
+	OVR::Sizei texLeft = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, eyeFov[0], 1.0f);
+	frameBuffer[0].init(Vector2i(texLeft.w, texLeft.h), 0, true);
+	frameBuffer[0].release();
 
-	// Generate framebuffer for rendering
-	frameBuffer.init(Vector2i(renderTargetSize.w, renderTargetSize.h), 0, true);
-	frameBuffer.release();
-
-	std::cout << "FB Size: " << renderTargetSize.w << ", " << renderTargetSize.h << std::endl;
-
-	// Set drawing spaces for the left and right eyes
-	eyeRenderViewport[0].Pos = OVR::Vector2i(0, 0);
-	eyeRenderViewport[0].Size = OVR::Sizei(renderTargetSize.w / 2, renderTargetSize.h);
-	eyeRenderViewport[1].Pos = OVR::Vector2i((renderTargetSize.w + 1) / 2, 0);
-	eyeRenderViewport[1].Size = eyeRenderViewport[0].Size;
-
-	// Rendering texture for the left eye
-	eyeTexture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
-	eyeTexture[0].OGL.Header.TextureSize = renderTargetSize;
-	eyeTexture[0].OGL.Header.RenderViewport = eyeRenderViewport[0];
-	eyeTexture[0].OGL.TexId = frameBuffer.getColor();
-
-	// Rendering texture for the right eye
-	eyeTexture[1] = eyeTexture[0];
-	eyeTexture[1].OGL.Header.RenderViewport = eyeRenderViewport[1];
+	OVR::Sizei texRight = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, eyeFov[1], 1.0f);
+	frameBuffer[1].init(Vector2i(texRight.w, texRight.h), 0, true);
+	frameBuffer[1].release();
 
 	// Configure the Rift to use OpenGL
 	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
 	cfg.OGL.Header.BackBufferSize = hmd->Resolution;
 	cfg.OGL.Header.Multisample = 0;
-
-	std::cout << "Rift Resolution: " << hmd->Resolution.w << ", " << hmd->Resolution.h << std::endl;
-
-// Need to attach window for direct rendering (only supported on windows)
 #if defined(PLATFORM_WINDOWS)
+	// Need to attach window for direct rendering (only supported on windows)
 	cfg.OGL.Window = glfwGetWin32Window(window);
 	if (!(hmd->HmdCaps & ovrHmdCap_ExtendDesktop))
 		ovrHmd_AttachToWindow(hmd, glfwGetWin32Window(window), NULL, NULL);
@@ -75,27 +52,16 @@ void RiftRenderer::preProcess () {
 
 void RiftRenderer::update () {
 	PerspectiveRenderer::update();
-
-	// Query the HMD for the current tracking state.
-//	ovrTrackingState ts  = ovrHmd_GetTrackingState(hmd, ovr_GetTimeInSeconds());
-//	if (ts.StatusFlags & (ovrStatus_OrientationTracked | ovrStatus_PositionTracked)) {
-//		ovrPoseStatef pose = ts.HeadPose;
-//	}
 }
 
 void RiftRenderer::clear (Vector3f background) {
-	frameBuffer.bind();
 	PerspectiveRenderer::clear(background);
 }
 
 void RiftRenderer::draw () {
-//	static float yaw(1);
-//	static OVector3f pos2(0, 0, 0);
-//	pos2.y = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, pos2.y);
 
+	// Begin Rift SDK distortion mode
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
-
-	frameBuffer.bind();
 
 	// Get eye poses, feeding in correct IPD offset
 	ovrVector3f viewOffset[2] = {eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset};
@@ -104,6 +70,10 @@ void RiftRenderer::draw () {
 
 	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
 		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
+
+		// Bind framebuffer of current eye for off screen rendering
+		frameBuffer[eyeIndex].bind();
+		frameBuffer[eyeIndex].clear();
 
 		// Get view and projection matrices
 //		OMatrix4f rollPitchYaw       = OMatrix4f::RotationY(yaw);
@@ -129,28 +99,32 @@ void RiftRenderer::draw () {
 //		setProjectionMatrix(p);
 
 		setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
-
 		setViewMatrix(lookAt(
 			Vector3f(0, 0, 5), // Camera is at (0,0,10), in world space
 			Vector3f(0, 0, 0), // And looks at the origin
 			Vector3f(0, 1, 0) // Head is up
 		));
 
+		// Update shader state
 		shader->bind();
 		shader->setUniform("light.position", Vector3f(0, 0, 5));
 		shader->setUniform("modelMatrix", getModelMatrix());
 		shader->setUniform("normalMatrix", getNormalMatrix());
 		shader->setUniform("mvp", getMvp());
 
-		glViewport(eyeRenderViewport[eye].Pos.x, eyeRenderViewport[eye].Pos.y, eyeRenderViewport[eye].Size.w, eyeRenderViewport[eye].Size.h);
-
 		// Draw the mesh for each eye
 		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getNumFaces());
+
+		// Do distortion rendering, Present and flush/sync
+		OVR::Sizei size(frameBuffer[eyeIndex].mSize.x(), frameBuffer[eyeIndex].mSize.y());
+		eyeTexture[eyeIndex].OGL.Header.API = ovrRenderAPI_OpenGL;
+		eyeTexture[eyeIndex].OGL.Header.TextureSize = size;
+		eyeTexture[eyeIndex].OGL.Header.RenderViewport.Pos = OVR::Vector2i(0, 0);
+		eyeTexture[eyeIndex].OGL.Header.RenderViewport.Size = size;
+		eyeTexture[eyeIndex].OGL.TexId = frameBuffer[eyeIndex].getColor();
 	}
 
-	//frameBuffer.blit();
-	frameBuffer.release();
-	frameBuffer.blit();
+	// End SDK distortion mode
 	ovrHmd_EndFrame(hmd, eyeRenderPose, &eyeTexture[0].Texture);
 }
 
