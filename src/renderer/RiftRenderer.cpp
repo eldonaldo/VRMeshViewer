@@ -20,7 +20,7 @@ void RiftRenderer::preProcess () {
 	PerspectiveRenderer::preProcess();
 
 	if (hmd == nullptr)
-		throw new VRException("HMD not set! Can't do pre processing for the Rift");
+		throw new VRException("HMD not set! Can't do pre necessary processing for the Rift");
 
 	// Configure Stereo settings.
 	ovrFovPort eyeFov[2] = { hmd->DefaultEyeFov[0], hmd->DefaultEyeFov[1] };
@@ -32,9 +32,10 @@ void RiftRenderer::preProcess () {
 	renderTargetSize.h = std::max(recommenedTex0Size.h, recommenedTex1Size.h);
 
 	// Generate framebuffer for rendering
-	int multiSample = 1;
-	frameBuffer.init(Vector2i(renderTargetSize.w, renderTargetSize.h), multiSample, true);
+	frameBuffer.init(Vector2i(renderTargetSize.w, renderTargetSize.h), 0, true);
 	frameBuffer.release();
+
+	std::cout << "FB Size: " << renderTargetSize.w << ", " << renderTargetSize.h << std::endl;
 
 	// Set drawing spaces for the left and right eyes
 	eyeRenderViewport[0].Pos = OVR::Vector2i(0, 0);
@@ -54,8 +55,10 @@ void RiftRenderer::preProcess () {
 
 	// Configure the Rift to use OpenGL
 	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
-	cfg.OGL.Header.BackBufferSize = OVR::Sizei(FBWidth, FBHeight);
+	cfg.OGL.Header.BackBufferSize = hmd->Resolution;
 	cfg.OGL.Header.Multisample = 0;
+
+	std::cout << "Rift Resolution: " << hmd->Resolution.w << ", " << hmd->Resolution.h << std::endl;
 
 // Need to attach window for direct rendering (only supported on windows)
 #if defined(PLATFORM_WINDOWS)
@@ -91,6 +94,8 @@ void RiftRenderer::draw () {
 //	pos2.y = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, pos2.y);
 
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
+
+	frameBuffer.bind();
 
 	// Get eye poses, feeding in correct IPD offset
 	ovrVector3f viewOffset[2] = {eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset};
@@ -143,6 +148,8 @@ void RiftRenderer::draw () {
 		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getNumFaces());
 	}
 
+	//frameBuffer.blit();
+	frameBuffer.release();
 	frameBuffer.blit();
 	ovrHmd_EndFrame(hmd, eyeRenderPose, &eyeTexture[0].Texture);
 }

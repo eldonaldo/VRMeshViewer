@@ -28,7 +28,9 @@ public:
 	 * @brief Default constructor
 	 */
 	Renderer (std::shared_ptr<GLShader> &s)
-		: shader(s), FBWidth(0), FBHeight(0), window(nullptr) {
+		: shader(s), FBWidth(0), FBHeight(0), window(nullptr), viewMatrix(Matrix4f::Identity())
+		, modelMatrix(Matrix4f::Identity()), normalMatrix(Matrix3f::Identity()), projectionMatrix(Matrix4f::Identity()), mvp(Matrix4f::Identity())
+		, hmd(nullptr) {
 
 	};
 
@@ -95,7 +97,7 @@ public:
 	/**
 	 * @brief Returns the class type
 	 */
-	const RendererType getClassType () const {
+	virtual const RendererType getClassType () const {
 		return ENormalRenderer;
 	}
 

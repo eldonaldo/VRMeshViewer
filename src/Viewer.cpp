@@ -5,7 +5,7 @@ VR_NAMESPACE_BEGIN
 // Used inside callback functions to access the viewer's state
 Viewer *__cbref;
 
-#if defined(WIN32)
+#if defined(PLATFORM_WINDOWS)
 	static bool glewInitialized = false;
 #endif
 
@@ -14,13 +14,12 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
-	if (!debug) {
+
+	if (!debug)
 		hmd = ovrHmd_Create(0);
-		if (!hmd)
-			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
-	} else {
+	
+	if (!hmd)
 		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
-	}
 		
 	if (!hmd)
 		throw VRException("Could not start the Rift");
@@ -188,11 +187,12 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		// Draw using attached renderer
 		renderer->draw();
 
-		if (renderer->getClassType() != EHMDRenderer)
-			glfwSwapBuffers(window);
+		// Swap framebuffer
+		glfwSwapBuffers(window);
 
-//		glfwPollEvents();
-		glfwWaitEvents();
+		// Poll or wait for events
+		glfwPollEvents();
+		//glfwWaitEvents();
 	}
 
 	// Renderer cleapup

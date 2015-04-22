@@ -37,6 +37,13 @@ public:
 	 */
 	void setRenderer (std::unique_ptr<Renderer> &r) {
 		renderer = std::move(r);
+		
+		if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
+			width = hmd->Resolution.w;
+			height = hmd->Resolution.h;
+			glfwSetWindowSize(window, width, height);
+			glViewport(0, 0, width, height);
+		}
 	}
 
 	/**
