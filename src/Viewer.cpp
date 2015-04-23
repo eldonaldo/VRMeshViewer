@@ -88,14 +88,28 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
     glfwPollEvents();
 #endif
 
-
     // Setup arcball
     arcball.setSize(Vector2i(width, height));
 
 	// Set callbacks
 	glfwSetKeyCallback(window, [] (GLFWwindow *window, int key, int scancode, int action, int mods) {
-		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, 1);
+		switch (key) {
+			case GLFW_KEY_ESCAPE:
+				if (action == GLFW_PRESS)
+					glfwSetWindowShouldClose(window, 1);
+
+				break;
+
+			case GLFW_KEY_UP:
+				static int t = 2;
+				if (action == GLFW_PRESS) {
+					t = t + 2;
+					Eigen::Affine3f translate(Eigen::Translation3f(0, t, 0));
+					std::cout << translate.matrix() * __cbref->renderer->getModelMatrix() << std::endl;
+					__cbref->renderer->setModelMatrix(translate.matrix() * __cbref->renderer->getModelMatrix());
+				}
+				break;
+		}
 	});
 
 	/* Mouse click callback */
@@ -112,7 +126,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		__cbref->scaleMatrix += Matrix4f::Identity() * 0.2f * y;
+		__cbref->scaleMatrix += Matrix4f::Identity() * 0.02f * y;
 		__cbref->scaleMatrix(3, 3) = 1.f;
 
 		if (__cbref->scaleMatrix(0, 0) <= 0)

@@ -41,7 +41,7 @@ std::shared_ptr<Mesh> ObjectLoader::loadOBJ (std::string path) throw () {
 			unsigned int ia, ib, ic;
 			s >> a; s >> b; s >> c;
 
-			// Need to determine which format the faces are stored ([v1 v2 v3] OR [v1/vt1 v2/vt2 v3/vt3] OR [v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3] OR [v1//vn1 v2//vn2 v3//vn3])
+			// Need to determine which in format the faces are stored ([v1 v2 v3] OR [v1/vt1 v2/vt2 v3/vt3] OR [v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3] OR [v1//vn1 v2//vn2 v3//vn3])
 			if (a.find("/") != string::npos) {
 				// Format [v1/vt1 v2/vt2 v3/vt3] OR [v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3]
 				string indexA = a.substr(0, a.find("/")), indexB = b.substr(0, b.find("/")), indexC = c.substr(0, c.find("/"));

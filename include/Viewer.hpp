@@ -4,6 +4,7 @@
 #include "mesh/Mesh.hpp"
 #include "renderer/Renderer.hpp"
 #include "renderer/RiftRenderer.hpp"
+#include "Eigen/Geometry"
 
 VR_NAMESPACE_BEGIN
 

@@ -211,7 +211,7 @@ public:
     /// Bind the framebuffer boject
     void bind();
 
-    // Clears the FB
+    /// Clears the FB
     void clear();
 
     /// Release/unbind the framebuffer object

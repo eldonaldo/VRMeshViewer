@@ -63,11 +63,23 @@ void RiftRenderer::draw () {
 	// Begin Rift SDK distortion mode
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
+	// Camera position
+	Vector3f camPosition(0, 0, 5);
+
+	// Adjust camera height to person's height, if available
+	camPosition.y() = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, camPosition.y());
+
+	// Copy to OVR Vector to calculate projection matrix
+	OVector3f cameraPosition(camPosition.x(), camPosition.y(), camPosition.z());
+
+	float yaw = 0.f;
+
 	// Get eye poses, feeding in correct IPD offset
-	ovrVector3f viewOffset[2] = {eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset};
+	ovrVector3f viewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset };
 	ovrPosef eyeRenderPose[2];
 	ovrHmd_GetEyePoses(hmd, 0, viewOffset, eyeRenderPose, NULL);
 
+	// Render for each eye
 	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
 		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
 
@@ -75,39 +87,44 @@ void RiftRenderer::draw () {
 		frameBuffer[eyeIndex].bind();
 		frameBuffer[eyeIndex].clear();
 
-		// Get view and projection matrices
-//		OMatrix4f rollPitchYaw       = OMatrix4f::RotationY(yaw);
-//		OMatrix4f finalRollPitchYaw  = rollPitchYaw * OMatrix4f(eyeRenderPose[eye].Orientation);
-//		OVector3f finalUp            = finalRollPitchYaw.Transform(OVector3f(0, 1, 0));
-//		OVector3f finalForward       = finalRollPitchYaw.Transform(OVector3f(0, 0, -1));
-//		OVector3f shiftedEyePos      = pos2 + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
+		// Use data from rift sensors
+		OMatrix4f rollPitchYaw       = OMatrix4f::RotationY(yaw);
+		OMatrix4f finalRollPitchYaw  = rollPitchYaw * OMatrix4f(eyeRenderPose[eye].Orientation);
+		OVector3f finalUp            = finalRollPitchYaw.Transform(OVector3f(0, 1, 0));
+		OVector3f finalForward       = finalRollPitchYaw.Transform(OVector3f(0, 0, -1));
+		OVector3f shiftedEyePos      = cameraPosition + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
+
+//		// Calculate view and projection matrices
+		std::cout << "Eye: " << shiftedEyePos.x << ", " << shiftedEyePos.y << ", " << shiftedEyePos.z << std::endl;
+		std::cout << "At: " << (shiftedEyePos + finalForward).x << ", " << (shiftedEyePos + finalForward).y << ", " << (shiftedEyePos + finalForward).z << std::endl;
+		std::cout << "Up: " << finalUp.x << ", " << finalUp.y << ", " << finalUp.z << "\n" << std::endl;
 
 //		OMatrix4f view = OMatrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
-//		OMatrix4f view = OMatrix4f::LookAtRH(
-//			OVector3f(4, 3, -3),
-//			OVector3f(0, 0, 0),
-//			OVector3f(0, 1, 0)
-//		);
-//
-//		OMatrix4f proj = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], 0.2f, 1000.0f, ovrProjection_RightHanded);
-//
-//		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
-//		Matrix4f p = Eigen::Map<Matrix4f>((float *) proj.M);
-//		Vector3f pos(shiftedEyePos.x, shiftedEyePos.y, shiftedEyePos.z);
+//		OMatrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
+		// Copy to Eigen matrices
+//		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
+//		Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.M);
+
+		// Update matrices
 //		setViewMatrix(v);
 //		setProjectionMatrix(p);
 
 		setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 		setViewMatrix(lookAt(
-			Vector3f(0, 0, 5), // Camera is at (0,0,10), in world space
+			camPosition, // Camera is at (0, 0, 5), in world space
 			Vector3f(0, 0, 0), // And looks at the origin
 			Vector3f(0, 1, 0) // Head is up
 		));
+//		setViewMatrix(lookAt(
+//			Vector3f(-0.032, 1.675, 5),
+//			Vector3f(-0.032, 1.675, 4),
+//			Vector3f(0, 1, 0)
+//		));
 
 		// Update shader state
 		shader->bind();
-		shader->setUniform("light.position", Vector3f(0, 0, 5));
+		shader->setUniform("light.position", camPosition);
 		shader->setUniform("modelMatrix", getModelMatrix());
 		shader->setUniform("normalMatrix", getNormalMatrix());
 		shader->setUniform("mvp", getMvp());

@@ -1,6 +1,5 @@
 #include "common.hpp"
 #include "Viewer.hpp"
-#include "GLUtil.hpp"
 #include "mesh/ObjectLoader.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
 #include "renderer/RiftRenderer.hpp"
@@ -27,11 +26,9 @@ int main (int argc, char *argv[]) {
 
 		// Load mesh
 		double t0 = glfwGetTime();
-		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/dragon/dragon.obj");
+		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/dragon/dragon-1.obj");
 //		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/capsule/capsule.obj");
-		double t1 = glfwGetTime();
-		std::cout << t1 - t0 << std::endl;
-//		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/capsule/capsule.obj");
+		std::cout << glfwGetTime() - t0 << " seconds needed to load OBJ" << std::endl;
 
 		// Configure
 		viewer.setRenderer(renderer);

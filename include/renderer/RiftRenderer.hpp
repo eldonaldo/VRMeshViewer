@@ -90,7 +90,7 @@ public:
 	/**
 	 * @brief Returns the class type
 	 */
-	const RendererType getClassType () const {
+	virtual const RendererType getClassType () const {
 		return EHMDRenderer;
 	}
 

@@ -9,6 +9,9 @@
 	#pragma warning(disable : 4244)
 #elif __APPLE__
 	#define PLATFORM_APPLE
+	// Prevent OpenGL Compiler warnings
+	# define __gl_h_
+	# define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #elif __linux
 	#define PLATFORM_LINUX
 #endif
