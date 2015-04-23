@@ -78,6 +78,7 @@ include_directories(
 	ext/filesystem
 	ext/stb_image
 	ext/ovr/LibOVR/include
+	ext/ovr/LibOVRKernel/Src
 	ext/ovr/LibOVR/include/Extras
 	include
 	${CMAKE_BINARY_DIR}

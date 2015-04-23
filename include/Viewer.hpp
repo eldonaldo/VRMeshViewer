@@ -43,6 +43,7 @@ public:
 			width = hmd->Resolution.w;
 			height = hmd->Resolution.h;
 			glfwSetWindowSize(window, width, height);
+			glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
 			glViewport(0, 0, width, height);
 		}
 	}

@@ -10,14 +10,12 @@ Viewer *__cbref;
 #endif
 
 Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen, bool debug) throw ()
-	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0), scaleMatrix(Matrix4f::Identity()), debug(debug) {
+	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0), scaleMatrix(Matrix4f::Identity()), debug(debug), hmd(nullptr) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
+	hmd = ovrHmd_Create(0);
 
-	if (!debug)
-		hmd = ovrHmd_Create(0);
-	
 	if (!hmd)
 		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
 		
@@ -36,6 +34,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
 	// Enable multi sampling
 	glfwWindowHint(GLFW_SAMPLES, 2);
@@ -50,6 +49,12 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	if (!window)
 		throw VRException("Could not open a GFLW window");
+
+#if defined(PLATFORM_WINDOWS)
+	// Need to attach window for direct rendering (only supported on windows)
+	if (hmd != nullptr)
+		ovrHmd_AttachToWindow(hmd, glfwGetWin32Window(window), NULL, NULL);
+#endif
 
 	glfwMakeContextCurrent(window);
 
@@ -67,10 +72,10 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	background = Vector3f(0.8f, 0.8f, 0.8f);
 
 	glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
-	glViewport(0, 0, FBWidth, FBHeight);
+	glViewport(0, 0, width, height);
 	glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 	glfwSwapBuffers(window);
 
 	// Enable depth testing and multi sampling
@@ -201,12 +206,12 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 		// Draw using attached renderer
 		renderer->draw();
 
-		// Swap framebuffer
-		glfwSwapBuffers(window);
+		// Swap framebuffer, only if the rift is not attached
+		if (renderer->getClassType() != EHMDRenderer)
+			glfwSwapBuffers(window);
 
 		// Poll or wait for events
 		glfwPollEvents();
-		//glfwWaitEvents();
 	}
 
 	// Renderer cleapup

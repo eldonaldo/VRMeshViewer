@@ -302,13 +302,20 @@ void GLFramebuffer::init(const Vector2i &size, int nSamples, bool nUseTexture = 
     	// Use texture
     	glGenTextures(1, &mColor);
     	glBindTexture(GL_TEXTURE_2D, mColor);
-    	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x(), size.y(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x(), size.y(), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-		glGenRenderbuffers(1, &mDepth);
-		glBindRenderbuffer(GL_RENDERBUFFER, mDepth);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size.x(), size.y());
+		// depth buffer
+		glGenTextures(1, &mDepth);
+		glBindTexture(GL_TEXTURE_2D, mDepth);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size.x(), size.y(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
     }
 
     glGenFramebuffers(1, &mFramebuffer);
@@ -320,7 +327,7 @@ void GLFramebuffer::init(const Vector2i &size, int nSamples, bool nUseTexture = 
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, mDepth);
     } else {
     	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColor, 0);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepth);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepth, 0);
     }
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
@@ -334,7 +341,9 @@ void GLFramebuffer::init(const Vector2i &size, int nSamples, bool nUseTexture = 
 }
 
 void GLFramebuffer::clear() {
-    bind();
+	glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mColor, 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepth, 0);
     glViewport(0, 0, mSize.x(), mSize.y());
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -351,6 +360,7 @@ void GLFramebuffer::free() {
 
 void GLFramebuffer::bind() {
     glBindFramebuffer(GL_FRAMEBUFFER, mFramebuffer);
+	//glViewport(0, 0, mSize.x(), mSize.y());
     if (mSamples > 1)
         glEnable(GL_MULTISAMPLE);
 }
@@ -359,6 +369,8 @@ void GLFramebuffer::release() {
     if (mSamples > 1)
         glDisable(GL_MULTISAMPLE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GLFramebuffer::blit() {
@@ -370,6 +382,17 @@ void GLFramebuffer::blit() {
                       GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void GLFramebuffer::blit(int ox, int oy) {
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mFramebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glDrawBuffer(GL_BACK);
+
+	glBlitFramebuffer(0, 0, mSize.x(), mSize.y(), ox, oy, mSize.x(), mSize.y(),
+		GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 Eigen::Vector3f project(const Eigen::Vector3f &obj,

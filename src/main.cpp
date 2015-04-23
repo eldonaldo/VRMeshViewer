@@ -27,7 +27,7 @@ int main (int argc, char *argv[]) {
 		// Load mesh
 		double t0 = glfwGetTime();
 		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/dragon/dragon-1.obj");
-//		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/capsule/capsule.obj");
+//		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/cube/cube.obj");
 		std::cout << glfwGetTime() - t0 << " seconds needed to load OBJ" << std::endl;
 
 		// Configure

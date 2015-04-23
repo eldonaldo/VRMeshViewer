@@ -220,6 +220,9 @@ public:
     /// Blit the framebuffer object onto the screen
     void blit();
 
+	/// Blit the framebuffer object onto the screen with offset
+	void blit (int ox, int oy);
+
     /// Return whether or not the framebuffer object has been initialized
     inline bool ready() { return mFramebuffer != 0; }
 
