@@ -57,31 +57,25 @@ void RiftRenderer::update () {
 }
 
 void RiftRenderer::clear (Vector3f background) {
-	//frameBuffer[0].bind();
-	//PerspectiveRenderer::clear(background);
-	//frameBuffer[0].release();
-
-	//frameBuffer[1].bind();
-	//PerspectiveRenderer::clear(background);
-	//frameBuffer[1].release();
+	frameBuffer[0].clear();
+	frameBuffer[1].clear();
 }
 
 void RiftRenderer::draw () {
 	// Camera position
 	Vector3f camPosition(0, 0, 5);
-
 	
+	// Begin distortion rendering
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
-	
 
 	// Adjust camera height to person's height, if available
-//	camPosition.y() = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, camPosition.y());
+	camPosition.y() = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, camPosition.y());
 
 	// Copy to OVR Vector to calculate projection matrix
-	//OVector3f cameraPosition(camPosition.x(), camPosition.y(), camPosition.z());
+	OVector3f cameraPosition(camPosition.x(), camPosition.y(), camPosition.z());
 
 	// We start out looking in the positive Z (180 degree rotation).
-	//float yaw = 3.141592f;
+	float yaw = 3.141592f;
 
 	// Get eye poses, feeding in correct IPD offset
 	ovrVector3f viewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset };
@@ -94,7 +88,6 @@ void RiftRenderer::draw () {
 
 		// Bind framebuffer of current eye for off screen rendering
 		frameBuffer[eyeIndex].bind();
-		frameBuffer[eyeIndex].clear();
 
 		// Use data from rift sensors
 		//OMatrix4f rollPitchYaw       = OMatrix4f::RotationY(yaw);
@@ -103,27 +96,16 @@ void RiftRenderer::draw () {
 		//OVector3f finalForward       = finalRollPitchYaw.Transform(OVector3f(0, 0, -1));
 		//OVector3f shiftedEyePos      = cameraPosition + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
 
-//		// Calculate view and projection matrices
-		//std::cout << "Eye: " << shiftedEyePos.x << ", " << shiftedEyePos.y << ", " << shiftedEyePos.z << std::endl;
-		//std::cout << "At: " << (shiftedEyePos + finalForward).x << ", " << (shiftedEyePos + finalForward).y << ", " << (shiftedEyePos + finalForward).z << std::endl;
-		//std::cout << "Up: " << finalUp.x << ", " << finalUp.y << ", " << finalUp.z << "\n" << std::endl;
+		//OMatrix4f view = OMatrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
+		//OMatrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
-//		OMatrix4f view = OMatrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
-//		OMatrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
+		//// Copy to Eigen matrices
+		//Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
+		//Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.M);
 
-		// Copy to Eigen matrices
-//		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
-//		Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.M);
-
-		// Update matrices
-//		setViewMatrix(v);
-//		setProjectionMatrix(p);
-
-//		setViewMatrix(lookAt(
-//			Vector3f(-0.032, 1.675, 5),
-//			Vector3f(-0.032, 1.675, 4),
-//			Vector3f(0, 1, 0)
-//		));
+		//// Update matrices
+		//setViewMatrix(v);
+		//setProjectionMatrix(p);
 
 		setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 		setViewMatrix(lookAt(
@@ -131,6 +113,7 @@ void RiftRenderer::draw () {
 			Vector3f(0, 0, 0), // And looks at the origin
 			Vector3f(0, 1, 0) // Head is up
 		));
+
 		// Update shader state
 		shader->bind();
 		shader->setUniform("light.position", camPosition);
@@ -142,9 +125,9 @@ void RiftRenderer::draw () {
 		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getNumFaces());
 	}
 
+	// Do distortion rendering, Present and flush/sync
 	ovrGLTexture eyeTexture[2];
 	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
-		// Do distortion rendering, Present and flush/sync
 		OVR::Sizei size(frameBuffer[eyeIndex].mSize.x(), frameBuffer[eyeIndex].mSize.y());
 		eyeTexture[eyeIndex].OGL.Header.API = ovrRenderAPI_OpenGL;
 		eyeTexture[eyeIndex].OGL.Header.TextureSize = size;
