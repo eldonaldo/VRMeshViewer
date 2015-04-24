@@ -55,7 +55,18 @@ void RiftRenderer::preProcess () {
 
 void RiftRenderer::update () {
 	PerspectiveRenderer::update();
+	/**
+	 * Nothing else to do here since all the updates need to be done
+	 * at the place where the rendering occurs because of the eye shift
+	 */
+}
 
+void RiftRenderer::clear (Vector3f background) {
+	frameBuffer[0].clear();
+	frameBuffer[1].clear();
+}
+
+void RiftRenderer::draw () {
 	// Begin distortion rendering
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
@@ -66,44 +77,32 @@ void RiftRenderer::update () {
 	// Get eye poses, feeding in correct IPD offset
 	ovrVector3f viewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset };
 	ovrHmd_GetEyePoses(hmd, 0, viewOffset, eyeRenderPose, NULL);
-	
-	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
-		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
-
-		// Use data from rift sensors
-		OVR::Matrix4f rollPitch = OVR::Matrix4f(eyeRenderPose[eye].Orientation);
-		OVR::Vector3f up = rollPitch.Transform(OVR::Vector3f(0, 1, 0));
-		OVR::Vector3f forward = rollPitch.Transform(OVR::Vector3f(0, 0, -1));
-		OVR::Vector3f shiftedEyePos = camPosition + rollPitch.Transform(eyeRenderPose[eye].Position);
-		
-		// Calculate view and projection matrices
-		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
-		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
-
-		// Copy to Eigen matrices
-		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.M);
-		Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.M);
-
-		// Update matrices
-		setProjectionMatrix(p.transpose());
-		setViewMatrix(v.transpose());
-	}
-}
-
-void RiftRenderer::clear (Vector3f background) {
-	frameBuffer[0].clear();
-	frameBuffer[1].clear();
-}
-
-void RiftRenderer::draw () {
-	ovrGLTexture eyeTexture[2];
 
 	// Render for each eye
+	ovrGLTexture eyeTexture[2];
 	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
 		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
 
 		// Bind framebuffer of current eye for off screen rendering
 		frameBuffer[eyeIndex].bind();
+
+		// Use data from rift sensors
+		OVR::Matrix4f rollPitch = OVR::Matrix4f(eyeRenderPose[eye].Orientation);
+		OVR::Vector3f up = rollPitch.Transform(OVR::Vector3f(0, 1, 0));
+		OVR::Vector3f forward = rollPitch.Transform(OVR::Vector3f(0, 0, -1));
+		OVR::Vector3f shiftedEyePos = camPosition + viewOffset[eye] + rollPitch.Transform(eyeRenderPose[eye].Position);
+
+		// Calculate view and projection matrices
+		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
+		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
+
+		// Copy to Eigen matrices
+		Matrix4f v = Eigen::Map<Matrix4f>((float *)view.Transposed().M);
+		Matrix4f p = Eigen::Map<Matrix4f>((float *)projection.Transposed().M);
+
+		// Update matrices
+		setProjectionMatrix(p);
+		setViewMatrix(v);
 
 		// Update shader state
 		shader->bind();
