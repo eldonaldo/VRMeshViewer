@@ -4,7 +4,7 @@
 #include "mesh/Mesh.hpp"
 #include "renderer/Renderer.hpp"
 #include "renderer/RiftRenderer.hpp"
-#include "Eigen/Geometry"
+#include "GLUtil.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -88,6 +88,7 @@ protected:
 	std::shared_ptr<Mesh> mesh; ///< Pointer to mesh
 	Arcball arcball; ///< Arcball
 	Matrix4f scaleMatrix; ///< Scale matrix
+	Matrix4f translateMatrix; ///< Translation matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
 	bool debug; ///< Debug mode
 };

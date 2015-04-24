@@ -10,7 +10,8 @@ Viewer *__cbref;
 #endif
 
 Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen, bool debug) throw ()
-	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0), scaleMatrix(Matrix4f::Identity()), debug(debug), hmd(nullptr) {
+	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0)
+	, scaleMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity()), debug(debug), hmd(nullptr) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -37,8 +38,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
 	// Enable multi sampling
-	glfwWindowHint(GLFW_SAMPLES, 2);
-
+	//glfwWindowHint(GLFW_SAMPLES, 2);
+	
 	if (fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
@@ -75,14 +76,13 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glViewport(0, 0, width, height);
 	glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glfwSwapInterval(1);
 	glfwSwapBuffers(window);
 
 	// Enable depth testing and multi sampling
 //	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 
 #if defined(PLATFORM_APPLE)
     /* Poll for events once before starting a potentially
@@ -98,23 +98,50 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// Set callbacks
 	glfwSetKeyCallback(window, [] (GLFWwindow *window, int key, int scancode, int action, int mods) {
+		static float dty = 0.f, dtx = 0.f;
+		float dy = 0.02f, dx = 0.02f, exp = 0.2f;
+
+		if (action == GLFW_PRESS)
+			exp = 0.2f;
+
 		switch (key) {
 			case GLFW_KEY_ESCAPE:
 				if (action == GLFW_PRESS)
 					glfwSetWindowShouldClose(window, 1);
-
 				break;
 
 			case GLFW_KEY_UP:
-				static int t = 2;
-				if (action == GLFW_PRESS) {
-					t = t + 2;
-					Eigen::Affine3f translate(Eigen::Translation3f(0, t, 0));
-					std::cout << translate.matrix() * __cbref->renderer->getModelMatrix() << std::endl;
-					__cbref->renderer->setModelMatrix(translate.matrix() * __cbref->renderer->getModelMatrix());
-				}
+				if (action == GLFW_REPEAT)
+					exp = exp + 0.02f;
+
+				dty = dty + dy + powf(exp, 1.8f);
 				break;
+
+			case GLFW_KEY_DOWN:
+				if (action == GLFW_REPEAT)
+					exp = exp - 0.02f;
+
+				dty = dty - dy - powf(exp, 1.8f);
+				break;
+
+			case GLFW_KEY_LEFT:
+				if (action == GLFW_REPEAT)
+					exp = exp - 0.02f;
+
+				dtx = dtx - dx - powf(exp, 1.8f);
+				break;
+
+			case GLFW_KEY_RIGHT:
+				if (action == GLFW_REPEAT)
+					exp = exp + 0.02f;
+
+				dtx = dtx + dx + powf(exp, 1.8f);
+				break;
+
 		}
+
+		__cbref->translateMatrix = translate(Matrix4f::Identity(), Vector3f(dtx, dty, 0));
+		std::cout << __cbref->translateMatrix << std::endl;
 	});
 
 	/* Mouse click callback */
@@ -206,7 +233,7 @@ void Viewer::display(std::shared_ptr<Mesh> &mesh, std::unique_ptr<Renderer> &r) 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Arcball rotationa and scaling
-		renderer->setModelMatrix(scaleMatrix * arcball.matrix(renderer->getViewMatrix()));
+		renderer->setModelMatrix(translateMatrix * scaleMatrix * arcball.matrix(renderer->getViewMatrix()));
 
 		// Update state
 		renderer->update();

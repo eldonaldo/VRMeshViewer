@@ -37,7 +37,7 @@ void RiftRenderer::preProcess () {
 	// Configure the Rift to use OpenGL
 	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
 	cfg.OGL.Header.BackBufferSize = hmd->Resolution;
-	cfg.OGL.Header.Multisample = 1;
+	cfg.OGL.Header.Multisample = 0;
 #if defined(PLATFORM_WINDOWS)
 	// Need to attach window for direct rendering (only supported on windows)
 	cfg.OGL.Window = glfwGetWin32Window(window);
@@ -97,8 +97,8 @@ void RiftRenderer::draw () {
 		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
 		// Copy to Eigen matrices
-		Matrix4f v = Eigen::Map<Matrix4f>((float *)view.Transposed().M);
-		Matrix4f p = Eigen::Map<Matrix4f>((float *)projection.Transposed().M);
+		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.Transposed().M);
+		Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.Transposed().M);
 
 		// Update matrices
 		setProjectionMatrix(p);
