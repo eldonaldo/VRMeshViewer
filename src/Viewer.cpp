@@ -131,7 +131,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		__cbref->scaleMatrix += Matrix4f::Identity() * 0.02f * y;
+		__cbref->scaleMatrix += Matrix4f::Identity() * 0.2f * y;
 		__cbref->scaleMatrix(3, 3) = 1.f;
 
 		if (__cbref->scaleMatrix(0, 0) <= 0)
@@ -172,10 +172,18 @@ void Viewer::calcAndAppendFPS () {
 	}
 }
 
-void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
-	if (!renderer)
-		throw VRException("No renderer attached. Viewer can not display the object.");
+void Viewer::display(std::shared_ptr<Mesh> &mesh, std::unique_ptr<Renderer> &r) throw () {
+	renderer = std::move(r);
 
+	// Reconfigure settings if the target is the Rift
+	if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
+		width = hmd->Resolution.w;
+		height = hmd->Resolution.h;
+		glfwSetWindowSize(window, width, height);
+		glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
+		glViewport(0, 0, width, height);
+	}
+	
 	// Renderer pre processing
 	renderer->setHmd(hmd);
 	renderer->setMesh(mesh);
@@ -193,6 +201,9 @@ void Viewer::display (std::shared_ptr<Mesh> &mesh) throw () {
 	while (!glfwWindowShouldClose(window)) {
 		if (appFPS)
 			calcAndAppendFPS();
+
+		// First reset to default to be sure to draw on the correct buffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Arcball rotationa and scaling
 		renderer->setModelMatrix(scaleMatrix * arcball.matrix(renderer->getViewMatrix()));

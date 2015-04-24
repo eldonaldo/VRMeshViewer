@@ -87,11 +87,6 @@ typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
 typedef Eigen::Matrix<unsigned int, 3, 1> Vector3ui;
 
-typedef OVR::Matrix4f OMatrix4f;
-typedef OVR::Matrix3f OMatrix3f;
-typedef OVR::Vector3f OVector3f;
-typedef OVR::Quatf OQuatf;
-
 /// Stores an RGBA color value
 class Color : public Eigen::Vector4f {
 public:

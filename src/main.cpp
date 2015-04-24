@@ -21,8 +21,8 @@ int main (int argc, char *argv[]) {
 		shader->initFromFiles("std-shader", "resources/shader/vertex-shader.glsl", "resources/shader/fragment-shader.glsl");
 
 		// Create an appropriate renderer
-//		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 45.0, width, height, 0.01, 10000.0));
-		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 45.0, width, height, 0.01, 10000.0));
+//		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 45.f, width, height, 0.01f, 10000.f));
+		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 45.f, width, height, 0.01f, 10000.f));
 
 		// Load mesh
 		double t0 = glfwGetTime();
@@ -30,11 +30,8 @@ int main (int argc, char *argv[]) {
 		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/cube/cube.obj");
 		std::cout << glfwGetTime() - t0 << " seconds needed to load OBJ" << std::endl;
 
-		// Configure
-		viewer.setRenderer(renderer);
-
 		// Run
-		viewer.display(mesh);
+		viewer.display(mesh, renderer);
 
 	} catch (std::runtime_error &e) {
 		std::cout << "Runtime error: "<< e.what() << std::endl;

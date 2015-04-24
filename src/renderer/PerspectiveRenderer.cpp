@@ -3,14 +3,14 @@
 VR_NAMESPACE_BEGIN
 
 PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
-	: Renderer(shader), fov(fov), width(width), height(height), zNear(zNear), zFar(zFar), aspectRatio(width / height), fH(tan(fov / 360 * M_PI ) * zNear), fW(fH * aspectRatio) {
-
+	: Renderer(shader), fov(fov), width(width), height(height), zNear(zNear), zFar(zFar), aspectRatio(width / height)
+	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio), cameraPosition(0.f, 0.f, 5.f), lightIntensity(1.f, 1.f, 1.f), materialIntensity(0.8f) {
+	
 	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
-
 	setViewMatrix(lookAt(
-		Vector3f(0, 0, 5), // Camera is at (0,0,10), in world space
-		Vector3f(0, 0, 0), // And looks at the origin
-		Vector3f(0, 1, 0) // Head is up
+		cameraPosition, // Camera position
+		Vector3f(0, 0, 0), // Look at
+		Vector3f(0, 1, 0) // Heads up
 	));
 
 	setModelMatrix(Matrix4f::Identity());
@@ -18,17 +18,18 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 
 void PerspectiveRenderer::preProcess () {
 	Renderer::preProcess();
+
 	shader->bind();
 	shader->uploadIndices(mesh->getIndices());
 	shader->uploadAttrib("position", mesh->getVertices());
 	shader->uploadAttrib("normal", mesh->getNormals());
 
 	// Model material intensity
-	shader->setUniform("intensity", 0.8f);
+	shader->setUniform("intensity", materialIntensity);
 
 	// Create virtual point light
-	shader->setUniform("light.position", Vector3f(0, 0, 5.0)); // Camera position
-	shader->setUniform("light.intensity", Vector3f(1.0, 1.0, 1.0));
+	shader->setUniform("light.position", cameraPosition); // Camera position
+	shader->setUniform("light.intensity", lightIntensity);
 }
 
 void PerspectiveRenderer::update () {

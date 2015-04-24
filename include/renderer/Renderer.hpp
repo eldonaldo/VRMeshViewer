@@ -73,7 +73,7 @@ public:
 	 *
 	 * The default implementation does nothing.
 	 */
-	virtual void preProcess () { };
+	virtual void preProcess () {};
 
 	/**
 	 * @brief Sets the mesh

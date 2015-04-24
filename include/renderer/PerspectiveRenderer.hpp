@@ -87,6 +87,9 @@ protected:
 	float aspectRatio; ///< Width / height
 	float zNear, zFar; ///< Clipping planes
 	float fH, fW; ///< Frustum width and height
+	float materialIntensity; /// Material intensity
+	Vector3f cameraPosition; ///< Camera position needed for correct lightning
+	Vector3f lightIntensity; ///< Light intensity
 };
 
 VR_NAMESPACE_END

@@ -99,6 +99,7 @@ protected:
 	GLFramebuffer frameBuffer[2]; ///< The framebuffer which we draw to with the rift for the left and right eye
 	ovrEyeRenderDesc eyeRenderDesc[2]; ///< Render structure
 	ovrGLConfig cfg; ///< Oculus config
+	ovrPosef eyeRenderPose[2]; ///< Eye pose
 };
 
 VR_NAMESPACE_END

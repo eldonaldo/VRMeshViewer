@@ -29,33 +29,13 @@ public:
 	virtual ~Viewer ();
 
 	/**
-	 * Sets the bounded renderer.
-	 *
-	 * The Viewer uses this renderer to generate drawings defined with
-	 * respect to the renderer class.
-	 *
-	 * @param r Bounded Renderer
-	 */
-	void setRenderer (std::unique_ptr<Renderer> &r) {
-		renderer = std::move(r);
-		
-		if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
-			width = hmd->Resolution.w;
-			height = hmd->Resolution.h;
-			glfwSetWindowSize(window, width, height);
-			glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
-			glViewport(0, 0, width, height);
-		}
-	}
-
-	/**
 	 * @brief Displays the data
 	 *
 	 * Internally it calls the Renderer::update() and Renderer::draw() methods. The purpose of
 	 * Renderer::update() is that the states get updated and Renderer::draw() is responsible
 	 * of drawing the data. Of course a renderer must be set in advance.
 	 */
-	virtual void display (std::shared_ptr<Mesh> &mesh) throw ();
+	virtual void display(std::shared_ptr<Mesh> &mesh, std::unique_ptr<Renderer> &r) throw ();
 
 	/**
 	 * @brief Retrieve some OpenGL infos
