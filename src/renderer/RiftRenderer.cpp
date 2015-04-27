@@ -112,7 +112,7 @@ void RiftRenderer::draw () {
 		shader->setUniform("mvp", getMvp());
 
 		// Draw the mesh for each eye
-		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getNumFaces());
+		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getTriangleCount());
 
 		// Do distortion rendering, Present and flush/sync
 		OVR::Sizei size(frameBuffer[eyeIndex].mSize.x(), frameBuffer[eyeIndex].mSize.y());

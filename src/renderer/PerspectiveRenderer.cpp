@@ -21,8 +21,8 @@ void PerspectiveRenderer::preProcess () {
 
 	shader->bind();
 	shader->uploadIndices(mesh->getIndices());
-	shader->uploadAttrib("position", mesh->getVertices());
-	shader->uploadAttrib("normal", mesh->getNormals());
+	shader->uploadAttrib("position", mesh->getVertexPositions());
+	shader->uploadAttrib("normal", mesh->getVertexNormals());
 
 	// Model material intensity
 	shader->setUniform("intensity", materialIntensity);
@@ -42,7 +42,7 @@ void PerspectiveRenderer::update () {
 
 void PerspectiveRenderer::draw() {
 	shader->bind();
-	shader->drawIndexed(GL_TRIANGLES, 0, mesh->getNumFaces());
+	shader->drawIndexed(GL_TRIANGLES, 0, mesh->getTriangleCount());
 }
 
 void PerspectiveRenderer::cleanUp () {

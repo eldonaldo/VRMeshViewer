@@ -59,7 +59,7 @@ public:
 			glGetString(GL_VERSION),
 			glfwGetVersionString(),
 			indent((renderer ? renderer->info() : "null")),
-			indent((mesh ? mesh->info() : "null"))
+			indent((mesh ? mesh->toString() : "null"))
 		);
 	}
 

@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "Viewer.hpp"
-#include "mesh/ObjectLoader.hpp"
+//#include "mesh/ObjectLoader.hpp"
+#include "mesh/WavefrontObj.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 
@@ -25,11 +26,10 @@ int main (int argc, char *argv[]) {
 		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 45.f, width, height, 0.01f, 10000.f));
 
 		// Load mesh
-		double t0 = glfwGetTime();
 //		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/dragon/dragon-1.obj");
-		std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/cube/cube.obj");
-		std::cout << glfwGetTime() - t0 << " seconds needed to load OBJ" << std::endl;
-
+		//std::shared_ptr<Mesh> mesh = ObjectLoader::loadOBJ("resources/models/cube/cube.obj");
+		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon_smooth.obj");
+		
 		// Run
 		viewer.display(mesh, renderer);
 

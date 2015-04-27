@@ -141,7 +141,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 		}
 
 		__cbref->translateMatrix = translate(Matrix4f::Identity(), Vector3f(dtx, dty, 0));
-		std::cout << __cbref->translateMatrix << std::endl;
 	});
 
 	/* Mouse click callback */

@@ -1,109 +1,77 @@
 #pragma once
 
-#include "common.hpp"
+//#include <nori/bbox.h>
 
 VR_NAMESPACE_BEGIN
 
 /**
- * @brief A mesh is basically just a pair of two matrices (Vertices and Faces).
+ * \brief Triangle mesh
  *
- * This class stores two matrices, V and F. V is a Nx3 matrix and stores the vertices
- * row wise. V Mx3 is a matrix containing the 3 indices to V, which make up a face.
+ * This class stores a triangle mesh object and provides numerous functions
+ * for querying the individual triangles. Subclasses of \c Mesh implement
+ * the specifics of how to create its contents (e.g. by loading from an
+ * external file)
  */
 class Mesh {
+
 public:
-	/**
-	 * @brief Copy constructor
-	 *
-	 * @param name Mesh name/path
-	 * @param V Vertices matrix
-	 * @param F Indices (faces) matrix
-	 */
-	Mesh (std::string &name, MatrixXf &V, MatrixXu &F)
-		: name(name), vertices(V), indices(F) {
+	
+	Mesh() = default;
 
-	};
+    /// Release all memory
+    virtual ~Mesh() = default;
 
-	/**
-	 * @brief Copy constructor
-	 *
-	 * @param name Mesh name/path
-	 * @param V Vertices matrix
-	 * @param F Indices (faces) matrix
-	 * @param N Normal matrix
-	 */
-	Mesh (std::string &name, MatrixXf &V, MatrixXu &F, MatrixXf &N)
-		: name(name), vertices(V), indices(F), normals(N) {
+    /// Return the total number of triangles in this hsape
+    uint32_t getTriangleCount() const { return (uint32_t) m_F.cols(); }
 
-	};
+    /// Return the total number of vertices in this hsape
+    uint32_t getVertexCount() const { return (uint32_t) m_V.cols(); }
 
-	/**
-	 * @brief Default destructor
-	 */
-	virtual ~Mesh () = default;
+    ////// Return an axis-aligned bounding box of the entire mesh
+    //const BoundingBox3f &getBoundingBox() const { return m_bbox; }
 
-	/**
-	 * @brief Returns the indices matrix
-	 *
-	 * @return Indices matrix
-	 */
-	const MatrixXu& getIndices () const {
-		return indices;
-	}
+    ////// Return an axis-aligned bounding box containing the given triangle
+    //BoundingBox3f getBoundingBox(uint32_t index) const;
 
-	/**
-	 * @brief Returns the vertices matrix
-	 *
-	 * @return Vertices matrix
-	 */
-	const MatrixXf& getVertices () const {
-		return vertices;
-	}
+    /// Return a pointer to the vertex positions
+    const MatrixXf &getVertexPositions() const { return m_V; }
 
-	/**
-	 * @brief Returns the normal matrix
-	 *
-	 * @return Normal matrix
-	 */
-	const MatrixXf& getNormals () const {
-		return normals;
-	}
+    /// Return a pointer to the vertex normals (or \c nullptr if there are none)
+    const MatrixXf &getVertexNormals() const { return m_N; }
 
-	/**
-	 * @brief Returns the number of vertices
-	 *
-	 * @return Number of vertices
-	 */
-	unsigned int getNumFaces () const {
-		return indices.cols();
-	}
+    /// Return a pointer to the texture coordinates (or \c nullptr if there are none)
+    const MatrixXf &getVertexTexCoords() const { return m_UV; }
 
-	/**
-	 * @brief Returns some info about the mesh
-	 *
-	 * @return Brief mesh description
-	 */
-	std::string info () const {
+    /// Return a pointer to the triangle vertex index list
+    const MatrixXu &getIndices() const { return m_F; }
+
+    /// Return the name of this mesh
+    const std::string &getName() const { return m_name; }
+
+    /// Return a human-readable summary of this instance
+	std::string toString() const {
 		return tfm::format(
 			"Mesh[\n"
-			"  name = %s,\n"
-			"  vertices = %d,\n"
-			"  normals = %d,\n"
-			"  faces = %d\n"
+			"  name = \"%s\",\n"
+			"  vertexCount = %i,\n"
+			"  triangleCount = %i\n"
 			"]",
-			name,
-			vertices.cols(),
-			normals.cols(),
-			indices.cols()
+			m_name,
+			m_V.cols(),
+			m_F.cols()
 		);
 	}
 
-private:
+   
+protected:
 
-	std::string name; ///< Object name
-	MatrixXf vertices; ///< Nx3 vertex matrix
-	MatrixXf normals; ///< Nx3 normal matrix
-	MatrixXu indices; ///< Mx3 index matrix
+protected:
+    std::string m_name;                  ///< Identifying name
+    MatrixXf      m_V;                   ///< Vertex positions
+    MatrixXf      m_N;                   ///< Vertex normals
+    MatrixXf      m_UV;                  ///< Vertex texture coordinates
+    MatrixXu      m_F;                   ///< Faces
+    //BoundingBox3f m_bbox;                ///< Bounding box of the mesh
 };
 
 VR_NAMESPACE_END

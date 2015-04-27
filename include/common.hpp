@@ -86,6 +86,8 @@ typedef Eigen::Matrix<float, 3, 1> Normal3f;
 typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
 typedef Eigen::Matrix<unsigned int, 3, 1> Vector3ui;
+typedef Eigen::Matrix<float, 3, 1> Point3f;
+typedef Eigen::Matrix<float, 2, 1> Point2f;
 
 /// Stores an RGBA color value
 class Color : public Eigen::Vector4f {
@@ -141,5 +143,11 @@ inline float radToDeg (float rad) {
 
 /// Indent a string by the specified number of spaces
 extern std::string indent (const std::string &string, int amount = 2);
+
+/// Convert a string into an unsigned integer value
+extern unsigned int toUInt(const std::string &str);
+
+/// Tokenize a string into a list by splitting at 'delim'
+extern std::vector<std::string> tokenize(const std::string &s, const std::string &delim = ", ", bool includeEmpty = false);
 
 VR_NAMESPACE_END

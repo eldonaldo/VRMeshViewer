@@ -92,7 +92,8 @@ add_executable(VRMeshViewer
 	include/Viewer.hpp
 	include/GLUtil.hpp
 	include/mesh/Mesh.hpp
-	include/mesh/ObjectLoader.hpp
+	include/mesh/WavefrontObj.hpp
+#	include/mesh/ObjectLoader.hpp
 	include/renderer/Renderer.hpp
 	include/renderer/PerspectiveRenderer.hpp
 	include/renderer/RiftRenderer.hpp
@@ -104,7 +105,8 @@ add_executable(VRMeshViewer
 	src/GLUtil.cpp
 	src/Viewer.cpp
 	src/mesh/Mesh.cpp
-	src/mesh/ObjectLoader.cpp
+	src/mesh/WavefrontObj.cpp
+#	src/mesh/ObjectLoader.cpp
 	src/renderer/PerspectiveRenderer.cpp
 	src/renderer/RiftRenderer.cpp
 #	src/mesh/Texture.cpp
