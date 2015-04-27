@@ -91,13 +91,13 @@ add_executable(VRMeshViewer
 	include/common.hpp
 	include/Viewer.hpp
 	include/GLUtil.hpp
+	include/Vector.hpp
 	include/mesh/Mesh.hpp
 	include/mesh/WavefrontObj.hpp
-#	include/mesh/ObjectLoader.hpp
+	include/mesh/BBox.hpp
 	include/renderer/Renderer.hpp
 	include/renderer/PerspectiveRenderer.hpp
 	include/renderer/RiftRenderer.hpp
-#	include/mesh/Texture.hpp
 	
 	# Source code files
 	src/main.cpp
@@ -106,10 +106,8 @@ add_executable(VRMeshViewer
 	src/Viewer.cpp
 	src/mesh/Mesh.cpp
 	src/mesh/WavefrontObj.cpp
-#	src/mesh/ObjectLoader.cpp
 	src/renderer/PerspectiveRenderer.cpp
 	src/renderer/RiftRenderer.cpp
-#	src/mesh/Texture.cpp
 )
 
 # Make sure to build in the right order

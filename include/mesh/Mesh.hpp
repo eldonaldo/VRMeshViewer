@@ -1,6 +1,8 @@
 #pragma once
 
-//#include <nori/bbox.h>
+#include "common.hpp"
+#include "mesh/BBox.hpp"
+#include "Eigen/Geometry"
 
 VR_NAMESPACE_BEGIN
 
@@ -16,6 +18,7 @@ class Mesh {
 
 public:
 	
+	/// Default constructor
 	Mesh() = default;
 
     /// Release all memory
@@ -27,11 +30,8 @@ public:
     /// Return the total number of vertices in this hsape
     uint32_t getVertexCount() const { return (uint32_t) m_V.cols(); }
 
-    ////// Return an axis-aligned bounding box of the entire mesh
-    //const BoundingBox3f &getBoundingBox() const { return m_bbox; }
-
-    ////// Return an axis-aligned bounding box containing the given triangle
-    //BoundingBox3f getBoundingBox(uint32_t index) const;
+    /// Return an axis-aligned bounding box of the entire mesh
+    const BoundingBox3f &getBoundingBox() const { return m_bbox; }
 
     /// Return a pointer to the vertex positions
     const MatrixXf &getVertexPositions() const { return m_V; }
@@ -71,7 +71,7 @@ protected:
     MatrixXf      m_N;                   ///< Vertex normals
     MatrixXf      m_UV;                  ///< Vertex texture coordinates
     MatrixXu      m_F;                   ///< Faces
-    //BoundingBox3f m_bbox;                ///< Bounding box of the mesh
+    BoundingBox3f m_bbox;                ///< Bounding box of the mesh
 };
 
 VR_NAMESPACE_END

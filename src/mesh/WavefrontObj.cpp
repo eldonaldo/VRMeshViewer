@@ -30,7 +30,7 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
             Point3f p;
             line >> p.x() >> p.y() >> p.z();
             //p = trafo * p;
-			//m_bbox.expandBy(p);
+			m_bbox.expandBy(p);
             positions.push_back(p);
         } else if (prefix == "vt") {
             Point2f tc;

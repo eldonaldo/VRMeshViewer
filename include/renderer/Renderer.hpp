@@ -65,7 +65,10 @@ public:
 	 * This method must be implemented by all subclasses. This method is
 	 * always called after Renderer::update();
 	 */
-	virtual void draw () = 0;
+	virtual void draw () {
+		if (mesh != nullptr) {
+		}
+	}
 
 	/**
 	 * @brief Allows the renderer to do some processing
