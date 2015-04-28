@@ -45,4 +45,15 @@ std::vector<std::string> tokenize(const std::string &string, const std::string &
 	return tokens;
 }
 
+Matrix4f scale (const Matrix4f &m, float s) {
+	Matrix4f scale(m);
+	scale += Matrix4f::Identity() * s;
+	scale(3, 3) = 1.f;
+
+	if (scale(0, 0) <= 0)
+		scale = Matrix4f::Zero();
+
+	return scale;
+}
+
 VR_NAMESPACE_END

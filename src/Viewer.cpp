@@ -157,10 +157,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		float s = 0.2f * y;
-		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, Vector3f(s, s, s));
-		if (__cbref->scaleMatrix(0, 0) <= 0)
-			__cbref->scaleMatrix = Matrix4f::Zero();
+		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 0.2f * y);
 	});
 
 	/* Window size callback */
@@ -200,22 +197,24 @@ void Viewer::calcAndAppendFPS () {
 void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	BoundingBox3f bbox = m->getBoundingBox();
 
+	// Apply Pythagoras
+	float a = fabs(bbox.max.y() - bbox.min.y());
+	float b = fabs(bbox.max.x() - bbox.min.x());
+	float diag = sqrtf(a * a + b * b);
+	float factor = desiredDiag / diag;
+
 	std::cout << "Center: " << bbox.getCenter() << std::endl;
 	std::cout << "Volume: " << bbox.getVolume() << std::endl;
 	std::cout << "Min: " << bbox.min << std::endl;
 	std::cout << "max: " << bbox.max << std::endl;
+	std::cout << "Factor: " << factor << std::endl;
 
-	float a = fabs(bbox.max.y() - bbox.min.y());
-	float b = fabs(bbox.max.x() - bbox.min.x());
-	float diag = sqrtf(a * a + b * b);
-	std::cout << "Diag: " << diag << std::endl;
-
-	float factor = desiredDiag / diag;
+	// Translate to center
+	translateMatrix = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
+	std::cout << translateMatrix << std::endl;
 
 	// Compute scaling matrix
-	scaleMatrix = scale(scaleMatrix, Vector3f(factor, factor, factor));
-
-	std::cout << "Scale: " << scaleMatrix << std::endl;
+	scaleMatrix = scaleMatrix = scale(scaleMatrix, factor);
 }
 
 void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
@@ -256,7 +255,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Arcball rotationa and scaling
-		Matrix4f m = translateMatrix * scaleMatrix * arcball.matrix(renderer->getViewMatrix());
+		Matrix4f m = scaleMatrix * arcball.matrix(renderer->getViewMatrix()) * translateMatrix;
 		renderer->setModelMatrix(m);
 
 		// Update state

@@ -344,7 +344,7 @@ extern Matrix4f frustum(const float left, const float right, const float bottom,
                         const float top, const float nearVal,
                         const float farVal);
 
-extern Matrix4f scale(const Matrix4f &m, const Vector3f &v);
+//extern Matrix4f scale(const Matrix4f &m, const Vector3f &v);
 
 extern Matrix4f translate(const Matrix4f &m, const Vector3f &v);
 

@@ -156,4 +156,7 @@ extern unsigned int toUInt(const std::string &str);
 /// Tokenize a string into a list by splitting at 'delim'
 extern std::vector<std::string> tokenize(const std::string &s, const std::string &delim = ", ", bool includeEmpty = false);
 
+/// Computes scale matrix
+extern Matrix4f scale (const Matrix4f &m, float s);
+
 VR_NAMESPACE_END

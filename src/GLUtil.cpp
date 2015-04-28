@@ -481,14 +481,14 @@ Eigen::Matrix4f frustum(const float left, const float right, const float bottom,
     return Result;
 }
 
-Eigen::Matrix4f scale(const Eigen::Matrix4f &m, const Eigen::Vector3f &v) {
-    Eigen::Matrix4f Result;
-    Result.col(0) = m.col(0).array() * v(0);
-    Result.col(1) = m.col(1).array() * v(1);
-    Result.col(2) = m.col(2).array() * v(2);
-    Result.col(3) = m.col(3);
-    return Result;
-}
+//Eigen::Matrix4f scale(const Eigen::Matrix4f &m, const Eigen::Vector3f &v) {
+//    Eigen::Matrix4f Result;
+//    Result.col(0) = m.col(0).array() * v(0);
+//    Result.col(1) = m.col(1).array() * v(1);
+//    Result.col(2) = m.col(2).array() * v(2);
+//    Result.col(3) = m.col(3);
+//    return Result;
+//}
 
 Eigen::Matrix4f translate(const Eigen::Matrix4f &m, const Eigen::Vector3f &v) {
     Eigen::Matrix4f Result = m;

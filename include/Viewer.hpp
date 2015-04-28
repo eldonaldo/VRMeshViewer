@@ -97,7 +97,7 @@ protected:
 	Matrix4f translateMatrix; ///< Translation matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
 	bool debug; ///< Debug mode
-	float desiredDiag = 60.f; ///< Desired diagonal length
+	float desiredDiag = 50.f; ///< Desired diagonal length
 };
 
 VR_NAMESPACE_END
