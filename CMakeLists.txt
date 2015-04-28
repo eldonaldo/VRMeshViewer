@@ -120,4 +120,4 @@ endif()
 target_link_libraries(VRMeshViewer ${extra_libs})
 
 # Copy resources
-file(COPY resources DESTINATION ${CMAKE_BINARY_DIR})
+#file(COPY resources DESTINATION ${CMAKE_BINARY_DIR})

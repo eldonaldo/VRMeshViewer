@@ -32,6 +32,8 @@ public:
 		, modelMatrix(Matrix4f::Identity()), normalMatrix(Matrix3f::Identity()), projectionMatrix(Matrix4f::Identity()), mvp(Matrix4f::Identity())
 		, hmd(nullptr) {
 
+		bboxShader = std::unique_ptr<GLShader>(new GLShader());
+		bboxShader->initFromFiles("bbox-shader", "resources/shader/bbox-vertex.glsl", "resources/shader/bbox-fragment.glsl");
 	};
 
 	/**
@@ -63,10 +65,30 @@ public:
 	 * @brief Draws the loaded data
 	 *
 	 * This method must be implemented by all subclasses. This method is
-	 * always called after Renderer::update();
+	 * called after Renderer::update();
 	 */
 	virtual void draw () {
 		if (mesh != nullptr) {
+			MatrixXf box(3, 8);
+			box.col(0) = Vector3f(1, 1, 1);
+			box.col(1) = Vector3f(1, 1, -1);
+			box.col(2) = Vector3f(1, -1, 1);
+			box.col(3) = Vector3f(1, -1, -1);
+			box.col(4) = Vector3f(-1, -1, 1);
+			box.col(5) = Vector3f(-1, -1, -1);
+			box.col(6) = Vector3f(1, -1, 1);
+			box.col(7) = Vector3f(1, -1, -1);
+
+			MatrixXu indices(2, 4);
+			indices.col(0) = Vector2ui(0, 1);
+			indices.col(1) = Vector2ui(2, 3);
+			indices.col(2) = Vector2ui(4, 5);
+			indices.col(3) = Vector2ui(6, 7);
+
+			bboxShader->bind();
+			bboxShader->uploadIndices(indices);
+			bboxShader->uploadAttrib("position", box);
+			bboxShader->drawIndexed(GL_LINES, 0, indices.cols());
 		}
 	}
 
@@ -76,7 +98,7 @@ public:
 	 *
 	 * The default implementation does nothing.
 	 */
-	virtual void preProcess () {};
+	virtual void preProcess () {}
 
 	/**
 	 * @brief Sets the mesh
@@ -85,7 +107,7 @@ public:
 	 */
 	void setMesh (std::shared_ptr<Mesh> &m) {
 		mesh = m;
-	};
+	}
 
 	/**
 	 * @brief To the necessary clean up
@@ -196,6 +218,7 @@ protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
+	std::unique_ptr<GLShader> bboxShader; ///< Bounding box shader
 	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
 	GLFWwindow *window; ///< GFLW window handle
 	ovrHmd hmd; ///< Head mounted device

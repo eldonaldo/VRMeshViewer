@@ -5,6 +5,7 @@
 #include "renderer/Renderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 #include "GLUtil.hpp"
+#include "Eigen/Geometry"
 
 VR_NAMESPACE_BEGIN
 
@@ -35,7 +36,7 @@ public:
 	 * Renderer::update() is that the states get updated and Renderer::draw() is responsible
 	 * of drawing the data. Of course a renderer must be set in advance.
 	 */
-	virtual void display(std::shared_ptr<Mesh> &mesh, std::unique_ptr<Renderer> &r) throw ();
+	virtual void display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw ();
 
 	/**
 	 * @brief Retrieve some OpenGL infos
@@ -70,6 +71,11 @@ protected:
 	 */
 	virtual void calcAndAppendFPS ();
 
+	/**
+	 * @brief Places the object in the world coordindate system and scales it for the immersion effect
+	 */
+	virtual void placeObject (std::shared_ptr<Mesh> &m);
+
 protected:
 
 	ovrHmd hmd; ///< Head mounted device
@@ -91,6 +97,7 @@ protected:
 	Matrix4f translateMatrix; ///< Translation matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
 	bool debug; ///< Debug mode
+	float desiredDiag = 60.f; ///< Desired diagonal length
 };
 
 VR_NAMESPACE_END

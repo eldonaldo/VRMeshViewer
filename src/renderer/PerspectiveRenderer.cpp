@@ -4,15 +4,17 @@ VR_NAMESPACE_BEGIN
 
 PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
 	: Renderer(shader), fov(fov), width(width), height(height), zNear(zNear), zFar(zFar), aspectRatio(width / height)
-	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio), cameraPosition(0.f, 0.f, 5.f), lightIntensity(1.f, 1.f, 1.f), materialIntensity(0.8f) {
+	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio) {
 	
-	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
-	setViewMatrix(lookAt(
-		cameraPosition, // Camera position
-		Vector3f(0, 0, 0), // Look at
-		Vector3f(0, 1, 0) // Heads up
-	));
+	// 1.f = 1 Unit = 1 cm
+	cameraPosition = Vector3f(0.f, 30.f, 50.f);
+	lookAtPosition = Vector3f(0.f, 0.f, 0.f);
+	headsUp = Vector3f(0.f, 1.f, 0.f);
+	lightIntensity = Vector3f(1.f, 1.f, 1.f);
+	materialIntensity =  0.8f;
 
+	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
+	setViewMatrix(lookAt(cameraPosition, lookAtPosition, headsUp));
 	setModelMatrix(Matrix4f::Identity());
 }
 

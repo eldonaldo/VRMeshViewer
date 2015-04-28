@@ -90,6 +90,7 @@ typedef Eigen::Matrix<float, 3, 1> Color3f;
 typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic> MatrixXf;
 typedef Eigen::Matrix<unsigned int, 3, 1> Vector3ui;
+typedef Eigen::Matrix<unsigned int, 2, 1> Vector2ui;
 typedef TPoint<float, 3> Point3f;
 typedef TPoint<float, 2> Point2f;
 typedef TBoundingBox<Point3f> BoundingBox3f;

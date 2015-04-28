@@ -34,7 +34,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
 	// Enable multi sampling
@@ -157,9 +157,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		__cbref->scaleMatrix += Matrix4f::Identity() * 0.2f * y;
-		__cbref->scaleMatrix(3, 3) = 1.f;
-
+		float s = 0.2f * y;
+		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, Vector3f(s, s, s));
 		if (__cbref->scaleMatrix(0, 0) <= 0)
 			__cbref->scaleMatrix = Matrix4f::Zero();
 	});
@@ -198,8 +197,30 @@ void Viewer::calcAndAppendFPS () {
 	}
 }
 
-void Viewer::display(std::shared_ptr<Mesh> &mesh, std::unique_ptr<Renderer> &r) throw () {
+void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
+	BoundingBox3f bbox = m->getBoundingBox();
+
+	std::cout << "Center: " << bbox.getCenter() << std::endl;
+	std::cout << "Volume: " << bbox.getVolume() << std::endl;
+	std::cout << "Min: " << bbox.min << std::endl;
+	std::cout << "max: " << bbox.max << std::endl;
+
+	float a = fabs(bbox.max.y() - bbox.min.y());
+	float b = fabs(bbox.max.x() - bbox.min.x());
+	float diag = sqrtf(a * a + b * b);
+	std::cout << "Diag: " << diag << std::endl;
+
+	float factor = desiredDiag / diag;
+
+	// Compute scaling matrix
+	scaleMatrix = scale(scaleMatrix, Vector3f(factor, factor, factor));
+
+	std::cout << "Scale: " << scaleMatrix << std::endl;
+}
+
+void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
 	renderer = std::move(r);
+	mesh = m;
 
 	// Reconfigure settings if the target is the Rift
 	if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
@@ -217,6 +238,9 @@ void Viewer::display(std::shared_ptr<Mesh> &mesh, std::unique_ptr<Renderer> &r) 
 	renderer->updateFBSize(FBWidth, FBHeight);
 	renderer->preProcess();
 
+	// Place object in world for immersion
+	placeObject(mesh);
+
 	// Print some info
 	std::cout << info() << std::endl;
 
@@ -232,7 +256,8 @@ void Viewer::display(std::shared_ptr<Mesh> &mesh, std::unique_ptr<Renderer> &r) 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Arcball rotationa and scaling
-		renderer->setModelMatrix(translateMatrix * scaleMatrix * arcball.matrix(renderer->getViewMatrix()));
+		Matrix4f m = translateMatrix * scaleMatrix * arcball.matrix(renderer->getViewMatrix());
+		renderer->setModelMatrix(m);
 
 		// Update state
 		renderer->update();

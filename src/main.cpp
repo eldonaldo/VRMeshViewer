@@ -22,17 +22,11 @@ int main (int argc, char *argv[]) {
 		shader->initFromFiles("std-shader", "resources/shader/vertex-shader.glsl", "resources/shader/fragment-shader.glsl");
 
 		// Create an appropriate renderer
-		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 45.f, width, height, 0.01f, 10000.f));
-//		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 45.f, width, height, 0.01f, 10000.f));
+		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 60.f, width, height, 0.01f, 10000.f));
+//		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 60.f, width, height, 0.01f, 10000.f));
 
 		// Load mesh
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon_smooth.obj");
-		BoundingBox3f bbox = mesh->getBoundingBox();
-		
-		std::cout << "Center: " << bbox.getCenter() << std::endl;
-		std::cout << "Volume: " << bbox.getVolume() << std::endl;
-		std::cout << "Min: " << bbox.min << std::endl;
-		std::cout << "max: " << bbox.max << std::endl;
 
 		// Run
 		viewer.display(mesh, renderer);

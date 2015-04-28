@@ -89,6 +89,8 @@ protected:
 	float fH, fW; ///< Frustum width and height
 	float materialIntensity; /// Material intensity
 	Vector3f cameraPosition; ///< Camera position needed for correct lightning
+	Vector3f lookAtPosition; ///< Look at position
+	Vector3f headsUp; ///< Camera heads up
 	Vector3f lightIntensity; ///< Light intensity
 };
 
