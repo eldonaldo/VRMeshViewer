@@ -48,7 +48,6 @@ void PerspectiveRenderer::update () {
 }
 
 void PerspectiveRenderer::draw() {
-	Renderer::draw();
 	shader->bind();
 	shader->drawIndexed(GL_TRIANGLES, 0, mesh->getTriangleCount());
 }

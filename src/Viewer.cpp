@@ -217,6 +217,7 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	MatrixXf newPos(3, vertices.cols());
 	Matrix4f transformMat = scaleMat * translateMat;
 
+	// Could also recompute the bounding box here ...
 	for (int i = 0; i < vertices.cols(); i++)
 		newPos.col(i) = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
 
