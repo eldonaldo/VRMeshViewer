@@ -35,7 +35,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
 	// Enable multi sampling
 	//glfwWindowHint(GLFW_SAMPLES, 2);
@@ -224,6 +223,11 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	m->setVertexPositions(newPos);
 }
 
+void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
+	leapListener = std::move(l);
+	leapController.addListener(*leapListener);
+}
+
 void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
 	renderer = std::move(r);
 	mesh = m;
@@ -287,6 +291,9 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 }
 
 Viewer::~Viewer () {
+	if (leapListener)
+		leapController.removeListener(*leapListener);
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
 

@@ -5,6 +5,7 @@
 #include "renderer/Renderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 #include "GLUtil.hpp"
+#include "leap/LeapListener.hpp"
 #include "Eigen/Geometry"
 
 VR_NAMESPACE_BEGIN
@@ -28,6 +29,13 @@ public:
 	 * @brief Default constructor
 	 */
 	virtual ~Viewer ();
+
+	/**
+	 * @brief Attaches the Leap to the viewer
+	 *
+	 * @param l Leap Listener instance
+	 */
+	virtual void attachLeap (std::unique_ptr<LeapListener> &l);
 
 	/**
 	 * @brief Displays the data
@@ -98,6 +106,8 @@ protected:
 	Vector2i lastPos; ///< Last click position used for the arcball
 	bool debug; ///< Debug mode
 	float desiredDiag = 30.f; ///< Desired diagonal length
+	Leap::Controller leapController; ///< Leap controller
+	std::unique_ptr<Leap::Listener> leapListener; ///< Leap listener instance
 };
 
 VR_NAMESPACE_END

@@ -25,7 +25,10 @@ set(OVR_DEBUG_BUILD 1)
 
 # The primary SDK artifact, a static library for Oculus access 
 add_subdirectory(ext/ovr)
-set(extra_libs ovr)
+
+# Add Leap and OVR libraries
+find_library(LEAP_LIBRARY NAMES leap PATHS /usr/local/lib $ENV{LEAPSDK_DIR}/lib $ENV{LEAPSDK_DIR} ~/Library/Frameworks /Library/Frameworks)
+set(extra_libs ovr ${LEAP_LIBRARY})
 
 if (WIN32)
 	# Windows needs GLEW
@@ -80,6 +83,8 @@ include_directories(
 	ext/ovr/LibOVR/include
 	ext/ovr/LibOVRKernel/Src
 	ext/ovr/LibOVR/include/Extras
+	ext/leap/include
+	ext/leap/util
 	include
 	${CMAKE_BINARY_DIR}
 )
@@ -98,6 +103,7 @@ add_executable(VRMeshViewer
 	include/renderer/Renderer.hpp
 	include/renderer/PerspectiveRenderer.hpp
 	include/renderer/RiftRenderer.hpp
+	include/leap/LeapListener.hpp
 	
 	# Source code files
 	src/main.cpp
@@ -108,6 +114,7 @@ add_executable(VRMeshViewer
 	src/mesh/WavefrontObj.cpp
 	src/renderer/PerspectiveRenderer.cpp
 	src/renderer/RiftRenderer.cpp
+	src/leap/LeapListener.cpp
 )
 
 # Make sure to build in the right order

@@ -3,6 +3,7 @@
 #include "mesh/WavefrontObj.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
 #include "renderer/RiftRenderer.hpp"
+#include "leap/LeapListener.hpp"
 
 using namespace VR_NS;
 
@@ -26,6 +27,10 @@ int main (int argc, char *argv[]) {
 
 		// Load mesh
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-smooth-shifted.obj");
+
+		// Create Leap listener
+		std::unique_ptr<LeapListener> leap(new LeapListener);
+		viewer.attachLeap(leap);
 
 		// Run
 		viewer.display(mesh, renderer);
