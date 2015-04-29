@@ -7,8 +7,13 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio) {
 	
 	// 1.f = 1 Unit = 1 cm
-	cameraPosition = Vector3f(0.f, 30.f, 50.f);
-	lookAtPosition = Vector3f(0.f, 0.f, 0.f);
+	cameraPosition = Vector3f(
+		0.f, // No shift on x-axis
+		20.f, // Head is 20cm above object
+		20.f // We look from 20cm away to the object
+	);
+
+	lookAtPosition = Vector3f(0.f, 0.f, 0.f); // The object is positioned at (0, 0, 0)
 	headsUp = Vector3f(0.f, 1.f, 0.f);
 	lightIntensity = Vector3f(1.f, 1.f, 1.f);
 	materialIntensity =  0.8f;

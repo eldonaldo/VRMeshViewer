@@ -197,24 +197,30 @@ void Viewer::calcAndAppendFPS () {
 void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	BoundingBox3f bbox = m->getBoundingBox();
 
-	// Apply Pythagoras
-	float a = fabs(bbox.max.y() - bbox.min.y());
+	// Apply Pythagoras to calculate current diagonal length
+	float a = fabs(bbox.max.z() - bbox.min.z());
 	float b = fabs(bbox.max.x() - bbox.min.x());
-	float diag = sqrtf(a * a + b * b);
+	float c = fabs(bbox.max.x() - bbox.min.x());
+	float l = sqrtf(a * a + b * b);
+	float diag = sqrtf(l * l + c * c);
 	float factor = desiredDiag / diag;
 
-	std::cout << "Center: " << bbox.getCenter() << std::endl;
-	std::cout << "Volume: " << bbox.getVolume() << std::endl;
-	std::cout << "Min: " << bbox.min << std::endl;
-	std::cout << "max: " << bbox.max << std::endl;
-	std::cout << "Factor: " << factor << std::endl;
-
 	// Translate to center
-	translateMatrix = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
-	std::cout << translateMatrix << std::endl;
+	Matrix4f translateMat = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
 
 	// Compute scaling matrix
-	scaleMatrix = scaleMatrix = scale(scaleMatrix, factor);
+//	scaleMatrix = scale(scaleMatrix, factor);
+	Matrix4f scaleMat = scale(Matrix4f::Identity(), factor);
+
+	// Transform object outside of OpenGL such that the correct metrix units are right away passed into OpenGL
+	MatrixXf vertices = m->getVertexPositions();
+	MatrixXf newPos(3, vertices.cols());
+	Matrix4f transformMat = scaleMat * translateMat;
+
+	for (int i = 0; i < vertices.cols(); i++)
+		newPos.col(i) = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
+
+	m->setVertexPositions(newPos);
 }
 
 void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
@@ -230,15 +236,15 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glViewport(0, 0, width, height);
 	}
 	
+	// Place object in world for immersion
+	placeObject(mesh);
+
 	// Renderer pre processing
 	renderer->setHmd(hmd);
 	renderer->setMesh(mesh);
 	renderer->setWindow(window);
 	renderer->updateFBSize(FBWidth, FBHeight);
 	renderer->preProcess();
-
-	// Place object in world for immersion
-	placeObject(mesh);
 
 	// Print some info
 	std::cout << info() << std::endl;

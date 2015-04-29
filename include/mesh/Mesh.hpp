@@ -36,6 +36,14 @@ public:
     /// Return a pointer to the vertex positions
     const MatrixXf &getVertexPositions() const { return m_V; }
 
+    /// Reset vertex positions
+    void setVertexPositions (const MatrixXf &m) throw () {
+    	if (m.cols() == m_V.cols() && m.rows() == m_V.rows())
+    		m_V = m;
+    	else
+    		VRException("Can't set position matrix. Dimensions do not match.");
+    }
+
     /// Return a pointer to the vertex normals (or \c nullptr if there are none)
     const MatrixXf &getVertexNormals() const { return m_N; }
 

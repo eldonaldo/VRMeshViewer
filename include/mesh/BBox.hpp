@@ -306,6 +306,14 @@ template <typename _PointType> struct TBoundingBox {
         return result;
     }
 
+    /// Transform bounding box
+    TBoundingBox transform (const Eigen::Matrix<PointType, PointType::Dimension, PointType::Dimension> &m) {
+    	PointType transformedMin = m * min;
+    	PointType transformedMax = m * max;
+    	TBoundingBox<PointType> bbox(transformedMin, transformedMax);
+    	return bbox;
+    }
+
     /// Return a string representation of the bounding box
     std::string toString() const {
         if (!isValid())

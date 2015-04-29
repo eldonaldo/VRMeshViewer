@@ -32,8 +32,8 @@ public:
 		, modelMatrix(Matrix4f::Identity()), normalMatrix(Matrix3f::Identity()), projectionMatrix(Matrix4f::Identity()), mvp(Matrix4f::Identity())
 		, hmd(nullptr) {
 
-		bboxShader = std::unique_ptr<GLShader>(new GLShader());
-		bboxShader->initFromFiles("bbox-shader", "resources/shader/bbox-vertex.glsl", "resources/shader/bbox-fragment.glsl");
+//		bboxShader = std::unique_ptr<GLShader>(new GLShader());
+//		bboxShader->initFromFiles("bbox-shader", "resources/shader/bbox-vertex.glsl", "resources/shader/bbox-fragment.glsl");
 	};
 
 	/**
@@ -62,43 +62,67 @@ public:
 	virtual void update () = 0;
 
 	/**
+	 * @brief Allows the renderer to do some processing
+	 * 		  before the render loop is entered.
+	 *
+	 * The default implementation uploads the bounding box of the object.
+	 */
+	virtual void preProcess () {
+//		if (mesh != nullptr) {
+//			Point3f min = mesh->getBoundingBox().min;
+//			Point3f max = mesh->getBoundingBox().max;
+//
+//			Vector4f vmin(min.x(), min.y(), min.z(), 1.f);
+//			Vector4f vmax(max.x(), max.y(), max.z(), 1.f);
+//			vmin = getModelMatrix() * vmin;
+//			vmax = getModelMatrix() * vmax;
+//
+//			MatrixXf V(3, 8);
+//			V.col(0) = Vector3f(min.x(), min.y(), min.z());
+//			V.col(1) = Vector3f(min.x(), min.y(), max.z());
+//			V.col(2) = Vector3f(max.x(), min.y(), max.z());
+//			V.col(3) = Vector3f(max.x(), min.y(), min.z());
+//			V.col(4) = Vector3f(max.x(), max.y(), max.z());
+//			V.col(5) = Vector3f(max.x(), max.y(), min.z());
+//			V.col(6) = Vector3f(min.x(), max.y(), min.z());
+//			V.col(7) = Vector3f(min.x(), max.y(), max.z());
+//
+//			MatrixXu indices(2, 12);
+//			indices.col(0) = Vector2ui(0, 1);
+//			indices.col(1) = Vector2ui(1, 2);
+//			indices.col(2) = Vector2ui(2, 3);
+//			indices.col(3) = Vector2ui(3, 0);
+//			indices.col(4) = Vector2ui(0, 6);
+//			indices.col(5) = Vector2ui(1, 7);
+//			indices.col(6) = Vector2ui(2, 4);
+//			indices.col(7) = Vector2ui(3, 5);
+//			indices.col(8) = Vector2ui(5, 6);
+//			indices.col(9) = Vector2ui(6, 7);
+//			indices.col(10) = Vector2ui(7, 4);
+//			indices.col(11) = Vector2ui(4, 5);
+//
+//			bboxShader->bind();
+//			bboxShader->uploadIndices(indices);
+//			bboxShader->uploadAttrib("position", V);
+//			bboxShader->setUniform("mvp", getMvp());
+//
+//			std::cout << V << "\n" << std::endl;
+//			std::cout << indices << "\n" << std::endl;
+//		}
+	}
+
+	/**
 	 * @brief Draws the loaded data
 	 *
 	 * This method must be implemented by all subclasses. This method is
 	 * called after Renderer::update();
 	 */
 	virtual void draw () {
-		if (mesh != nullptr) {
-			MatrixXf box(3, 8);
-			box.col(0) = Vector3f(1, 1, 1);
-			box.col(1) = Vector3f(1, 1, -1);
-			box.col(2) = Vector3f(1, -1, 1);
-			box.col(3) = Vector3f(1, -1, -1);
-			box.col(4) = Vector3f(-1, -1, 1);
-			box.col(5) = Vector3f(-1, -1, -1);
-			box.col(6) = Vector3f(1, -1, 1);
-			box.col(7) = Vector3f(1, -1, -1);
-
-			MatrixXu indices(2, 4);
-			indices.col(0) = Vector2ui(0, 1);
-			indices.col(1) = Vector2ui(2, 3);
-			indices.col(2) = Vector2ui(4, 5);
-			indices.col(3) = Vector2ui(6, 7);
-
-			bboxShader->bind();
-			bboxShader->uploadIndices(indices);
-			bboxShader->uploadAttrib("position", box);
-			bboxShader->drawIndexed(GL_LINES, 0, indices.cols());
-		}
+//		if (mesh != nullptr) {
+//			bboxShader->bind();
+//			bboxShader->drawIndexed(GL_LINES, 0, 12);
+//		}
 	}
-
-	/**
-	 * @brief Allows the renderer to do some processing
-	 * 		  before the render loop is entered.
-	 *
-	 * The default implementation does nothing.
-	 */
-	virtual void preProcess () {}
 
 	/**
 	 * @brief Sets the mesh

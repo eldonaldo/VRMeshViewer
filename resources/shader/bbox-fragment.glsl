@@ -1,5 +1,7 @@
 #version 330
 
+uniform mat4 mvp;
+
 out vec4 color;
 
 void main () {
