@@ -71,8 +71,6 @@ void RiftRenderer::draw () {
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
 	// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
-	//cameraPosition.y() = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, cameraPosition.y());
-	//std::cout << cameraPosition << "\n"<< std::endl;
 	OVR::Vector3f camPosition(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
 	// Get eye poses, feeding in correct IPD offset
@@ -91,18 +89,13 @@ void RiftRenderer::draw () {
 		OVR::Matrix4f rollPitch = OVR::Matrix4f(eyeRenderPose[eye].Orientation);
 		OVR::Vector3f up = rollPitch.Transform(OVR::Vector3f(0, 1, 0));
 		OVR::Vector3f forward = rollPitch.Transform(OVR::Vector3f(0, 0, -1));
-		OVR::Vector3f shiftedEyePos = camPosition + rollPitch.Transform(eyeRenderPose[eye].Position);
-		
-		//if (eye == 0)
-		//std::cout << "pos: " << eyeRenderPose[eye].Position.x << ", " << eyeRenderPose[eye].Position.y << ", " << eyeRenderPose[eye].Position.z << std::endl;
-		//std::cout << "eye: " << shiftedEyePos.x << ", " << shiftedEyePos.y << ", " << shiftedEyePos.z << std::endl;
-		//std::cout << "viewOffset[eye]: " << viewOffset[eye].x << ", " << viewOffset[eye].y << ", " << viewOffset[eye].z << std::endl;
-		
+		OVR::Vector3f shiftedEyePos = camPosition +rollPitch.Transform(eyeRenderPose[eye].Position);
+	
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
 		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
-		// Copy to Eigen matrices
+		// Copy to Eigen matrices (we need column major -> transpose)
 		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.Transposed().M);
 		Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.Transposed().M);
 
@@ -128,9 +121,6 @@ void RiftRenderer::draw () {
 		eyeTexture[eye].OGL.Header.RenderViewport.Size = size;
 		eyeTexture[eye].OGL.TexId = frameBuffer[eye].getColor();
 	}
-
-	// Back to the default framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// End SDK distortion mode
 	ovrHmd_EndFrame(hmd, eyeRenderPose, &eyeTexture[0].Texture);

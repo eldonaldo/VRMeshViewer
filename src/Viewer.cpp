@@ -141,6 +141,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 			case GLFW_KEY_R:
 				ovrHmd_RecenterPose(__cbref->hmd);
 				break;
+
+			case GLFW_KEY_V:
+				ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
 		}
 
 		__cbref->translateMatrix = translate(Matrix4f::Identity(), Vector3f(dtx, dty, 0));
@@ -246,12 +249,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 
 	// Render loop
 	while (!glfwWindowShouldClose(window)) {
-		if (appFPS)
-			calcAndAppendFPS();
-
-		// First reset to default to be sure to draw on the correct buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 		// Arcball rotationa and scaling
 		Matrix4f m = scaleMatrix * arcball.matrix(renderer->getViewMatrix()) * translateMatrix;
 		renderer->setModelMatrix(m);
@@ -271,13 +268,16 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 
 		// Poll or wait for events
 		glfwPollEvents();
+
+		if (appFPS)
+			calcAndAppendFPS();
 	}
 
 	// Renderer cleapup
 	renderer->cleanUp();
 }
 
-Viewer::~Viewer () {
+Viewer::~Viewer() {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
@@ -285,6 +285,7 @@ Viewer::~Viewer () {
 	if (hmd) {
 		ovrHmd_Destroy(hmd);
 		ovr_Shutdown();
+		std::cout << "Rift destroyed" << std::endl;
 	}
 }
 

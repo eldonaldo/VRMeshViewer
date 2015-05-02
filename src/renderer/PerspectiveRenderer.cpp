@@ -9,8 +9,8 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 	// 1.f = 1 Unit = 1 meter
 	cameraPosition = Vector3f(
 		0.f, // No shift on x-axis
-		0.10f, // Head is 10cm above object's center
-		0.30f // We look from 30cm away to the object
+		0.15f, // Head is 15cm above object's center
+		0.45f // We look from 45cm away to the object
 	);
 
 	lookAtPosition = Vector3f(0.f, 0.f, 0.f); // The object is positioned at (0, 0, 0)
