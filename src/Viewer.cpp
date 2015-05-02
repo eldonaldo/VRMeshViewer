@@ -138,6 +138,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 				dtx = dtx + dx + powf(exp, 1.8f);
 				break;
 
+			case GLFW_KEY_R:
+				ovrHmd_RecenterPose(__cbref->hmd);
+				break;
 		}
 
 		__cbref->translateMatrix = translate(Matrix4f::Identity(), Vector3f(dtx, dty, 0));
@@ -157,7 +160,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 0.2f * y);
+		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 0.015f * y);
 	});
 
 	/* Window size callback */
@@ -206,22 +209,10 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	float factor = desiredDiag / diag;
 
 	// Translate to center
-	Matrix4f translateMat = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
+	translateMatrix = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
 
 	// Compute scaling matrix
-//	scaleMatrix = scale(scaleMatrix, factor);
-	Matrix4f scaleMat = scale(Matrix4f::Identity(), factor);
-
-	// Transform object outside of OpenGL such that the correct metrix units are right away passed into OpenGL
-	MatrixXf vertices = m->getVertexPositions();
-	MatrixXf newPos(3, vertices.cols());
-	Matrix4f transformMat = scaleMat * translateMat;
-
-	// Could also recompute the bounding box here ...
-	for (int i = 0; i < vertices.cols(); i++)
-		newPos.col(i) = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
-
-	m->setVertexPositions(newPos);
+	scaleMatrix = scale(Matrix4f::Zero(), factor);
 }
 
 void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
@@ -248,7 +239,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	renderer->preProcess();
 
 	// Print some info
-	std::cout << info() << std::endl;
+	//std::cout << info() << std::endl;
 
 	// Init time t0 for FPS calculation
 	t0 = glfwGetTime();

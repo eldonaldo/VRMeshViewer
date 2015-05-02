@@ -25,7 +25,10 @@ set(OVR_DEBUG_BUILD 1)
 
 # The primary SDK artifact, a static library for Oculus access 
 add_subdirectory(ext/ovr)
-set(extra_libs ovr)
+
+# Add Leap and OVR libraries
+find_library(LEAP_LIBRARY NAMES leap PATHS /usr/local/lib $ENV{LEAPSDK_DIR}/lib $ENV{LEAPSDK_DIR}/lib/x64 $ENV{LEAPSDK_DIR} ~/Library/Frameworks /Library/Frameworks)
+set(extra_libs ovr ${LEAP_LIBRARY})
 
 if (WIN32)
 	# Windows needs GLEW
