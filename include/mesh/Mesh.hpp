@@ -19,7 +19,7 @@ class Mesh {
 public:
 	
 	/// Default constructor
-	Mesh() = default;
+	Mesh();
 
     /// Release all memory
     virtual ~Mesh() = default;
@@ -70,9 +70,25 @@ public:
 		);
 	}
 
-   
-protected:
+	/**
+	 * @param modelMatrix Model Matrix
+	 */
+	void setModelMatrix (const Matrix4f &modelMatrix);
 
+	/**
+	 * @return Model Matrix
+	 */
+	const Matrix4f &getModelMatrix () const {
+		return modelMatrix;
+	}
+
+	/**
+	 * @return Transpose inverse model matrix
+	 */
+	const Matrix3f &getNormalMatrix () const {
+		return normalMatrix;
+	}
+   
 protected:
     std::string m_name;                  ///< Identifying name
     MatrixXf      m_V;                   ///< Vertex positions
@@ -80,6 +96,8 @@ protected:
     MatrixXf      m_UV;                  ///< Vertex texture coordinates
     MatrixXu      m_F;                   ///< Faces
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
+    Matrix4f modelMatrix; 				 ///< Model matrix
+	Matrix3f normalMatrix; 				 ///< Transpose inverse model matrix
 };
 
 VR_NAMESPACE_END

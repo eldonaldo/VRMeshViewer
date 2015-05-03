@@ -211,7 +211,7 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 //	scaleMatrix = scale(scaleMatrix, factor);
 	Matrix4f scaleMat = scale(Matrix4f::Identity(), factor);
 
-	// Transform object outside of OpenGL such that the correct metrix units are right away passed into OpenGL
+	// Transform object outside of OpenGL such that the correct metric units are right away passed into OpenGL
 	MatrixXf vertices = m->getVertexPositions();
 	MatrixXf newPos(3, vertices.cols());
 	Matrix4f transformMat = scaleMat * translateMat;
@@ -266,8 +266,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Arcball rotationa and scaling
-		Matrix4f m = scaleMatrix * arcball.matrix(renderer->getViewMatrix()) * translateMatrix;
-		renderer->setModelMatrix(m);
+		Matrix4f mm = scaleMatrix * arcball.matrix(renderer->getViewMatrix()) * translateMatrix;
+		mesh->setModelMatrix(mm);
 
 		// Update state
 		renderer->update();

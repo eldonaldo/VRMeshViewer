@@ -8,7 +8,6 @@ RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float 
 	// Reset all
 	setViewMatrix(Matrix4f::Identity());
 	setProjectionMatrix(Matrix4f::Identity());
-	setModelMatrix(Matrix4f::Identity());
 }
 
 RiftRenderer::~RiftRenderer() {
@@ -107,9 +106,9 @@ void RiftRenderer::draw () {
 		// Update shader state
 		shader->bind();
 		shader->setUniform("light.position", cameraPosition);
-		shader->setUniform("modelMatrix", getModelMatrix());
-		shader->setUniform("normalMatrix", getNormalMatrix());
-		shader->setUniform("mvp", getMvp());
+		shader->setUniform("modelMatrix", mesh->getModelMatrix());
+		shader->setUniform("normalMatrix", mesh->getNormalMatrix());
+		shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
 
 		// Draw the mesh for each eye
 		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getTriangleCount());

@@ -29,7 +29,7 @@ int main (int argc, char *argv[]) {
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-smooth-shifted.obj");
 
 		// Create Leap listener
-		std::unique_ptr<LeapListener> leap(new LeapListener);
+		std::unique_ptr<LeapListener> leap(new LeapListener());
 		viewer.attachLeap(leap);
 
 		// Run

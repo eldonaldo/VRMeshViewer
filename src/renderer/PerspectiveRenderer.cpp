@@ -20,7 +20,6 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 
 	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 	setViewMatrix(lookAt(cameraPosition, lookAtPosition, headsUp));
-	setModelMatrix(Matrix4f::Identity());
 }
 
 void PerspectiveRenderer::preProcess () {
@@ -42,9 +41,9 @@ void PerspectiveRenderer::preProcess () {
 void PerspectiveRenderer::update () {
 	// Need to send every time because of the arcball rotation
 	shader->bind();
-	shader->setUniform("modelMatrix", getModelMatrix());
-	shader->setUniform("normalMatrix", getNormalMatrix());
-	shader->setUniform("mvp", getMvp());
+	shader->setUniform("modelMatrix", mesh->getModelMatrix());
+	shader->setUniform("normalMatrix", mesh->getNormalMatrix());
+	shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
 }
 
 void PerspectiveRenderer::draw() {

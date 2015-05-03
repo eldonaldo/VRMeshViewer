@@ -6,9 +6,7 @@
 
 VR_NAMESPACE_BEGIN
 
-/**
- * Forward declaration
- */
+/// Forward declaration
 class Viewer;
 
 /**
@@ -29,11 +27,9 @@ public:
 	 */
 	Renderer (std::shared_ptr<GLShader> &s)
 		: shader(s), FBWidth(0), FBHeight(0), window(nullptr), viewMatrix(Matrix4f::Identity())
-		, modelMatrix(Matrix4f::Identity()), normalMatrix(Matrix3f::Identity()), projectionMatrix(Matrix4f::Identity()), mvp(Matrix4f::Identity())
+		, projectionMatrix(Matrix4f::Identity()), mvp(Matrix4f::Identity())
 		, hmd(nullptr) {
 
-//		bboxShader = std::unique_ptr<GLShader>(new GLShader());
-//		bboxShader->initFromFiles("bbox-shader", "resources/shader/bbox-vertex.glsl", "resources/shader/bbox-fragment.glsl");
 	};
 
 	/**
@@ -104,37 +100,10 @@ public:
 	}
 
 	/**
-	 * @return Model Matrix
-	 */
-	const Matrix4f &getModelMatrix () const {
-		return modelMatrix;
-	}
-
-	/**
-	 * @return Transpose inverse model matrix
-	 */
-	const Matrix3f &getNormalMatrix () const {
-		return normalMatrix;
-	}
-
-	/**
-	 * @param modelMatrix Model Matrix
-	 */
-	void setModelMatrix (const Matrix4f &modelMatrix) {
-		this->modelMatrix = modelMatrix;
-		mvp = projectionMatrix * viewMatrix * modelMatrix;
-
-		// Calculate normal matrix for normal transformation
-		Matrix3f tmp = modelMatrix.topLeftCorner<3, 3>();
-		Matrix3f inv = tmp.inverse();
-		normalMatrix = inv.transpose();
-	}
-
-	/**
 	 * @return MVP Matrix
 	 */
-	const Matrix4f &getMvp () const {
-		return mvp;
+	const Matrix4f getMvp (const Matrix4f &modelMatrix) const {
+		return projectionMatrix * viewMatrix * modelMatrix;
 	}
 
 	/**
@@ -149,7 +118,6 @@ public:
 	 */
 	void setProjectionMatrix (const Matrix4f &projectionMatrix) {
 		this->projectionMatrix = projectionMatrix;
-		mvp = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
 	/**
@@ -164,7 +132,6 @@ public:
 	 */
 	void setViewMatrix (const Matrix4f &viewMatrix) {
 		this->viewMatrix = viewMatrix;
-		mvp = projectionMatrix * viewMatrix * modelMatrix;
 	}
 
 	/**
@@ -203,8 +170,6 @@ protected:
 private:
 
 	Matrix4f viewMatrix; ///< View matrix
-	Matrix4f modelMatrix; ///< Model matrix
-	Matrix3f normalMatrix; ///< Transpose inverse model matrix
 	Matrix4f projectionMatrix; ///< Projection matrix
 	Matrix4f mvp; ///< MVP matrix
 };
