@@ -22,11 +22,11 @@ int main (int argc, char *argv[]) {
 		shader->initFromFiles("std-shader", "resources/shader/vertex-shader.glsl", "resources/shader/fragment-shader.glsl");
 
 		// Create an appropriate renderer
-		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 60.f, width, height, 0.01f, 1000.f));
-//		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 60.f, width, height, 0.01f, 1000.f));
+		std::unique_ptr<Renderer> renderer(new PerspectiveRenderer(shader, 60.f, width, height, 0.01f, 100.f));
+//		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 60.f, width, height, 0.01f, 100.f));
 
 		// Load mesh
-		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-smooth-shifted.obj");
+		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-smooth.obj");
 
 		// Create Leap listener
 		std::unique_ptr<LeapListener> leap(new LeapListener());

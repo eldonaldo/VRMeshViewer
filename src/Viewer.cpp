@@ -137,6 +137,12 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 				dtx = dtx + dx + powf(exp, 1.8f);
 				break;
 
+			case GLFW_KEY_R:
+				ovrHmd_RecenterPose(__cbref->hmd);
+				break;
+
+			case GLFW_KEY_V:
+				ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
 		}
 
 		__cbref->translateMatrix = translate(Matrix4f::Identity(), Vector3f(dtx, dty, 0));
@@ -156,7 +162,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 0.2f * y);
+		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 0.015f * y);
 	});
 
 	/* Window size callback */
@@ -205,22 +211,10 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	float factor = desiredDiag / diag;
 
 	// Translate to center
-	Matrix4f translateMat = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
+	translateMatrix = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
 
 	// Compute scaling matrix
-//	scaleMatrix = scale(scaleMatrix, factor);
-	Matrix4f scaleMat = scale(Matrix4f::Identity(), factor);
-
-	// Transform object outside of OpenGL such that the correct metric units are right away passed into OpenGL
-	MatrixXf vertices = m->getVertexPositions();
-	MatrixXf newPos(3, vertices.cols());
-	Matrix4f transformMat = scaleMat * translateMat;
-
-	// Could also recompute the bounding box here ...
-	for (int i = 0; i < vertices.cols(); i++)
-		newPos.col(i) = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
-
-	m->setVertexPositions(newPos);
+	scaleMatrix = scale(Matrix4f::Zero(), factor);
 }
 
 void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
@@ -259,12 +253,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 
 	// Render loop
 	while (!glfwWindowShouldClose(window)) {
-		if (appFPS)
-			calcAndAppendFPS();
-
-		// First reset to default to be sure to draw on the correct buffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 		// Arcball rotationa and scaling
 		Matrix4f mm = scaleMatrix * arcball.matrix(renderer->getViewMatrix()) * translateMatrix;
 		mesh->setModelMatrix(mm);
@@ -284,12 +272,14 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 
 		// Poll or wait for events
 		glfwPollEvents();
+
+		if (appFPS)
+			calcAndAppendFPS();
 	}
 
 	// Renderer cleapup
 	renderer->cleanUp();
 }
-
 Viewer::~Viewer () {
 	if (leapListener)
 		leapController.removeListener(*leapListener);
@@ -301,6 +291,7 @@ Viewer::~Viewer () {
 	if (hmd) {
 		ovrHmd_Destroy(hmd);
 		ovr_Shutdown();
+		std::cout << "Rift destroyed" << std::endl;
 	}
 }
 

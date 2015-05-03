@@ -70,7 +70,6 @@ void RiftRenderer::draw () {
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
 	// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
-	cameraPosition.y() = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, cameraPosition.y());
 	OVR::Vector3f camPosition(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
 	// Get eye poses, feeding in correct IPD offset
@@ -83,19 +82,19 @@ void RiftRenderer::draw () {
 		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
 
 		// Bind framebuffer of current eye for off screen rendering
-		frameBuffer[eyeIndex].bind();
+		frameBuffer[eye].bind();
 
 		// Use data from rift sensors
 		OVR::Matrix4f rollPitch = OVR::Matrix4f(eyeRenderPose[eye].Orientation);
 		OVR::Vector3f up = rollPitch.Transform(OVR::Vector3f(0, 1, 0));
 		OVR::Vector3f forward = rollPitch.Transform(OVR::Vector3f(0, 0, -1));
-		OVR::Vector3f shiftedEyePos = camPosition + viewOffset[eye] + rollPitch.Transform(eyeRenderPose[eye].Position);
-
+		OVR::Vector3f shiftedEyePos = camPosition +rollPitch.Transform(eyeRenderPose[eye].Position);
+	
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
 		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
-		// Copy to Eigen matrices
+		// Copy to Eigen matrices (we need column major -> transpose)
 		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.Transposed().M);
 		Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.Transposed().M);
 
@@ -105,7 +104,7 @@ void RiftRenderer::draw () {
 
 		// Update shader state
 		shader->bind();
-		shader->setUniform("light.position", cameraPosition);
+		shader->setUniform("light.position", Vector3f(shiftedEyePos.x, shiftedEyePos.y, shiftedEyePos.z));
 		shader->setUniform("modelMatrix", mesh->getModelMatrix());
 		shader->setUniform("normalMatrix", mesh->getNormalMatrix());
 		shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
@@ -114,16 +113,13 @@ void RiftRenderer::draw () {
 		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getTriangleCount());
 
 		// Do distortion rendering, Present and flush/sync
-		OVR::Sizei size(frameBuffer[eyeIndex].mSize.x(), frameBuffer[eyeIndex].mSize.y());
-		eyeTexture[eyeIndex].OGL.Header.API = ovrRenderAPI_OpenGL;
-		eyeTexture[eyeIndex].OGL.Header.TextureSize = size;
-		eyeTexture[eyeIndex].OGL.Header.RenderViewport.Pos = OVR::Vector2i(0, 0);
-		eyeTexture[eyeIndex].OGL.Header.RenderViewport.Size = size;
-		eyeTexture[eyeIndex].OGL.TexId = frameBuffer[eyeIndex].getColor();
+		OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
+		eyeTexture[eye].OGL.Header.API = ovrRenderAPI_OpenGL;
+		eyeTexture[eye].OGL.Header.TextureSize = size;
+		eyeTexture[eye].OGL.Header.RenderViewport.Pos = OVR::Vector2i(0, 0);
+		eyeTexture[eye].OGL.Header.RenderViewport.Size = size;
+		eyeTexture[eye].OGL.TexId = frameBuffer[eye].getColor();
 	}
-
-	// Back to the default framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// End SDK distortion mode
 	ovrHmd_EndFrame(hmd, eyeRenderPose, &eyeTexture[0].Texture);

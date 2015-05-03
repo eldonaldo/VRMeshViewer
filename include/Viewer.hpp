@@ -105,7 +105,7 @@ protected:
 	Matrix4f translateMatrix; ///< Translation matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
 	bool debug; ///< Debug mode
-	float desiredDiag = 30.f; ///< Desired diagonal length
+	float desiredDiag = 0.40f; ///< Desired diagonal length in meter
 	Leap::Controller leapController; ///< Leap controller
 	std::unique_ptr<Leap::Listener> leapListener; ///< Leap listener instance
 };
