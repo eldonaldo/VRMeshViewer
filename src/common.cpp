@@ -56,4 +56,14 @@ Matrix4f scale (const Matrix4f &m, float s) {
 	return scale;
 }
 
+Matrix4f scale(const Matrix4f &m, float x, float y, float z) {
+	Matrix4f scale(m);
+	scale(0, 0) = x;
+	scale(1, 1) = y;
+	scale(2, 2) = z;
+	scale(3, 3) = 1.f;
+
+	return scale;
+}
+
 VR_NAMESPACE_END

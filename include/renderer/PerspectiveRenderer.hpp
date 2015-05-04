@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "renderer/Renderer.hpp"
 #include "GLUtil.hpp"
+#include "mesh/Cube.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -81,7 +82,7 @@ public:
 	}
 
 protected:
-
+	
 	float fov; ///> Field of view
 	float width, height; ///< Width and height
 	float aspectRatio; ///< Width / height

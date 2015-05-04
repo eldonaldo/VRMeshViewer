@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "mesh/Mesh.hpp"
+#include "mesh/Cube.hpp"
 #include "renderer/Renderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 #include "GLUtil.hpp"
@@ -108,6 +109,7 @@ protected:
 	float desiredDiag = 0.40f; ///< Desired diagonal length in meter
 	Leap::Controller leapController; ///< Leap controller
 	std::unique_ptr<Leap::Listener> leapListener; ///< Leap listener instance
+	std::shared_ptr<Mesh> hands[2]; ///< Leap hands
 };
 
 VR_NAMESPACE_END

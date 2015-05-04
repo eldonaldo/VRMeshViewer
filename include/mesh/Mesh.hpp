@@ -90,9 +90,26 @@ public:
 		return normalMatrix;
 	}
 
+	/// Upload the mesh (positions, normals, indices and uv) to the shader
 	void upload(std::shared_ptr<GLShader> &s);
 
+	/// Draw to the currently bounded shader
 	void draw();
+
+	void translate (float x, float y, float z) {
+		transMat = VR_NS::translate(Matrix4f::Identity(), Vector3f(x, y, z));
+		setModelMatrix(scaleMat * rotateMat * transMat);
+	}
+
+	void scale (float s){
+		scaleMat = VR_NS::scale(Matrix4f::Zero(), s);
+		setModelMatrix(scaleMat * rotateMat * transMat);
+	}
+
+	void scale (float x, float y, float z){
+		scaleMat = VR_NS::scale(Matrix4f::Zero(), x, y, z);
+		setModelMatrix(scaleMat * rotateMat * transMat);
+	}
    
 protected:
     std::string m_name;                  ///< Identifying name
@@ -103,8 +120,11 @@ protected:
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
     Matrix4f modelMatrix; 				 ///< Model matrix
 	Matrix3f normalMatrix; 				 ///< Transpose inverse model matrix
+	Matrix4f transMat;
+	Matrix4f scaleMat;
+	Matrix4f rotateMat;
 	
-	static enum BUFFERS {
+	enum BUFFERS {
 		VERTEX_BUFFER,  //!< VERTEX_BUFFER
 		TEXCOORD_BUFFER,//!< TEXCOORD_BUFFER
 		NORMAL_BUFFER,  //!< NORMAL_BUFFER

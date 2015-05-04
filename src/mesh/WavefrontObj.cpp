@@ -17,6 +17,9 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
     std::vector<OBJVertex>  vertices;
     VertexMap vertexMap;
 
+	// Acceleration data structure to calculate per vertex normal
+	std::map<unsigned int, std::vector<unsigned int>> nTable;
+
     std::string line_str;
     while (std::getline(is, line_str)) {
         std::istringstream line(line_str);
@@ -69,7 +72,11 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
                 } else {
                     indices.push_back(it->second);
                 }
+
+				// Update look up table
+				nTable[v.p - 1].push_back(indices.size());
             }
+
         }
     }
 
@@ -84,7 +91,35 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
         m_N.resize(3, vertices.size());
         for (uint32_t i=0; i<vertices.size(); ++i)
             m_N.col(i) = normals.at(vertices[i].n-1);
-    }
+	} else {
+		// Interpolate normals
+
+		// Calculate per vertex normals
+		std::vector<Normal3f> faceNormals(indices.size());
+
+		// First we compute the per face normals
+		for (unsigned int i = 0; i < indices.size() / 3; i++) {
+			Vector3f A = positions.at(vertices.at(indices[i] + 0).p - 1);
+			Vector3f B = positions.at(vertices.at(indices[i] + 1).p - 1);
+			Vector3f C = positions.at(vertices.at(indices[i] + 2).p - 1);
+			faceNormals[i] = (((B - A).cross(C - A)).normalized());
+			//std::cout << faceNormals[i] << std::endl;
+		}
+
+		// Compute per vertex normals
+		m_N.resize(3, vertices.size());
+		for (unsigned int i = 0; i < vertices.size(); i++) {
+			Vector3f n(0.0, 0.0, 0.0);
+
+			// Search adjacent faces for that vertex
+			for (unsigned int j : nTable[i])
+				n += faceNormals[j];
+
+			// We normalize later
+			m_N.col(i) = n.normalized();
+		}
+
+	}
 
     if (!texcoords.empty()) {
         m_UV.resize(2, vertices.size());

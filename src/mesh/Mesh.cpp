@@ -4,7 +4,8 @@ VR_NAMESPACE_BEGIN
 
 Mesh::Mesh()
 	: modelMatrix(Matrix4f::Identity()), normalMatrix(Matrix3f::Identity())
-	, glPositionName("position"), glNormalName("normal"), glTexName("tex"){
+	, glPositionName("position"), glNormalName("normal"), glTexName("tex")
+	, transMat(Matrix4f::Identity()), scaleMat(Matrix4f::Identity()), rotateMat(Matrix4f::Identity()) {
 
 	// Initialize standard values
 	vbo[VERTEX_BUFFER] = 0;

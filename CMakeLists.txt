@@ -104,6 +104,7 @@ add_executable(VRMeshViewer
 	include/renderer/PerspectiveRenderer.hpp
 	include/renderer/RiftRenderer.hpp
 	include/leap/LeapListener.hpp
+	include/mesh/Cube.hpp
 	
 	# Source code files
 	src/main.cpp
@@ -115,6 +116,15 @@ add_executable(VRMeshViewer
 	src/renderer/PerspectiveRenderer.cpp
 	src/renderer/RiftRenderer.cpp
 	src/leap/LeapListener.cpp
+	src/mesh/Cube.cpp
+
+	# Ext
+	#ext/leap/util/LeapUtilGL.h
+	#ext/leap/util/LeapUtilGL.cpp
+	#ext/leap/util/LeapUtil.h
+	#ext/leap/util/LeapUtil.cpp
+	#ext/leap/util/LeapScene.h
+	#ext/leap/util/LeapScene.cpp
 )
 
 # Make sure to build in the right order

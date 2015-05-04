@@ -26,7 +26,7 @@ int main (int argc, char *argv[]) {
 //		std::unique_ptr<Renderer> renderer(new RiftRenderer(shader, 60.f, width, height, 0.01f, 100.f));
 
 		// Load mesh
-		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-smooth.obj");
+		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-smooth-shifted.obj");
 		
 		// Create Leap listener
 		std::unique_ptr<LeapListener> leap(new LeapListener());

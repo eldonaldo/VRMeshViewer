@@ -28,7 +28,7 @@ public:
 	Renderer (std::shared_ptr<GLShader> &s)
 		: shader(s), FBWidth(0), FBHeight(0), window(nullptr), viewMatrix(Matrix4f::Identity())
 		, projectionMatrix(Matrix4f::Identity()), mvp(Matrix4f::Identity())
-		, hmd(nullptr) {
+		, hmd(nullptr), showHands(true) {
 
 	};
 
@@ -158,14 +158,24 @@ public:
 		hmd = h;
 	}
 
+	/**
+	*@brief Set the leap hands
+	*/
+	void setHands(std::shared_ptr<Mesh> &l, std::shared_ptr<Mesh> &r) {
+		leftHand = l;
+		rightHand = r;
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
+	std::shared_ptr<Mesh> leftHand, rightHand; ///< Leap hands
 	std::unique_ptr<GLShader> bboxShader; ///< Bounding box shader
 	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
 	GLFWwindow *window; ///< GFLW window handle
 	ovrHmd hmd; ///< Head mounted device
+	bool showHands; ///< Display leap hands
 
 private:
 

@@ -105,13 +105,10 @@ void RiftRenderer::draw () {
 		// Update shader state
 		shader->bind();
 		shader->setUniform("light.position", Vector3f(shiftedEyePos.x, shiftedEyePos.y, shiftedEyePos.z));
-		shader->setUniform("modelMatrix", mesh->getModelMatrix());
-		shader->setUniform("normalMatrix", mesh->getNormalMatrix());
-		shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
 
 		// Draw the mesh for each eye
-		mesh->draw();
-
+		PerspectiveRenderer::draw();
+		
 		// Do distortion rendering, Present and flush/sync
 		OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
 		eyeTexture[eye].OGL.Header.API = ovrRenderAPI_OpenGL;

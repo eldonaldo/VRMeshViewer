@@ -143,9 +143,10 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 			case GLFW_KEY_V:
 				ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
+				break;
 		}
 
-		__cbref->translateMatrix = translate(Matrix4f::Identity(), Vector3f(dtx, dty, 0));
+		__cbref->translateMatrix = translate(__cbref->translateMatrix, Vector3f(dtx, dty, 0));
 	});
 
 	/* Mouse click callback */
@@ -176,6 +177,10 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	// Set reference for callback functions
 	__cbref = this;
+
+	// Leap hands
+	hands[0] = std::make_shared<Cube>();
+	hands[1] = std::make_shared<Cube>();
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -241,6 +246,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Renderer pre processing
 	renderer->setHmd(hmd);
 	renderer->setMesh(mesh);
+	renderer->setHands(hands[0], hands[1]);
 	renderer->setWindow(window);
 	renderer->updateFBSize(FBWidth, FBHeight);
 	renderer->preProcess();

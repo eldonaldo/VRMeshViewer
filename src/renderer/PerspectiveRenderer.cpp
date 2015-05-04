@@ -1,5 +1,5 @@
 #include "renderer/PerspectiveRenderer.hpp"
-
+#include "LeapUtilGL.h"
 VR_NAMESPACE_BEGIN
 
 PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
@@ -35,6 +35,15 @@ void PerspectiveRenderer::preProcess () {
 
 	// Upload mesh
 	mesh->upload(shader);
+
+	// Upload hands
+	if (showHands) {
+		leftHand->upload(shader);
+		leftHand->translate(-5.f, 0.f, 0.f);
+
+		rightHand->upload(shader);
+		rightHand->translate(+5.f, 0.f, 0.f);
+	}
 }
 
 void PerspectiveRenderer::update () {
@@ -42,12 +51,30 @@ void PerspectiveRenderer::update () {
 	shader->bind();
 	shader->setUniform("modelMatrix", mesh->getModelMatrix());
 	shader->setUniform("normalMatrix", mesh->getNormalMatrix());
-	shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
 }
 
 void PerspectiveRenderer::draw() {
 	shader->bind();
+	
+	// Draw the mesh
+	shader->setUniform("modelMatrix", mesh->getModelMatrix());
+	shader->setUniform("normalMatrix", mesh->getNormalMatrix());
+	shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
 	mesh->draw();
+
+	if (showHands) {
+		// Left hand
+		shader->setUniform("modelMatrix", leftHand->getModelMatrix());
+		shader->setUniform("normalMatrix", leftHand->getNormalMatrix());
+		shader->setUniform("mvp", getMvp(leftHand->getModelMatrix()));
+		leftHand->draw();
+
+		// right hand
+		shader->setUniform("modelMatrix", rightHand->getModelMatrix());
+		shader->setUniform("normalMatrix", rightHand->getNormalMatrix());
+		shader->setUniform("mvp", getMvp(rightHand->getModelMatrix()));
+		rightHand->draw();
+	}
 }
 
 void PerspectiveRenderer::cleanUp () {
