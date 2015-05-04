@@ -1,17 +1,10 @@
 #pragma once
 
 // Determine on which OS we are operating on ...
-#define PATH_SEPARATOR "/"
 #ifdef _WIN32
 	#define PLATFORM_WINDOWS
-	#undef PATH_SEPARATOR
-	#define PATH_SEPARATOR "\\"
-	#pragma warning(disable : 4244)
 #elif __APPLE__
 	#define PLATFORM_APPLE
-	// Prevent OpenGL Compiler warnings
-	# define __gl_h_
-	# define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #elif __linux
 	#define PLATFORM_LINUX
 #endif
@@ -36,9 +29,17 @@
 #include <stdint.h>
 #include <iostream>
 #include <vector>
+#define PATH_SEPARATOR "/"
 #if defined(PLATFORM_APPLE)
+	// Prevent OpenGL Compiler warnings
+	# define __gl_h_
+	# define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 	#define GLFW_INCLUDE_GLCOREARB
 #elif defined(PLATFORM_WINDOWS)
+	#undef PATH_SEPARATOR
+	#define PATH_SEPARATOR "\\"
+	#pragma warning(disable : 4244)
+	#define _GLFW_USE_DWM_SWAP_INTERVAL 1
 	#define NOMINMAX
 	#include <windows.h>
     #define GLEW_STATIC

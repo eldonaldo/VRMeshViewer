@@ -35,8 +35,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// Enable multi sampling
 	//glfwWindowHint(GLFW_SAMPLES, 2);
 	
 	if (fullscreen) {
@@ -49,12 +47,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 
 	if (!window)
 		throw VRException("Could not open a GFLW window");
-
-#if defined(PLATFORM_WINDOWS)
-	// Need to attach window for direct rendering (only supported on windows)
-	if (hmd != nullptr)
-		ovrHmd_AttachToWindow(hmd, glfwGetWin32Window(window), NULL, NULL);
-#endif
 
 	glfwMakeContextCurrent(window);
 
@@ -78,8 +70,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwSwapBuffers(window);
 
 	// Enable depth testing and multi sampling
-//	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-	glDepthFunc(GL_LEQUAL);
+	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	//glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_MULTISAMPLE);
 
@@ -258,6 +250,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	t0 = glfwGetTime();
 
 	// Render loop
+	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window)) {
 		// Bind "the" framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -289,6 +282,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Renderer cleapup
 	renderer->cleanUp();
 }
+
 Viewer::~Viewer () {
 	if (leapListener)
 		leapController.removeListener(*leapListener);

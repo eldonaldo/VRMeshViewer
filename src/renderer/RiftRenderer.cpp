@@ -21,17 +21,14 @@ void RiftRenderer::preProcess () {
 	if (hmd == nullptr)
 		throw new VRException("HMD not set! Can't do pre necessary processing for the Rift");
 
-	// Configure Stereo settings.
-	ovrFovPort eyeFov[2] = { hmd->DefaultEyeFov[0], hmd->DefaultEyeFov[1] };
-
 	// Generate framebuffers for left and right eye
-	OVR::Sizei texLeft = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, eyeFov[0], 1.0f);
-	frameBuffer[0].init(Vector2i(texLeft.w, texLeft.h), 0, true);
-	frameBuffer[0].release();
+	OVR::Sizei texLeft = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, hmd->DefaultEyeFov[ovrEye_Left], 1.0f);
+	frameBuffer[ovrEye_Left].init(Vector2i(texLeft.w, texLeft.h), 0, true);
+	frameBuffer[ovrEye_Left].release();
 
-	OVR::Sizei texRight = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, eyeFov[1], 1.0f);
-	frameBuffer[1].init(Vector2i(texRight.w, texRight.h), 0, true);
-	frameBuffer[1].release();
+	OVR::Sizei texRight = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, hmd->DefaultEyeFov[ovrEye_Right], 1.0f);
+	frameBuffer[ovrEye_Right].init(Vector2i(texRight.w, texRight.h), 0, true);
+	frameBuffer[ovrEye_Right].release();
 
 	// Configure the Rift to use OpenGL
 	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
@@ -44,7 +41,7 @@ void RiftRenderer::preProcess () {
 #endif
 
 	// We use SDK distortion rendering
-	ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Vignette | ovrDistortionCap_TimeWarp | ovrDistortionCap_Overdrive, eyeFov, eyeRenderDesc);
+	ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Vignette | ovrDistortionCap_TimeWarp | ovrDistortionCap_Overdrive, hmd->DefaultEyeFov, eyeRenderDesc);
 	ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
 	ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0);
 
@@ -53,11 +50,7 @@ void RiftRenderer::preProcess () {
 }
 
 void RiftRenderer::update () {
-	PerspectiveRenderer::update();
-	/**
-	 * Nothing else to do here since all the updates need to be done
-	 * at the place where the rendering occurs because of the eye shift
-	 */
+	
 }
 
 void RiftRenderer::clear (Vector3f background) {
@@ -70,10 +63,12 @@ void RiftRenderer::draw () {
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
 	// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
+	//cameraPosition.y() = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, cameraPosition.y());
 	OVR::Vector3f camPosition(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
 	// Get eye poses, feeding in correct IPD offset
 	ovrVector3f viewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset };
+	ovrPosef eyeRenderPose[2];
 	ovrHmd_GetEyePoses(hmd, 0, viewOffset, eyeRenderPose, NULL);
 
 	// Render for each eye
@@ -88,27 +83,23 @@ void RiftRenderer::draw () {
 		OVR::Matrix4f rollPitch = OVR::Matrix4f(eyeRenderPose[eye].Orientation);
 		OVR::Vector3f up = rollPitch.Transform(OVR::Vector3f(0, 1, 0));
 		OVR::Vector3f forward = rollPitch.Transform(OVR::Vector3f(0, 0, -1));
-		OVR::Vector3f shiftedEyePos = camPosition +rollPitch.Transform(eyeRenderPose[eye].Position);
-	
+		OVR::Vector3f shiftedEyePos = camPosition + rollPitch.Transform(eyeRenderPose[eye].Position);
+
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
 		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
 		// Copy to Eigen matrices (we need column major -> transpose)
-		Matrix4f v = Eigen::Map<Matrix4f>((float *) view.Transposed().M);
-		Matrix4f p = Eigen::Map<Matrix4f>((float *) projection.Transposed().M);
+		Matrix4f v = Eigen::Map<Matrix4f>((float *)view.Transposed().M);
+		Matrix4f p = Eigen::Map<Matrix4f>((float *)projection.Transposed().M);
 
 		// Update matrices
 		setProjectionMatrix(p);
 		setViewMatrix(v);
 
-		// Update shader state
-		shader->bind();
-		shader->setUniform("light.position", Vector3f(shiftedEyePos.x, shiftedEyePos.y, shiftedEyePos.z));
-
 		// Draw the mesh for each eye
 		PerspectiveRenderer::draw();
-		
+
 		// Do distortion rendering, Present and flush/sync
 		OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
 		eyeTexture[eye].OGL.Header.API = ovrRenderAPI_OpenGL;

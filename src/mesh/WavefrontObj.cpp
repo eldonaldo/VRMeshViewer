@@ -74,7 +74,7 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
                 }
 
 				// Update look up table
-				nTable[v.p - 1].push_back(indices.size());
+				nTable[v.p - 1].push_back(indices.size() - 1);
             }
 
         }
@@ -107,15 +107,14 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
 		}
 
 		// Compute per vertex normals
-		m_N.resize(3, vertices.size());
+		m_N.resize(3, positions.size());
 		for (unsigned int i = 0; i < vertices.size(); i++) {
 			Vector3f n(0.0, 0.0, 0.0);
 
 			// Search adjacent faces for that vertex
-			for (unsigned int j : nTable[i])
+			for (unsigned int j : nTable[vertices[i].p - 1])
 				n += faceNormals[j];
 
-			// We normalize later
 			m_N.col(i) = n.normalized();
 		}
 
