@@ -25,17 +25,16 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 void PerspectiveRenderer::preProcess () {
 	Renderer::preProcess();
 
-	shader->bind();
-	shader->uploadIndices(mesh->getIndices());
-	shader->uploadAttrib("position", mesh->getVertexPositions());
-	shader->uploadAttrib("normal", mesh->getVertexNormals());
-
 	// Model material intensity
+	shader->bind();
 	shader->setUniform("intensity", materialIntensity);
 
 	// Create virtual point light
 	shader->setUniform("light.position", cameraPosition); // Camera position
 	shader->setUniform("light.intensity", lightIntensity);
+
+	// Upload mesh
+	mesh->upload(shader);
 }
 
 void PerspectiveRenderer::update () {
@@ -48,7 +47,7 @@ void PerspectiveRenderer::update () {
 
 void PerspectiveRenderer::draw() {
 	shader->bind();
-	shader->drawIndexed(GL_TRIANGLES, 0, mesh->getTriangleCount());
+	mesh->draw();
 }
 
 void PerspectiveRenderer::cleanUp () {

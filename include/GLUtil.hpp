@@ -172,6 +172,10 @@ public:
             size += buf.second.size;
         return size;
     }
+
+	/// OpenGL shader id
+	GLuint getId() { return mProgramShader; }
+
 protected:
     void uploadAttrib(const std::string &name, uint32_t size, int dim,
                        uint32_t compSize, GLuint glType, bool integral,

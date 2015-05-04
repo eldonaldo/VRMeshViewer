@@ -253,6 +253,9 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 
 	// Render loop
 	while (!glfwWindowShouldClose(window)) {
+		// Bind "the" framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		// Arcball rotationa and scaling
 		Matrix4f mm = scaleMatrix * arcball.matrix(renderer->getViewMatrix()) * translateMatrix;
 		mesh->setModelMatrix(mm);
@@ -291,7 +294,6 @@ Viewer::~Viewer () {
 	if (hmd) {
 		ovrHmd_Destroy(hmd);
 		ovr_Shutdown();
-		std::cout << "Rift destroyed" << std::endl;
 	}
 }
 

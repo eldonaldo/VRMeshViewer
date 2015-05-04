@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "mesh/BBox.hpp"
 #include "Eigen/Geometry"
+#include "GLUtil.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -22,7 +23,7 @@ public:
 	Mesh();
 
     /// Release all memory
-    virtual ~Mesh() = default;
+    virtual ~Mesh();
 
     /// Return the total number of triangles in this hsape
     uint32_t getTriangleCount() const { return (uint32_t) m_F.cols(); }
@@ -88,6 +89,10 @@ public:
 	const Matrix3f &getNormalMatrix () const {
 		return normalMatrix;
 	}
+
+	void upload(std::shared_ptr<GLShader> &s);
+
+	void draw();
    
 protected:
     std::string m_name;                  ///< Identifying name
@@ -98,6 +103,18 @@ protected:
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
     Matrix4f modelMatrix; 				 ///< Model matrix
 	Matrix3f normalMatrix; 				 ///< Transpose inverse model matrix
+	
+	static enum BUFFERS {
+		VERTEX_BUFFER,  //!< VERTEX_BUFFER
+		TEXCOORD_BUFFER,//!< TEXCOORD_BUFFER
+		NORMAL_BUFFER,  //!< NORMAL_BUFFER
+		INDEX_BUFFER    //!< INDEX_BUFFER
+	};
+	GLuint vao;
+	GLuint vbo[4];
+	std::string glPositionName;
+	std::string glNormalName;
+	std::string glTexName;
 };
 
 VR_NAMESPACE_END

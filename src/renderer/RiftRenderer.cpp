@@ -110,7 +110,7 @@ void RiftRenderer::draw () {
 		shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
 
 		// Draw the mesh for each eye
-		shader->drawIndexed(GL_TRIANGLES, 0, mesh->getTriangleCount());
+		mesh->draw();
 
 		// Do distortion rendering, Present and flush/sync
 		OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
@@ -120,6 +120,9 @@ void RiftRenderer::draw () {
 		eyeTexture[eye].OGL.Header.RenderViewport.Size = size;
 		eyeTexture[eye].OGL.TexId = frameBuffer[eye].getColor();
 	}
+
+	// Bind "the" framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// End SDK distortion mode
 	ovrHmd_EndFrame(hmd, eyeRenderPose, &eyeTexture[0].Texture);
