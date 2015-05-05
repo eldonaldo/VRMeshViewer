@@ -3,7 +3,7 @@
 VR_NAMESPACE_BEGIN
 
 RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
-	: PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
+	: yaw(0.f), PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
 
 	// Reset all
 	setViewMatrix(Matrix4f::Identity());
@@ -50,7 +50,7 @@ void RiftRenderer::preProcess () {
 }
 
 void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
-	
+	PerspectiveRenderer::update(s, r, t);
 }
 
 void RiftRenderer::clear (Vector3f background) {
@@ -80,10 +80,11 @@ void RiftRenderer::draw () {
 		frameBuffer[eye].bind();
 
 		// Use data from rift sensors
-		OVR::Matrix4f rollPitch = OVR::Matrix4f(eyeRenderPose[eye].Orientation);
-		OVR::Vector3f up = rollPitch.Transform(OVR::Vector3f(0, 1, 0));
-		OVR::Vector3f forward = rollPitch.Transform(OVR::Vector3f(0, 0, -1));
-		OVR::Vector3f shiftedEyePos = camPosition + rollPitch.Transform(eyeRenderPose[eye].Position);
+		OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(yaw);
+		OVR::Matrix4f finalRollPitchYaw = rollPitchYaw * OVR::Matrix4f(eyeRenderPose[eye].Orientation);
+		OVR::Vector3f up = finalRollPitchYaw.Transform(OVR::Vector3f(0, 1, 0));
+		OVR::Vector3f forward = finalRollPitchYaw.Transform(OVR::Vector3f(0, 0, -1));
+		OVR::Vector3f shiftedEyePos = camPosition + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
 
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);

@@ -14,7 +14,7 @@ int main (int argc, char *argv[]) {
 
 	try {
 
-		bool useRift = false;
+		bool useRift = true;
 
 		// This sets up the OpenGL context and needs the be first call
 		Viewer viewer("Virtual Reality Mesh Viewer", width, height, useRift, false);
