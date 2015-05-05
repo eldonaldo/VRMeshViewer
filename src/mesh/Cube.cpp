@@ -54,8 +54,6 @@ Cube::Cube() : Mesh() {
 	m_F = F;
 	m_N = N;
 	m_V = V;
-
-	scale(0.04f, 0.02f, 0.04f);
 }
 
 VR_NAMESPACE_END

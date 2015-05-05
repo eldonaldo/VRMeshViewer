@@ -96,6 +96,7 @@ typedef Eigen::Matrix<unsigned int, 2, 1> Vector2ui;
 typedef TPoint<float, 3> Point3f;
 typedef TPoint<float, 2> Point2f;
 typedef TBoundingBox<Point3f> BoundingBox3f;
+typedef Eigen::Quaternion<float> Quaternionf;
 
 /// Stores an RGBA color value
 class Color : public Eigen::Vector4f {

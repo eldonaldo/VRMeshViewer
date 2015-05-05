@@ -55,6 +55,9 @@ public:
 	Eigen::Vector3f LIGHT_INTENSITY;
 
 	float MESH_DIAGONAL;
+	bool SHOW_HANDS;
+
+	float LEAP_TO_WORLD_SCALE;
 };
 
 VR_NAMESPACE_END

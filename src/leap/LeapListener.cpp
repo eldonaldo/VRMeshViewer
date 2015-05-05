@@ -17,6 +17,11 @@ void LeapListener::onConnect(const Controller& controller) {
 	controller.enableGesture(Gesture::TYPE_KEY_TAP);
 	controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
 	controller.enableGesture(Gesture::TYPE_SWIPE);
+	Settings::getInstance().SHOW_HANDS = true;
+}
+
+void LeapListener::onDisconnect(const Controller &controller) {
+	Settings::getInstance().SHOW_HANDS = false;
 }
 
 Vector LeapListener::leapToWorld (Vector &_v, InteractionBox &iBox, bool isRight, bool clamp) {
@@ -54,21 +59,22 @@ Vector LeapListener::leapToWorld (Vector &_v, InteractionBox &iBox, bool isRight
 		// Transform point
 		Vector4f v(_v.x, _v.y, _v.z, 1.f);
 		Matrix4f leapToWorldEigen = Eigen::Map<Matrix4f>((float *)leapToWorld.M);
-		Vector4f transformedV = leapToWorldEigen * v;
+		Vector3f &o = Settings::getInstance().CAMERA_OFFSET;
+		Vector4f transformedV = (leapToWorldEigen * v) + Vector4f(o.x(), o.y(), o.z(), 1.f);
 
-		static float scale = 35.f;
+		float scale = Settings::getInstance().LEAP_TO_WORLD_SCALE;
 		return Leap::Vector(transformedV.x() * scale, transformedV.y() * scale, transformedV.z() * scale);
 	} else {
 
 		Vector normalizedPosition = iBox.normalizePoint(_v);
 		Vector worldPosition;
 
-		float scale = 4.f;
+		float scale = 1.f;
 		Leap::Vector origin(-0.5f, -0.5f, -0.5f); // Middle of ibox
 		float offset = isRight ? -0.25f : +0.25f;
 
 		worldPosition = (normalizedPosition + origin);
-		worldPosition.x += offset;
+//		worldPosition.x += offset;
 		worldPosition *= scale;
 
 		//clamp after offsetting
@@ -89,27 +95,31 @@ void LeapListener::onFrame(const Controller &controller) {
 	PointableList pointables = frame.pointables();
 	InteractionBox iBox = frame.interactionBox();
 
-	/// For all available hands
+	// For all available hands
 	HandList handList = frame.hands();
 	for (int i = 0; i < handList.count(); i++) {
 		Hand hand = handList[i];
+		currentHand = leftHand;
+		if (hand.isRight())
+			currentHand = rightHand;
+
+		// Palm -> world
 		Leap::Vector palmPosition = hand.palmPosition();
 		Vector worldPalm = leapToWorld(palmPosition, iBox, hand.isRight());
 
 		cout << worldPalm << endl;
 
-		if (hand.isRight())
-			rightHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);
-		else
-			leftHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);	
+		// Palm Translation
+		currentHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);
+
+		// Palm Rotation
+		const Vector direction = hand.direction();
+		const Vector plamNormal = hand.palmNormal();
+		currentHand->rotate(plamNormal.roll(), direction.pitch(), direction.yaw());
 	}
 }
 
 void LeapListener::onInit(const Controller &controller) {
-
-}
-
-void LeapListener::onDisconnect(const Controller &controller) {
 
 }
 

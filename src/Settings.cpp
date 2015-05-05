@@ -24,8 +24,11 @@ Settings::Settings () :
 	LIGHT_INTENSITY				(1.f, 1.f, 1.f),
 
 	// MESH, 1.f = 1 Unit = 1 meter
-	MESH_DIAGONAL				(0.35f)
+	MESH_DIAGONAL				(0.35f),
+	SHOW_HANDS					(true),
 
+	// LEAP
+	LEAP_TO_WORLD_SCALE			(35.f)
 {}
 
 VR_NAMESPACE_END

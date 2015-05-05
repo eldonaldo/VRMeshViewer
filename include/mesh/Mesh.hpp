@@ -120,6 +120,17 @@ public:
 	void scale (float x, float y, float z){
 		scaleMat = VR_NS::scale(Matrix4f::Zero(), x, y, z);
 	}
+
+	/// Rotation around roll, pitch and yaw in degrees
+	void rotate (float roll, float pitch, float yaw) {
+		Eigen::AngleAxisf rollAngle(roll, Vector3f::UnitZ());
+		Eigen::AngleAxisf yawAngle(yaw, Vector3f::UnitY());
+		Eigen::AngleAxisf pitchAngle(pitch, Vector3f::UnitX());
+
+		Quaternionf q = rollAngle * yawAngle * pitchAngle;
+		rotateMat = Matrix4f::Identity();
+		rotateMat.block<3, 3>(0, 0) = q.matrix();
+	}
    
 protected:
     std::string m_name;                  ///< Identifying name

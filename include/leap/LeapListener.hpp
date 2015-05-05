@@ -79,7 +79,7 @@ protected:
 	std::string stateNames[4]; ///< Leap states
 	float windowWidth, windowHeight; ///y GLFW window size
 	float FBWidth, FBHeight; ///< Framebuffer size
-	std::shared_ptr<Mesh> leftHand, rightHand; ///< Leap hands
+	std::shared_ptr<Mesh> leftHand, rightHand, currentHand; ///< Leap hands
 	ovrHmd hmd; ///< The Rift
 };
 

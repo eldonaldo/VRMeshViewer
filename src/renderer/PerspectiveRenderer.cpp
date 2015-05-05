@@ -21,7 +21,7 @@ void PerspectiveRenderer::preProcess () {
 	mesh->upload(shader);
 
 	// Upload hands
-	if (showHands) {
+	if (Settings::getInstance().SHOW_HANDS) {
 		leftHand->upload(shader);
 		leftHand->translate(-5.f, 0.f, 0.f);
 
@@ -54,7 +54,7 @@ void PerspectiveRenderer::draw() {
 	shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
 	mesh->draw();
 
-	if (showHands) {
+	if (Settings::getInstance().SHOW_HANDS) {
 		// Left hand
 		shader->setUniform("modelMatrix", leftHand->getModelMatrix());
 		shader->setUniform("normalMatrix", leftHand->getNormalMatrix());

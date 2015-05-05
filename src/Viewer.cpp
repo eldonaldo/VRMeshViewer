@@ -184,6 +184,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	// Leap hands
 	hands[0] = std::make_shared<Cube>();
 	hands[1] = std::make_shared<Cube>();
+	hands[0]->scale(0.03f, 0.01f, 0.03f);
+	hands[1]->scale(0.03f, 0.01f, 0.03f);
 
 	// Enable HMD mode and pass through
 	if (useRift)
