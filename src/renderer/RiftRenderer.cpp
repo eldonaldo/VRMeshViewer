@@ -45,6 +45,9 @@ void RiftRenderer::preProcess () {
 	ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
 	ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0);
 
+	// Recenter to head orientation
+	//ovrHmd_RecenterPose(hmd);
+
 	// Dismiss warning
 	ovrHmd_DismissHSWDisplay(hmd);
 }
@@ -89,6 +92,8 @@ void RiftRenderer::draw () {
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
 		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
+
+		std::cout << shiftedEyePos.x << ", " << shiftedEyePos.y << ", " << shiftedEyePos.z << std::endl;
 
 		// Copy to Eigen matrices (we need column major -> transpose)
 		Matrix4f v = Eigen::Map<Matrix4f>((float *)view.Transposed().M);

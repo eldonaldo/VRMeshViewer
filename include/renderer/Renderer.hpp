@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "GLUtil.hpp"
 #include "mesh/Mesh.hpp"
+#include "Leap.h"
 
 VR_NAMESPACE_BEGIN
 

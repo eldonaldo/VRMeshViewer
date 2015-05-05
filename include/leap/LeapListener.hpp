@@ -13,7 +13,7 @@ VR_NAMESPACE_BEGIN
  */
 class LeapListener : public Leap::Listener {
 public:
-	LeapListener ();
+	LeapListener(bool useRift);
 	virtual ~LeapListener () = default;
 
 	/**
@@ -45,6 +45,13 @@ public:
 		leftHand = l; rightHand = r;
 	}
 
+	/**
+	* @brief Sets the pointer to the Hmd
+	*/
+	void setHmd(ovrHmd h) {
+		hmd = h;
+	}
+
 protected:
 
 	/**
@@ -55,7 +62,7 @@ protected:
 	 * @param isRight Right or left hand
 	 * @return Leap world vector
 	 */
-	Leap::Vector leapToWorld (Leap::Vector v, Leap::InteractionBox &ibox, bool isRight);
+	Leap::Vector leapToWorld (Leap::Vector _v, Leap::InteractionBox &ibox, bool isRight, bool clamp);
 
 	/**
 	 * @brief Leap to Eigen conversion
@@ -65,15 +72,15 @@ protected:
 	}
 
 protected:
-	float scale; ///< Coordinate system scale factor
-	Leap::Vector worldOrigin; ///< World coordinate system origin
-	Leap::Vector leftOrigin, rightOrigin; ///< Leap/world coordinate system origin
+
+	bool riftMounted; ///< Leap on HMD?
 	std::string fingerNames[5]; ///< Finger names
 	std::string boneNames[4]; ///< Bone names
 	std::string stateNames[4]; ///< Leap states
 	float windowWidth, windowHeight; ///y GLFW window size
 	float FBWidth, FBHeight; ///< Framebuffer size
 	std::shared_ptr<Mesh> leftHand, rightHand; ///< Leap hands
+	ovrHmd hmd; ///< The Rift
 };
 
 VR_NAMESPACE_END

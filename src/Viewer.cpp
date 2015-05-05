@@ -9,8 +9,8 @@ Viewer *__cbref;
 	static bool glewInitialized = false;
 #endif
 
-Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen, bool debug) throw ()
-	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0)
+Viewer::Viewer (const std::string &title, int width, int height, bool useRift, bool debug) throw ()
+: title(title), width(width), height(height), useRift(useRift), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
 	, debug(debug), hmd(nullptr) {
 
@@ -35,16 +35,19 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 	//glfwWindowHint(GLFW_SAMPLES, 2);
 	
-	if (fullscreen) {
+	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
+	
 
 	if (!window)
 		throw VRException("Could not open a GFLW window");
@@ -175,6 +178,10 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 	// Leap hands
 	hands[0] = std::make_shared<Cube>();
 	hands[1] = std::make_shared<Cube>();
+
+	// Enable HMD mode and pass through
+	if (useRift)
+		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -238,8 +245,11 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Place object in world for immersion
 	placeObject(mesh);
 
+	// Share the HMD
+	leapListener->setHmd(hmd);
+	renderer->setHmd(hmd); 
+
 	// Renderer pre processing
-	renderer->setHmd(hmd);
 	renderer->setMesh(mesh);
 	renderer->setHands(hands[0], hands[1]);
 	renderer->setWindow(window);

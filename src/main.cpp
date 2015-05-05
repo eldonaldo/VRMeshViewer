@@ -31,11 +31,11 @@ int main (int argc, char *argv[]) {
 			renderer = std::unique_ptr<Renderer>(new PerspectiveRenderer(shader, 60.f, width, height, 0.01f, 100.f));
 
 		// Load mesh
-		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-smooth-shifted.obj");
+		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon.obj");
 //		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-no-normals.obj");
 		
 		// Create Leap listener
-		std::unique_ptr<LeapListener> leap(new LeapListener());
+		std::unique_ptr<LeapListener> leap(new LeapListener(useRift));
 		viewer.attachLeap(leap);
 
 		// Run
