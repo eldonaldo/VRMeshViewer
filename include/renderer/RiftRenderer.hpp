@@ -44,7 +44,7 @@ public:
 	 *
 	 * This method is always called before Renderer::draw();
 	 */
-	virtual void update ();
+	virtual void update (Matrix4f &s, Matrix4f &r, Matrix4f &t);
 
 	/**
 	 * @brief Draws the loaded data

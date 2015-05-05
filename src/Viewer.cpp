@@ -11,7 +11,8 @@ Viewer *__cbref;
 
 Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen, bool debug) throw ()
 	: title(title), width(width), height(height), fullscreen(fullscreen), interval(1.f), lastPos(0, 0)
-	, scaleMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity()), debug(debug), hmd(nullptr) {
+	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
+	, debug(debug), hmd(nullptr) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -134,6 +135,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool fullscreen
 				break;
 
 			case GLFW_KEY_V:
+				// Disable v-sync
 				ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
 				break;
 		}
@@ -216,6 +218,7 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 
 void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 	leapListener = std::move(l);
+	leapListener->setHands(hands[0], hands[1]);
 	leapController.addListener(*leapListener);
 }
 
@@ -255,12 +258,11 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		// Bind "the" framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// Arcball rotationa and scaling
-		Matrix4f mm = scaleMatrix * arcball.matrix(renderer->getViewMatrix()) * translateMatrix;
-		mesh->setModelMatrix(mm);
+		// Update arcball
+		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Update state
-		renderer->update();
+		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
 
 		// Clear buffers
 		renderer->clear(background);

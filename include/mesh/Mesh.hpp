@@ -72,21 +72,21 @@ public:
 	}
 
 	/**
-	 * @param modelMatrix Model Matrix
-	 */
-	void setModelMatrix (const Matrix4f &modelMatrix);
-
-	/**
 	 * @return Model Matrix
 	 */
-	const Matrix4f &getModelMatrix () const {
+	Matrix4f &getModelMatrix () {
+		modelMatrix = scaleMat * rotateMat * transMat;
 		return modelMatrix;
 	}
 
 	/**
 	 * @return Transpose inverse model matrix
 	 */
-	const Matrix3f &getNormalMatrix () const {
+	Matrix3f &getNormalMatrix () {
+		// Calculate normal matrix for normal transformation
+		Matrix3f tmp = modelMatrix.topLeftCorner<3, 3>();
+		Matrix3f inv = tmp.inverse();
+		normalMatrix = inv.transpose();
 		return normalMatrix;
 	}
 
@@ -96,19 +96,29 @@ public:
 	/// Draw to the currently bounded shader
 	void draw();
 
+
+	/// Sets translation matrix
+	void setTranslateMatrix (Matrix4f t) { transMat = t; }
+
+	/// Sets scale matrix
+	void setScaleMatrix (Matrix4f t) { scaleMat = t; }
+
+	/// Sets rotation matrix
+	void setRotationMatrix (Matrix4f t) { rotateMat = t; }
+
+	/// Translate x, y, z
 	void translate (float x, float y, float z) {
 		transMat = VR_NS::translate(Matrix4f::Identity(), Vector3f(x, y, z));
-		setModelMatrix(scaleMat * rotateMat * transMat);
 	}
 
+	/// Scale equally
 	void scale (float s){
 		scaleMat = VR_NS::scale(Matrix4f::Zero(), s);
-		setModelMatrix(scaleMat * rotateMat * transMat);
 	}
 
+	/// Scale x, y, z
 	void scale (float x, float y, float z){
 		scaleMat = VR_NS::scale(Matrix4f::Zero(), x, y, z);
-		setModelMatrix(scaleMat * rotateMat * transMat);
 	}
    
 protected:

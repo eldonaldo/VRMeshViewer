@@ -73,6 +73,18 @@ public:
 		);
 	}
 
+	const Arcball& getArcball () const {
+		return arcball;
+	}
+
+	const Matrix4f& getScaleMatrix () const {
+		return scaleMatrix;
+	}
+
+	const Matrix4f& getTranslateMatrix () const {
+		return translateMatrix;
+	}
+
 protected:
 
 	/**
@@ -103,12 +115,13 @@ protected:
 	std::shared_ptr<Mesh> mesh; ///< Pointer to mesh
 	Arcball arcball; ///< Arcball
 	Matrix4f scaleMatrix; ///< Scale matrix
+	Matrix4f rotationMatrix; ///< Rotation matrix
 	Matrix4f translateMatrix; ///< Translation matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
 	bool debug; ///< Debug mode
 	float desiredDiag = 0.40f; ///< Desired diagonal length in meter
 	Leap::Controller leapController; ///< Leap controller
-	std::unique_ptr<Leap::Listener> leapListener; ///< Leap listener instance
+	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<Mesh> hands[2]; ///< Leap hands
 };
 

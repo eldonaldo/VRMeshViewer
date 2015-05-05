@@ -49,7 +49,7 @@ void RiftRenderer::preProcess () {
 	ovrHmd_DismissHSWDisplay(hmd);
 }
 
-void RiftRenderer::update () {
+void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	
 }
 

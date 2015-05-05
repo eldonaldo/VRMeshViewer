@@ -1,5 +1,5 @@
 #include "renderer/PerspectiveRenderer.hpp"
-#include "LeapUtilGL.h"
+
 VR_NAMESPACE_BEGIN
 
 PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
@@ -46,7 +46,12 @@ void PerspectiveRenderer::preProcess () {
 	}
 }
 
-void PerspectiveRenderer::update () {
+void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
+	// Mesh model matrix
+	mesh->setScaleMatrix(s);
+	mesh->setRotationMatrix(r);
+	mesh->setTranslateMatrix(t);
+
 	// Need to send every time because of the arcball rotation
 	shader->bind();
 	shader->setUniform("modelMatrix", mesh->getModelMatrix());

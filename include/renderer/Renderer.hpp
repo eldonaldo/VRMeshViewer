@@ -50,20 +50,20 @@ public:
 	}
 
 	/**
-	 * @brief Updates the state
-	 *
-	 * This method must be implemented by all subclasses. This method is
-	 * always called before Renderer::draw();
-	 */
-	virtual void update () = 0;
-
-	/**
 	 * @brief Allows the renderer to do some processing
 	 * 		  before the render loop is entered.
 	 *
 	 * The default implementation does nothing.
 	 */
 	virtual void preProcess () {}
+
+	/**
+	 * @brief Updates the state
+	 *
+	 * This method must be implemented by all subclasses. This method is
+	 * always called before Renderer::draw();
+	 */
+	virtual void update (Matrix4f &s, Matrix4f &r, Matrix4f &t) = 0;
 
 	/**
 	 * @brief Draws the loaded data
