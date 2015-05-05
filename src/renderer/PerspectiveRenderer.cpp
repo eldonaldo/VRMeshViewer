@@ -4,19 +4,10 @@ VR_NAMESPACE_BEGIN
 
 PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
 	: Renderer(shader), fov(fov), width(width), height(height), zNear(zNear), zFar(zFar), aspectRatio(width / height)
-	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio) {
-	
-	// 1.f = 1 Unit = 1 meter
-	cameraPosition = Vector3f(
-		0.f, // No shift on x-axis
-		0.10f, // Head is 15cm above object's center
-		0.30f // Offset in z direction
-	);
-
-	lookAtPosition = Vector3f(0.f, 0.f, 0.f); // The object is positioned at (0, 0, 0)
-	headsUp = Vector3f(0.f, 1.f, 0.f);
-	lightIntensity = Vector3f(1.f, 1.f, 1.f);
-	materialIntensity =  0.8f;
+	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio), lightIntensity(Settings::getInstance().LIGHT_INTENSITY)
+	, materialIntensity(Settings::getInstance().MATERIAL_INTENSITY), headsUp(Settings::getInstance().CAMERA_HEADS_UP)
+	, lookAtPosition(Settings::getInstance().CAMERA_LOOK_AT)
+	, cameraPosition(Settings::getInstance().CAMERA_OFFSET) {
 
 	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 	setViewMatrix(lookAt(cameraPosition, lookAtPosition, headsUp));
@@ -25,15 +16,8 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 void PerspectiveRenderer::preProcess () {
 	Renderer::preProcess();
 
-	// Model material intensity
-	shader->bind();
-	shader->setUniform("intensity", materialIntensity);
-
-	// Create virtual point light
-	shader->setUniform("light.position", cameraPosition); // Camera position
-	shader->setUniform("light.intensity", lightIntensity);
-
 	// Upload mesh
+	shader->bind();
 	mesh->upload(shader);
 
 	// Upload hands
@@ -51,6 +35,14 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setScaleMatrix(s);
 	mesh->setRotationMatrix(r);
 	mesh->setTranslateMatrix(t);
+
+	// Model material intensity
+	shader->setUniform("intensity", materialIntensity);
+
+	// Create virtual point light
+	shader->setUniform("light.position", cameraPosition); // Camera position
+	shader->setUniform("light.intensity", lightIntensity);
+	shader->setUniform("light.intensity", lightIntensity);
 }
 
 void PerspectiveRenderer::draw() {

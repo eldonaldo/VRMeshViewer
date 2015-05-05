@@ -62,7 +62,7 @@ protected:
 	 * @param isRight Right or left hand
 	 * @return Leap world vector
 	 */
-	Leap::Vector leapToWorld (Leap::Vector _v, Leap::InteractionBox &ibox, bool isRight, bool clamp);
+	Leap::Vector leapToWorld (Leap::Vector &_v, Leap::InteractionBox &ibox, bool isRight = true, bool clamp = false);
 
 	/**
 	 * @brief Leap to Eigen conversion

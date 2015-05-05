@@ -19,7 +19,7 @@ void LeapListener::onConnect(const Controller& controller) {
 	controller.enableGesture(Gesture::TYPE_SWIPE);
 }
 
-Vector LeapListener::leapToWorld (Vector _v, InteractionBox &iBox, bool isRight = true, bool clamp = false) {
+Vector LeapListener::leapToWorld (Vector &_v, InteractionBox &iBox, bool isRight, bool clamp) {
 	if (riftMounted) {
 		// Average of the left and right camera positions
 		ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
@@ -89,19 +89,19 @@ void LeapListener::onFrame(const Controller &controller) {
 	PointableList pointables = frame.pointables();
 	InteractionBox iBox = frame.interactionBox();
 
+	/// For all available hands
 	HandList handList = frame.hands();
 	for (int i = 0; i < handList.count(); i++) {
 		Hand hand = handList[i];
-		Vector worldPalm = leapToWorld(hand.palmPosition(), iBox, hand.isRight());
+		Leap::Vector palmPosition = hand.palmPosition();
+		Vector worldPalm = leapToWorld(palmPosition, iBox, hand.isRight());
 
 		cout << worldPalm << endl;
-
 
 		if (hand.isRight())
 			rightHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);
 		else
 			leftHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);	
-
 	}
 }
 

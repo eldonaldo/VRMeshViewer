@@ -105,6 +105,7 @@ add_executable(VRMeshViewer
 	include/renderer/RiftRenderer.hpp
 	include/leap/LeapListener.hpp
 	include/mesh/Cube.hpp
+	include/Settings.hpp
 	
 	# Source code files
 	src/main.cpp
@@ -117,6 +118,7 @@ add_executable(VRMeshViewer
 	src/renderer/RiftRenderer.cpp
 	src/leap/LeapListener.cpp
 	src/mesh/Cube.cpp
+	src/Settings.cpp
 
 	# Ext
 	#ext/leap/util/LeapUtilGL.h

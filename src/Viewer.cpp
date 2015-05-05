@@ -10,7 +10,7 @@ Viewer *__cbref;
 #endif
 
 Viewer::Viewer (const std::string &title, int width, int height, bool useRift, bool debug) throw ()
-: title(title), width(width), height(height), useRift(useRift), interval(1.f), lastPos(0, 0)
+	: title(title), width(width), height(height), useRift(useRift), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
 	, debug(debug), hmd(nullptr) {
 
@@ -35,8 +35,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_SAMPLES, 2);
 	
 	if (useRift) {
@@ -139,7 +138,14 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 
 			case GLFW_KEY_V:
 				// Disable v-sync
-				ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
+				static bool disable = true;
+
+				if (disable)
+					ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
+				else
+					ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
+
+				disable = !disable;
 				break;
 		}
 
@@ -214,7 +220,7 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	float c = fabs(bbox.max.x() - bbox.min.x());
 	float l = sqrtf(a * a + b * b);
 	float diag = sqrtf(l * l + c * c);
-	float factor = desiredDiag / diag;
+	float factor = Settings::getInstance().MESH_DIAGONAL / diag;
 
 	// Translate to center
 	translateMatrix = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));

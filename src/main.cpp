@@ -9,12 +9,13 @@ using namespace VR_NS;
 
 int main (int argc, char *argv[]) {
 
-	// Window width and height
-	int width = 1200, height = 900;
+	// Settings
+	int &width = Settings::getInstance().WINDOW_WIDTH, &height = Settings::getInstance().WINDOW_HEIGHT;
+	float &fov = Settings::getInstance().FOV, &zNear = Settings::getInstance().Z_NEAR, &zFar = Settings::getInstance().Z_FAR;
 
 	try {
 
-		bool useRift = true;
+		bool useRift = false;
 
 		// This sets up the OpenGL context and needs the be first call
 		Viewer viewer("Virtual Reality Mesh Viewer", width, height, useRift, false);
@@ -26,9 +27,9 @@ int main (int argc, char *argv[]) {
 		// Create an appropriate renderer
 		std::unique_ptr<Renderer> renderer;
 		if (useRift)
-			renderer = std::unique_ptr<Renderer>(new RiftRenderer(shader, 60.f, width, height, 0.01f, 100.f));
+			renderer = std::unique_ptr<Renderer>(new RiftRenderer(shader, fov, width, height, zNear, zFar));
 		else
-			renderer = std::unique_ptr<Renderer>(new PerspectiveRenderer(shader, 60.f, width, height, 0.01f, 100.f));
+			renderer = std::unique_ptr<Renderer>(new PerspectiveRenderer(shader, fov, width, height, zNear, zFar));
 
 		// Load mesh
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon.obj");

@@ -24,6 +24,11 @@
  #define OVR_OS_LINUX
 #endif
 
+// Convenience definitions
+#define VR_NS vrmv // Attention: Change NS name also in Settings.hpp
+#define VR_NAMESPACE_BEGIN namespace VR_NS {
+#define VR_NAMESPACE_END }
+
 // Include the basis usages
 #include "Eigen/Core"
 #include <stdint.h>
@@ -50,6 +55,7 @@
 #endif
 #include <memory>
 #include <math.h>
+#include "Settings.hpp"
 #include "GLFW/glfw3.h"
 #if !defined(PLATFORM_APPLE)
 	#include <GLFW/glfw3native.h>
@@ -59,11 +65,6 @@
 #include "OVR_CAPI_GL.h"
 #include "OVR_Math.h"
 #include "tinyformat.h"
-
-// Convenience definitions
-#define VR_NS vrmv
-#define VR_NAMESPACE_BEGIN namespace VR_NS {
-#define VR_NAMESPACE_END }
 
 namespace VR_NS {}
 using namespace vrmv;
