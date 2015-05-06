@@ -24,67 +24,49 @@ void LeapListener::onDisconnect(const Controller &controller) {
 	Settings::getInstance().SHOW_HANDS = false;
 }
 
-Vector LeapListener::leapToWorld (Vector &_v, InteractionBox &iBox, bool isRight, bool clamp) {
-	if (riftMounted) {
-		// Average of the left and right camera positions
-		ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
-		OVR::Matrix4f trans = OVR::Matrix4f::Translation(headPose.Position);
-		OVR::Matrix4f rot = OVR::Matrix4f(headPose.Orientation);
+Vector LeapListener::leapToWorld (Vector &v) {
+	// No Rift transformation
+	if (!riftMounted)
+		return (v + Settings::getInstance().LEAP_TO_WORLD_ORIGIN) * Settings::getInstance().LEAP_TO_WORLD_SCALE_3D;
 
-		// Rift to world transformation
-		OVR::Matrix4f riftToWorld = trans * rot;
+	// Average of the left and right camera positions
+	ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
+	OVR::Matrix4f trans = OVR::Matrix4f::Translation(headPose.Position);
+	OVR::Matrix4f rot = OVR::Matrix4f(headPose.Orientation);
 
-		// Encode the location (flip axis, rotation and translation) on the Rift where the Leap is mounted
-		// x -> -x
-		// y -> -z
-		// z -> -y
-		static const OVR::Matrix4f leapToRift(
-			-1.f,  0.f,  0.f,  0.f,
-			 0.f,  0.f, -1.f,  0.f,
-			 0.f, -1.f,  0.f, -0.08f, // The VRMount is -8cm in front of the Leap
-			 0.f,  0.f,  0.f,  1.f
-		);
+	// Rift to world transformation
+	OVR::Matrix4f riftToWorld = trans * rot;
 
-		// mm -> m
-		static const OVR::Matrix4f mmTom(
-			0.001f, 0.f,	0.f,	0.f,
-			0.f,	0.001f, 0.f,	0.f,
-			0.f,	0.f,	0.001f, 0.f, 
-			0.f,	0.f,	0.f,	1.f
-		);
+	// Encode the location (flip axis, rotation and translation) on the Rift where the Leap is mounted
+	// x -> -x
+	// y -> -z
+	// z -> -y
+	static const OVR::Matrix4f leapToRift(
+		-1.f,  0.f,  0.f,  0.f,
+		 0.f,  0.f, -1.f,  0.f,
+		 0.f, -1.f,  0.f, -0.08f, // The VRMount is -8cm in front of the Leap
+		 0.f,  0.f,  0.f,  1.f
+	);
 
-		// Final transformation matrix that brings positions from Leap space into world-space (in meters)
-		OVR::Matrix4f leapToWorld = riftToWorld * leapToRift * mmTom;
+	// mm -> m
+	static const OVR::Matrix4f mmTom(
+		0.001f, 0.f,	0.f,	0.f,
+		0.f,	0.001f, 0.f,	0.f,
+		0.f,	0.f,	0.001f, 0.f,
+		0.f,	0.f,	0.f,	1.f
+	);
 
-		// Transform point
-		Vector4f v(_v.x, _v.y, _v.z, 1.f);
-		Matrix4f leapToWorldEigen = Eigen::Map<Matrix4f>((float *)leapToWorld.M);
-		Vector3f &o = Settings::getInstance().CAMERA_OFFSET;
-		Vector4f transformedV = (leapToWorldEigen * v) + Vector4f(o.x(), o.y(), o.z(), 1.f);
+	// Final transformation matrix that brings positions from Leap space into world-space (in meters)
+	OVR::Matrix4f leapToWorld = riftToWorld * leapToRift * mmTom;
 
-		float scale = Settings::getInstance().LEAP_TO_WORLD_SCALE;
-		return Leap::Vector(transformedV.x() * scale, transformedV.y() * scale, transformedV.z() * scale);
-	} else {
+	// Transform point
+	Vector4f vectorEigen(v.x, v.y, v.z, 1.f);
+	Matrix4f leapToWorldEigen = Eigen::Map<Matrix4f>((float *)leapToWorld.M);
+	Vector3f &o = Settings::getInstance().CAMERA_OFFSET;
+	Vector4f transformedV = (leapToWorldEigen * vectorEigen) + Vector4f(o.x(), o.y(), o.z(), 1.f);
 
-		Vector normalizedPosition = iBox.normalizePoint(_v);
-		Vector worldPosition;
-
-		float scale = 1.f;
-		Leap::Vector origin(-0.5f, -0.5f, -0.5f); // Middle of ibox
-		float offset = isRight ? -0.25f : +0.25f;
-
-		worldPosition = (normalizedPosition + origin);
-//		worldPosition.x += offset;
-		worldPosition *= scale;
-
-		//clamp after offsetting
-		worldPosition.x = (clamp && worldPosition.x < 0) ? 0 : worldPosition.x;
-		worldPosition.x = (clamp && worldPosition.x > 1) ? 1 : worldPosition.x;
-		worldPosition.y = (clamp && worldPosition.y < 0) ? 0 : worldPosition.y;
-		worldPosition.y = (clamp && worldPosition.y > 1) ? 1 : worldPosition.y;
-
-		return worldPosition;
-	}
+	float scale = Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD;
+	return Leap::Vector(transformedV.x() * scale, transformedV.y() * scale, transformedV.z() * scale);
 }
 
 void LeapListener::onFrame(const Controller &controller) {
@@ -96,26 +78,47 @@ void LeapListener::onFrame(const Controller &controller) {
 	InteractionBox iBox = frame.interactionBox();
 
 	// For all available hands
-	HandList handList = frame.hands();
-	for (int i = 0; i < handList.count(); i++) {
-		Hand hand = handList[i];
+	HandList hands = frame.hands();
+	for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
+		const Hand hand = *hl;
 		currentHand = leftHand;
 		if (hand.isRight())
 			currentHand = rightHand;
 
 		// Palm -> world
 		Leap::Vector palmPosition = hand.palmPosition();
-		Vector worldPalm = leapToWorld(palmPosition, iBox, hand.isRight());
+		Vector worldPalm = leapToWorld(palmPosition);
 
 		cout << worldPalm << endl;
 
-		// Palm Translation
-		currentHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);
 
 		// Palm Rotation
 		const Vector direction = hand.direction();
 		const Vector plamNormal = hand.palmNormal();
-		currentHand->rotate(plamNormal.roll(), direction.pitch(), direction.yaw());
+
+//		std::cout << string(2, ' ') << "pitch: " << direction.pitch() * RAD_TO_DEG
+//						<< " degrees, " << "roll: " << plamNormal.roll() * RAD_TO_DEG
+//						<< " degrees, " << "yaw: " << direction.yaw() * RAD_TO_DEG
+//						<< " degrees" << std::endl;
+//
+		Vector3f directionEigen(direction.x, direction.y, direction.z);
+		Vector3f palmNormalEigen(plamNormal.x, plamNormal.y, plamNormal.z);
+		Vector3f crossEigen = directionEigen.cross(palmNormalEigen);
+
+//		currentHand->rotate(
+//			plamNormal.roll(),
+//			direction.pitch(),
+//			direction.yaw()
+//		);
+
+		// Palm Translation
+		currentHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);
+
+		// Fingers
+		const FingerList fingers = hand.fingers();
+		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
+			const Finger finger = *fl;
+		}
 	}
 }
 

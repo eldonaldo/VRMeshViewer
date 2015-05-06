@@ -58,11 +58,8 @@ protected:
 	 * @brief Transforms a Leap vector into a Leap world vector
 	 *
 	 * @param v Leap vector
-	 * @param ibox Leap interaction box
-	 * @param isRight Right or left hand
-	 * @return Leap world vector
 	 */
-	Leap::Vector leapToWorld (Leap::Vector &_v, Leap::InteractionBox &ibox, bool isRight = true, bool clamp = false);
+	Leap::Vector leapToWorld (Leap::Vector &v);
 
 	/**
 	 * @brief Leap to Eigen conversion

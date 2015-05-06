@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Eigen/Core"
+#include "Leap.h"
 
 /// To avoid cycling includes
 #if !defined(VR_NAMESPACE_BEGIN)
@@ -57,7 +58,9 @@ public:
 	float MESH_DIAGONAL;
 	bool SHOW_HANDS;
 
-	float LEAP_TO_WORLD_SCALE;
+	float LEAP_TO_WORLD_SCALE_HMD;
+	float LEAP_TO_WORLD_SCALE_3D;
+	Leap::Vector LEAP_TO_WORLD_ORIGIN;
 };
 
 VR_NAMESPACE_END

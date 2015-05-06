@@ -121,11 +121,16 @@ public:
 		scaleMat = VR_NS::scale(Matrix4f::Zero(), x, y, z);
 	}
 
-	/// Rotation around roll, pitch and yaw in degrees
+	/// Rotation around roll, pitch and yaw in radiants
 	void rotate (float roll, float pitch, float yaw) {
-		Eigen::AngleAxisf rollAngle(roll, Vector3f::UnitZ());
-		Eigen::AngleAxisf yawAngle(yaw, Vector3f::UnitY());
-		Eigen::AngleAxisf pitchAngle(pitch, Vector3f::UnitX());
+		rotate(roll, Vector3f::UnitX(), pitch, Vector3f::UnitY(), yaw, Vector3f::UnitZ());
+	}
+
+	/// Rotation around roll, pitch and yaw in radiants
+	void rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy) {
+		Eigen::AngleAxisf rollAngle(roll, vr.normalized());
+		Eigen::AngleAxisf yawAngle(yaw, vy.normalized());
+		Eigen::AngleAxisf pitchAngle(pitch, vp.normalized());
 
 		Quaternionf q = rollAngle * yawAngle * pitchAngle;
 		rotateMat = Matrix4f::Identity();
