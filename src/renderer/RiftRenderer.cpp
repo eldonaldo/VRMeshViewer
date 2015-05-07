@@ -8,6 +8,10 @@ RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float 
 	// Reset all
 	setViewMatrix(Matrix4f::Identity());
 	setProjectionMatrix(Matrix4f::Identity());
+
+	// Leap passthrough shader
+	leapShader = std::make_shared<GLShader>();
+	leapShader->initFromFiles("leap-shader", "resources/shader/passthrough-vertex-shader.glsl", "resources/shader/passthrough-fragment-shader.glsl");
 }
 
 void RiftRenderer::preProcess () {
@@ -54,11 +58,61 @@ void RiftRenderer::preProcess () {
 
 	// Dismiss warning
 	ovrHmd_DismissHSWDisplay(hmd);
+
+	// Leap image textures
+	leapRawLeftTexture = GLFramebuffer::createTexture();
+	leapRawRightTexture = GLFramebuffer::createTexture();
+	leapDistortionLeftTexture = GLFramebuffer::createTexture();
+	leapDistortionRightTexture = GLFramebuffer::createTexture();
+
+	// Upload leap shader data
+	leapShader->bind();
+	uploadBackgroundCube();
 }
 
 void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
-	// Update state
+	// Update global state
 	PerspectiveRenderer::update(s, r, t);
+
+	// Leap passthrough
+	Leap::Frame frame = leapController.frame();
+	if (frame.isValid()) {
+		Leap::Image left = frame.images()[0];
+		Leap::Image right = frame.images()[1];
+
+		// Check images sizes
+		if (left.width() != leapImageWidth || left.height() != leapImageHeight || left.distortionWidth() != leapDistortionWidth || left.distortionHeight() != leapDistortionHeight) {
+			// Left
+			glBindTexture(GL_TEXTURE_2D, leapRawLeftTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, 0);
+			glBindTexture(GL_TEXTURE_2D, leapDistortionLeftTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, 0);
+
+			// Right
+			glBindTexture(GL_TEXTURE_2D, leapRawRightTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, 0);
+			glBindTexture(GL_TEXTURE_2D, leapDistortionRightTexture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, 0);
+
+			leapImageWidth = left.width(); leapImageHeight = left.height();
+			leapDistortionWidth = left.distortionWidth(); leapDistortionHeight = left.distortionHeight();
+		}
+
+		// Update image and distortion textures
+		if (left.width() > 0) {
+			glBindTexture(GL_TEXTURE_2D, leapRawLeftTexture);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, left.width(), left.height(), GL_RED, GL_UNSIGNED_BYTE, left.data());
+			glBindTexture(GL_TEXTURE_2D, leapDistortionLeftTexture);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, left.distortionWidth() / 2, left.distortionHeight(), GL_RG, GL_FLOAT, left.distortion());
+		}
+
+		if (right.width() > 0) {
+			glBindTexture(GL_TEXTURE_2D, leapRawRightTexture);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, right.width(), right.height(), GL_RED, GL_UNSIGNED_BYTE, right.data());
+			glBindTexture(GL_TEXTURE_2D, leapDistortionRightTexture);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, right.distortionWidth() / 2, right.distortionHeight(), GL_RG, GL_FLOAT, right.distortion());
+		}
+	}
 }
 
 void RiftRenderer::clear (Vector3f background) {
@@ -108,6 +162,10 @@ void RiftRenderer::draw () {
 		setProjectionMatrix(p);
 		setViewMatrix(v);
 
+		// Leap passthrough
+		leapShader->bind();
+		drawOnCube(eye);
+
 		// Draw the mesh for each eye
 		shader->bind();
 		PerspectiveRenderer::draw();
@@ -118,6 +176,74 @@ void RiftRenderer::draw () {
 
 	// End SDK distortion mode
 	ovrHmd_EndFrame(hmd, eyeRenderPose, &eyeTexture[0].Texture);
+}
+
+void RiftRenderer::uploadBackgroundCube() {
+	GLfloat maxZ = 1.f - std::numeric_limits<GLfloat>::epsilon();
+
+	// Interleaved positions an tex coords
+	GLfloat quad[] = {
+		-1.f, -1.f, maxZ, 1.f, // v0
+		 0.f,  0.f, 0.f,  0.f, // t0
+		 1.f, -1.f, maxZ, 1.f, // ...
+		 1.f,  0.f, 0.f,  0.f,
+		 1.f,  1.f, maxZ, 1.f,
+		 1.f,  1.f, 0.f,  0.f,
+		-1.f,  1.f, maxZ, 1.f,
+		 0.f,  1.f, 0.f,  0.f
+	};
+
+	GLubyte indices[] = { 0, 1, 2, 0, 2, 3 };
+
+	// Generate and bind a VAO
+	glGenVertexArrays(1, &leapVAO);
+	glBindVertexArray(leapVAO);
+
+	// Setup VBO
+	glGenBuffers(1, &leapVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, leapVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
+
+	// Setup index buffer
+	glGenBuffers(1, &leapIBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, leapIBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// Ins
+	GLuint pos = glGetAttribLocation(leapShader->getId(), "position");
+	glVertexAttribPointer(pos, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), 0);
+	glEnableVertexAttribArray(pos);
+
+	GLuint tex = glGetAttribLocation(leapShader->getId(), "texCoord");
+	glVertexAttribPointer(tex, 4, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(4 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(tex);
+
+	// Texture uniforms
+	GLuint rawSampler = glGetUniformLocation(leapShader->getId(), "rawTexture");
+	GLuint distortionSampler = glGetUniformLocation(leapShader->getId(), "distortionTexture");
+	glUniform1i(rawSampler, /*GL_TEXTURE*/0);
+	glUniform1i(distortionSampler,/*GL_TEXTURE*/1);
+
+	// Reset state
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
+
+void RiftRenderer::drawOnCube(ovrEyeType eye) {
+	if (eye != 0) {
+		// Left
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, leapRawLeftTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, leapDistortionLeftTexture);
+	} else {
+		// Right
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, leapRawRightTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, leapDistortionRightTexture);
+	}
 }
 
 void RiftRenderer::cleanUp () {

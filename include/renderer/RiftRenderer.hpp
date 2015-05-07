@@ -97,10 +97,31 @@ public:
 
 protected:
 
+	/**
+	* @brief Uploads a DNC cube to draw the leap image on
+	*/
+	virtual void uploadBackgroundCube();
+
+	/**
+	* @brief Uploads the textures to the shader
+	*/
+	virtual void drawOnCube(ovrEyeType eye);
+
+protected:
+
 	GLFramebuffer frameBuffer[2]; ///< The framebuffer which we draw to with the rift for the left and right eye
 	ovrEyeRenderDesc eyeRenderDesc[2]; ///< Render structure
 	ovrGLConfig cfg; ///< Oculus config
 	ovrGLTexture eyeTexture[2]; ///< OVR textures for distortion rendering
+
+	/**
+	* Leap passthrough
+	*/
+	GLuint leapVAO, leapVBO, leapIBO; ///< Background cube
+	std::shared_ptr<GLShader> leapShader; ///< Leap passthrough shader
+	GLuint leapRawLeftTexture, leapRawRightTexture; ///< Passthrough textres
+	GLuint leapDistortionLeftTexture, leapDistortionRightTexture; ///< Distorted passthrough textres
+	int leapImageWidth = 0, leapImageHeight = 0, leapDistortionWidth = 0, leapDistortionHeight = 0; ///< Leap image sizes. Can change from frame to frame
 };
 
 VR_NAMESPACE_END
