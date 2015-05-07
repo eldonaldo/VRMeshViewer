@@ -3,15 +3,11 @@
 VR_NAMESPACE_BEGIN
 
 RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
-	: yaw(0.f), PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
+	: PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
 
 	// Reset all
 	setViewMatrix(Matrix4f::Identity());
 	setProjectionMatrix(Matrix4f::Identity());
-}
-
-RiftRenderer::~RiftRenderer() {
-
 }
 
 void RiftRenderer::preProcess () {
@@ -45,14 +41,23 @@ void RiftRenderer::preProcess () {
 	ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
 	ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0);
 
-	// Recenter to head orientation
-	//ovrHmd_RecenterPose(hmd);
+	// Do distortion rendering, Present and flush/sync
+	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
+		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
+		OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
+		eyeTexture[eye].OGL.Header.API = ovrRenderAPI_OpenGL;
+		eyeTexture[eye].OGL.Header.TextureSize = size;
+		eyeTexture[eye].OGL.Header.RenderViewport.Pos = OVR::Vector2i(0, 0);
+		eyeTexture[eye].OGL.Header.RenderViewport.Size = size;
+		eyeTexture[eye].OGL.TexId = frameBuffer[eye].getColor();
+	}
 
 	// Dismiss warning
 	ovrHmd_DismissHSWDisplay(hmd);
 }
 
 void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
+	// Update state
 	PerspectiveRenderer::update(s, r, t);
 }
 
@@ -62,6 +67,9 @@ void RiftRenderer::clear (Vector3f background) {
 }
 
 void RiftRenderer::draw () {
+	// Heads yaw angle
+	static float yaw = 0.f;
+
 	// Begin distortion rendering
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
@@ -75,7 +83,6 @@ void RiftRenderer::draw () {
 	ovrHmd_GetEyePoses(hmd, 0, viewOffset, eyeRenderPose, NULL);
 
 	// Render for each eye
-	ovrGLTexture eyeTexture[2];
 	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
 		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
 
@@ -93,8 +100,6 @@ void RiftRenderer::draw () {
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
 		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
-		std::cout << shiftedEyePos.x << ", " << shiftedEyePos.y << ", " << shiftedEyePos.z << std::endl;
-
 		// Copy to Eigen matrices (we need column major -> transpose)
 		Matrix4f v = Eigen::Map<Matrix4f>((float *)view.Transposed().M);
 		Matrix4f p = Eigen::Map<Matrix4f>((float *)projection.Transposed().M);
@@ -104,15 +109,8 @@ void RiftRenderer::draw () {
 		setViewMatrix(v);
 
 		// Draw the mesh for each eye
+		shader->bind();
 		PerspectiveRenderer::draw();
-
-		// Do distortion rendering, Present and flush/sync
-		OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
-		eyeTexture[eye].OGL.Header.API = ovrRenderAPI_OpenGL;
-		eyeTexture[eye].OGL.Header.TextureSize = size;
-		eyeTexture[eye].OGL.Header.RenderViewport.Pos = OVR::Vector2i(0, 0);
-		eyeTexture[eye].OGL.Header.RenderViewport.Size = size;
-		eyeTexture[eye].OGL.TexId = frameBuffer[eye].getColor();
 	}
 
 	// Bind "the" framebuffer

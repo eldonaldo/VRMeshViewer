@@ -12,22 +12,13 @@ LeapListener::LeapListener(bool useRift)
 	stateNames[0] = "STATE_INVALID"; stateNames[1] = "STATE_START"; stateNames[2] = "STATE_UPDATE"; stateNames[3] = "STATE_END";
 }
 
-void LeapListener::onConnect(const Controller& controller) {
-	controller.enableGesture(Gesture::TYPE_CIRCLE);
-	controller.enableGesture(Gesture::TYPE_KEY_TAP);
-	controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
-	controller.enableGesture(Gesture::TYPE_SWIPE);
-	Settings::getInstance().SHOW_HANDS = true;
-}
-
-void LeapListener::onDisconnect(const Controller &controller) {
-	Settings::getInstance().SHOW_HANDS = false;
-}
-
 Vector LeapListener::leapToWorld (Vector &v) {
 	// No Rift transformation
 	if (!riftMounted)
 		return (v + Settings::getInstance().LEAP_TO_WORLD_ORIGIN) * Settings::getInstance().LEAP_TO_WORLD_SCALE_3D;
+
+	if (hmd == nullptr)
+		throw VRException("Could not transform Leap Vector to HMD - no Rift found!");
 
 	// Average of the left and right camera positions
 	ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
@@ -102,6 +93,7 @@ void LeapListener::onFrame(const Controller &controller) {
 		Vector3f palmNormalEigen(plamNormal.x, plamNormal.y, plamNormal.z);
 		Vector3f crossEigen = directionEigen.cross(palmNormalEigen);
 
+		
 //		currentHand->rotate(
 //			plamNormal.roll(),
 //			direction.pitch(),
@@ -123,32 +115,26 @@ void LeapListener::onFrame(const Controller &controller) {
 	}
 }
 
-void LeapListener::onInit(const Controller &controller) {
-
+void LeapListener::onConnect(const Controller& controller) {
+	controller.enableGesture(Gesture::TYPE_CIRCLE);
+	controller.enableGesture(Gesture::TYPE_KEY_TAP);
+	controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
+	controller.enableGesture(Gesture::TYPE_SWIPE);
+	Settings::getInstance().SHOW_HANDS = true;
+	Settings::getInstance().LEAP_USE_PASSTHROUGH = true;
 }
 
-void LeapListener::onExit(const Controller &controller) {
-
-}
-
-void LeapListener::onFocusGained(const Controller &controller) {
-
-}
-
-void LeapListener::onFocusLost(const Controller &controller) {
-
-}
-
-void LeapListener::onDeviceChange(const Controller &controller) {
-
+void LeapListener::onDisconnect(const Controller &controller) {
+	Settings::getInstance().SHOW_HANDS = false;
+	Settings::getInstance().LEAP_USE_PASSTHROUGH = false;
 }
 
 void LeapListener::onServiceConnect(const Controller &controller) {
-
+	Settings::getInstance().SHOW_HANDS = true;
 }
 
 void LeapListener::onServiceDisconnect(const Controller &controller) {
-
+	Settings::getInstance().SHOW_HANDS = false;
 }
 
 VR_NAMESPACE_END

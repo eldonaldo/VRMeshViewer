@@ -20,14 +20,12 @@ public:
 	/**
 	 * Leap listener implementation
 	 */
-	virtual void onInit (const Leap::Controller &controller);
+	virtual void onInit(const Leap::Controller &controller) {}
 	virtual void onConnect (const Leap::Controller &controller);
 	virtual void onDisconnect (const Leap::Controller &controller);
-	virtual void onExit (const Leap::Controller &controller);
+	virtual void onExit(const Leap::Controller &controller) {}
 	virtual void onFrame (const Leap::Controller &controller);
-	virtual void onFocusGained (const Leap::Controller &controller);
-	virtual void onFocusLost (const Leap::Controller &controller);
-	virtual void onDeviceChange (const Leap::Controller &controller);
+
 	virtual void onServiceConnect (const Leap::Controller &controller);
 	virtual void onServiceDisconnect (const Leap::Controller &controller);
 

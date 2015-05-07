@@ -4,6 +4,7 @@
 #include "renderer/PerspectiveRenderer.hpp"
 #include "OVR_Math.h"
 #include "OVR_CAPI_GL.h"
+#include "GLUtil.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -30,7 +31,7 @@ public:
 	/**
 	 * @brief Default destructor
 	 */
-	virtual ~RiftRenderer ();
+	virtual ~RiftRenderer () = default;
 
 	/**
 	 * @brief Clears the buffers and background
@@ -99,7 +100,7 @@ protected:
 	GLFramebuffer frameBuffer[2]; ///< The framebuffer which we draw to with the rift for the left and right eye
 	ovrEyeRenderDesc eyeRenderDesc[2]; ///< Render structure
 	ovrGLConfig cfg; ///< Oculus config
-	float yaw; ///< Heads yaw angle
+	ovrGLTexture eyeTexture[2]; ///< OVR textures for distortion rendering
 };
 
 VR_NAMESPACE_END

@@ -160,6 +160,13 @@ public:
 		rightHand = r;
 	}
 
+	/**
+	 * @brief Sets the Leap controller
+	 */
+	void setController(Leap::Controller &l) {
+		leapController = l;
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
@@ -170,6 +177,7 @@ protected:
 	GLFWwindow *window; ///< GFLW window handle
 	ovrHmd hmd; ///< Head mounted device
 	bool showHands; ///< Display leap hands
+	Leap::Controller leapController; ///< Leap controller
 
 private:
 

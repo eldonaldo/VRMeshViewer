@@ -253,6 +253,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 
 	// Share the HMD
 	leapListener->setHmd(hmd);
+	renderer->setController(leapController);
 	renderer->setHmd(hmd); 
 
 	// Renderer pre processing

@@ -15,14 +15,14 @@ int main (int argc, char *argv[]) {
 
 	try {
 
-		bool useRift = false;
+		bool useRift = true;
 
 		// This sets up the OpenGL context and needs the be first call
 		Viewer viewer("Virtual Reality Mesh Viewer", width, height, useRift, false);
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();
-		shader->initFromFiles("std-shader", "resources/shader/vertex-shader.glsl", "resources/shader/fragment-shader.glsl");
+		shader->initFromFiles("std-shader", "resources/shader/std-vertex-shader.glsl", "resources/shader/std-fragment-shader.glsl");
 
 		// Create an appropriate renderer
 		std::unique_ptr<Renderer> renderer;
