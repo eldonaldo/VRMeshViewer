@@ -6,7 +6,7 @@ using namespace Leap;
 using namespace std;
 
 LeapListener::LeapListener(bool useRift)
-	: windowWidth(0.f), windowHeight(0.f), FBWidth(0.f), FBHeight(0.f), riftMounted(useRift) {
+	: windowWidth(0.f), windowHeight(0.f), FBWidth(0.f), FBHeight(0.f), riftMounted(useRift), hmd(nullptr) {
 	fingerNames[0] = "Thumb"; fingerNames[1] = "Index"; fingerNames[2] = "Middle"; fingerNames[3] = "Ring"; fingerNames[4] = "Pinky";
 	boneNames[0] = "Metacarpal"; boneNames[1] = "Proximal"; boneNames[2] = "Middle"; boneNames[3] = "Distal";
 	stateNames[0] = "STATE_INVALID"; stateNames[1] = "STATE_START"; stateNames[2] = "STATE_UPDATE"; stateNames[3] = "STATE_END";
@@ -60,10 +60,10 @@ Vector LeapListener::leapToWorld (Vector &v) {
 	OVR::Matrix4f leapToWorld = riftToWorld * leapToRift * mmTom;
 
 	// Transform point
-	Vector4f vectorEigen(v.x, v.y, v.z, 1.f);
+	Vector4f _v(v.x, v.y, v.z, 1.f);
 	Matrix4f leapToWorldEigen = Eigen::Map<Matrix4f>((float *)leapToWorld.M);
 	Vector3f &o = Settings::getInstance().CAMERA_OFFSET;
-	Vector4f transformedV = (leapToWorldEigen * vectorEigen) + Vector4f(o.x(), o.y(), o.z(), 1.f);
+	Vector4f transformedV = (leapToWorldEigen * _v) + Vector4f(o.x(), o.y(), o.z(), 1.f);
 
 	float scale = Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD;
 	return Leap::Vector(transformedV.x() * scale, transformedV.y() * scale, transformedV.z() * scale);
@@ -85,12 +85,9 @@ void LeapListener::onFrame(const Controller &controller) {
 		if (hand.isRight())
 			currentHand = rightHand;
 
-		// Palm -> world
+		// Palm position -> world position
 		Leap::Vector palmPosition = hand.palmPosition();
 		Vector worldPalm = leapToWorld(palmPosition);
-
-		cout << worldPalm << endl;
-
 
 		// Palm Rotation
 		const Vector direction = hand.direction();
@@ -100,7 +97,7 @@ void LeapListener::onFrame(const Controller &controller) {
 //						<< " degrees, " << "roll: " << plamNormal.roll() * RAD_TO_DEG
 //						<< " degrees, " << "yaw: " << direction.yaw() * RAD_TO_DEG
 //						<< " degrees" << std::endl;
-//
+
 		Vector3f directionEigen(direction.x, direction.y, direction.z);
 		Vector3f palmNormalEigen(plamNormal.x, plamNormal.y, plamNormal.z);
 		Vector3f crossEigen = directionEigen.cross(palmNormalEigen);
@@ -112,12 +109,16 @@ void LeapListener::onFrame(const Controller &controller) {
 //		);
 
 		// Palm Translation
-		currentHand->translate(worldPalm.x, worldPalm.y, worldPalm.z);
+		currentHand->mesh.palm.translate(worldPalm.x, worldPalm.y, worldPalm.z);
 
-		// Fingers
+		// For all fingers
 		const FingerList fingers = hand.fingers();
 		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
 			const Finger finger = *fl;
+			Leap::Vector tipPos = finger.tipPosition();
+			Leap::Vector tipPosWorld = leapToWorld(tipPos);
+
+			currentHand->mesh.finger[finger.type()].translate(tipPosWorld.x, tipPosWorld.y, tipPosWorld.z);
 		}
 	}
 }

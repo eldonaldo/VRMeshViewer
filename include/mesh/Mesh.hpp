@@ -74,28 +74,26 @@ public:
 	/**
 	 * @return Model Matrix
 	 */
-	Matrix4f &getModelMatrix () {
-		modelMatrix = scaleMat * rotateMat * transMat;
-		return modelMatrix;
+	Matrix4f getModelMatrix () {
+		return scaleMat * rotateMat * transMat;
 	}
 
 	/**
 	 * @return Transpose inverse model matrix
 	 */
-	Matrix3f &getNormalMatrix () {
+	Matrix3f getNormalMatrix () {
 		// Calculate normal matrix for normal transformation
+		Matrix4f modelMatrix = scaleMat * rotateMat * transMat;
 		Matrix3f tmp = modelMatrix.topLeftCorner<3, 3>();
 		Matrix3f inv = tmp.inverse();
-		normalMatrix = inv.transpose();
-		return normalMatrix;
+		return inv.transpose();
 	}
 
 	/// Upload the mesh (positions, normals, indices and uv) to the shader
 	void upload(std::shared_ptr<GLShader> &s);
 
 	/// Draw to the currently bounded shader
-	void draw();
-
+	void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 
 	/// Sets translation matrix
 	void setTranslateMatrix (Matrix4f t) { transMat = t; }
@@ -144,8 +142,6 @@ protected:
     MatrixXf      m_UV;                  ///< Vertex texture coordinates
     MatrixXu      m_F;                   ///< Faces
     BoundingBox3f m_bbox;                ///< Bounding box of the mesh
-    Matrix4f modelMatrix; 				 ///< Model matrix
-	Matrix3f normalMatrix; 				 ///< Transpose inverse model matrix
 	Matrix4f transMat;
 	Matrix4f scaleMat;
 	Matrix4f rotateMat;
@@ -161,6 +157,7 @@ protected:
 	std::string glPositionName;
 	std::string glNormalName;
 	std::string glTexName;
+	std::shared_ptr<GLShader> shader;
 };
 
 VR_NAMESPACE_END

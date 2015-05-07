@@ -3,8 +3,7 @@
 VR_NAMESPACE_BEGIN
 
 Mesh::Mesh()
-	: modelMatrix(Matrix4f::Identity()), normalMatrix(Matrix3f::Identity())
-	, glPositionName("position"), glNormalName("normal"), glTexName("tex")
+	: glPositionName("position"), glNormalName("normal"), glTexName("tex")
 	, transMat(Matrix4f::Identity()), scaleMat(Matrix4f::Identity()), rotateMat(Matrix4f::Identity()) {
 
 	// Initialize standard values
@@ -28,7 +27,12 @@ Mesh::~Mesh () {
 		glDeleteVertexArrays(1, &vao);
 }
 
-void Mesh::draw() {
+void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
+	Matrix4f mvp = projectionMatrix * viewMatrix * getModelMatrix();
+	shader->setUniform("modelMatrix", getModelMatrix());
+	shader->setUniform("normalMatrix", getNormalMatrix());
+	shader->setUniform("mvp", mvp);
+
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, getTriangleCount() * 3, GL_UNSIGNED_INT, NULL);
 	glBindVertexArray(0);
@@ -36,6 +40,8 @@ void Mesh::draw() {
 
 
 void Mesh::upload(std::shared_ptr<GLShader> &s) {
+	shader = s;
+
 	// VAO
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);

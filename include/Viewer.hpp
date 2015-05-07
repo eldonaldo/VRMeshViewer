@@ -7,6 +7,7 @@
 #include "renderer/RiftRenderer.hpp"
 #include "GLUtil.hpp"
 #include "leap/LeapListener.hpp"
+#include "leap/SkeletonHand.hpp"
 #include "Eigen/Geometry"
 
 VR_NAMESPACE_BEGIN
@@ -121,7 +122,7 @@ protected:
 	bool debug; ///< Debug mode
 	Leap::Controller leapController; ///< Leap controller
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
-	std::shared_ptr<Mesh> hands[2]; ///< Leap hands
+	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
 };
 
 VR_NAMESPACE_END

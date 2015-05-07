@@ -4,6 +4,7 @@
 #include "GLUtil.hpp"
 #include "mesh/Mesh.hpp"
 #include "Leap.h"
+#include "leap/SkeletonHand.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -28,8 +29,7 @@ public:
 	 */
 	Renderer (std::shared_ptr<GLShader> &s)
 		: shader(s), FBWidth(0), FBHeight(0), window(nullptr), viewMatrix(Matrix4f::Identity())
-		, projectionMatrix(Matrix4f::Identity()), mvp(Matrix4f::Identity())
-		, hmd(nullptr), showHands(true) {
+		, projectionMatrix(Matrix4f::Identity()), hmd(nullptr), showHands(true) {
 
 	};
 
@@ -101,13 +101,6 @@ public:
 	}
 
 	/**
-	 * @return MVP Matrix
-	 */
-	const Matrix4f getMvp (const Matrix4f &modelMatrix) const {
-		return projectionMatrix * viewMatrix * modelMatrix;
-	}
-
-	/**
 	 * @return Projection Matrix
 	 */
 	const Matrix4f &getProjectionMatrix () const {
@@ -162,7 +155,7 @@ public:
 	/**
 	*@brief Set the leap hands
 	*/
-	void setHands(std::shared_ptr<Mesh> &l, std::shared_ptr<Mesh> &r) {
+	void setHands(std::shared_ptr<SkeletonHand> &l, std::shared_ptr<SkeletonHand> &r) {
 		leftHand = l;
 		rightHand = r;
 	}
@@ -171,7 +164,7 @@ protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
-	std::shared_ptr<Mesh> leftHand, rightHand; ///< Leap hands
+	std::shared_ptr<SkeletonHand> leftHand, rightHand; ///< Leap hands
 	std::unique_ptr<GLShader> bboxShader; ///< Bounding box shader
 	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
 	GLFWwindow *window; ///< GFLW window handle
@@ -182,7 +175,6 @@ private:
 
 	Matrix4f viewMatrix; ///< View matrix
 	Matrix4f projectionMatrix; ///< Projection matrix
-	Matrix4f mvp; ///< MVP matrix
 };
 
 VR_NAMESPACE_END

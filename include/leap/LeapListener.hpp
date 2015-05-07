@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "mesh/Mesh.hpp"
 #include "Leap.h"
+#include "leap/SkeletonHand.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -41,7 +42,7 @@ public:
 	/**
 	 * @brief Set the leap hands
 	 */
-	void setHands (std::shared_ptr<Mesh> &l, std::shared_ptr<Mesh> &r) {
+	void setHands (std::shared_ptr<SkeletonHand> &l, std::shared_ptr<SkeletonHand> &r) {
 		leftHand = l; rightHand = r;
 	}
 
@@ -76,7 +77,7 @@ protected:
 	std::string stateNames[4]; ///< Leap states
 	float windowWidth, windowHeight; ///y GLFW window size
 	float FBWidth, FBHeight; ///< Framebuffer size
-	std::shared_ptr<Mesh> leftHand, rightHand, currentHand; ///< Leap hands
+	std::shared_ptr<SkeletonHand> leftHand, rightHand, currentHand; ///< Leap hands
 	ovrHmd hmd; ///< The Rift
 };
 

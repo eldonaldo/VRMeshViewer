@@ -49,23 +49,12 @@ void PerspectiveRenderer::draw() {
 	shader->bind();
 	
 	// Draw the mesh
-	shader->setUniform("modelMatrix", mesh->getModelMatrix());
-	shader->setUniform("normalMatrix", mesh->getNormalMatrix());
-	shader->setUniform("mvp", getMvp(mesh->getModelMatrix()));
-	mesh->draw();
+	mesh->draw(getViewMatrix(), getProjectionMatrix());
 
+	// Draw hands
 	if (Settings::getInstance().SHOW_HANDS) {
-		// Left hand
-		shader->setUniform("modelMatrix", leftHand->getModelMatrix());
-		shader->setUniform("normalMatrix", leftHand->getNormalMatrix());
-		shader->setUniform("mvp", getMvp(leftHand->getModelMatrix()));
-		leftHand->draw();
-
-		// right hand
-		shader->setUniform("modelMatrix", rightHand->getModelMatrix());
-		shader->setUniform("normalMatrix", rightHand->getNormalMatrix());
-		shader->setUniform("mvp", getMvp(rightHand->getModelMatrix()));
-		rightHand->draw();
+		leftHand->draw(getViewMatrix(), getProjectionMatrix());
+		rightHand->draw(getViewMatrix(), getProjectionMatrix());
 	}
 }
 
