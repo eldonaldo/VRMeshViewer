@@ -73,9 +73,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glfwSwapBuffers(window);
 
 	// Enable depth testing and multi sampling
+	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 	//glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_MULTISAMPLE);
 
 #if defined(PLATFORM_APPLE)

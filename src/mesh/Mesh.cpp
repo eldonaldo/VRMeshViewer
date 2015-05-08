@@ -29,6 +29,7 @@ Mesh::~Mesh () {
 
 void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	Matrix4f mvp = projectionMatrix * viewMatrix * getModelMatrix();
+	shader->bind();
 	shader->setUniform("modelMatrix", getModelMatrix());
 	shader->setUniform("normalMatrix", getNormalMatrix());
 	shader->setUniform("mvp", mvp);

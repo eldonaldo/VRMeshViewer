@@ -1,13 +1,13 @@
 #version 330
 
-layout (location = 0) in vec4 position;
-layout (location = 1) in vec4 texCoord;
+in vec3 position;
+in vec2 texCoord;
 
 out vec2 vTexCoord;
 
 void main () {
-	vTexCoord = texCoord.xy;
+	vTexCoord = texCoord;
 
 	// We don't need to project, you're already in NDCs!
-	gl_Position = position;
+	gl_Position = vec4(position, 1.0f);
 }

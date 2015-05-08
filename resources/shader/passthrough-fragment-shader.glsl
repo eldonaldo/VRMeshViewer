@@ -14,6 +14,6 @@ void main () {
 	if(vIndex > 0.0 && vIndex < 1.0 && hIndex > 0.0 && hIndex < 1.0) {
 		color = vec4(texture2D(rawTexture, distortionIndex).rrr, 1.0);
 	} else {
-		color = vec4(1.0, 0.0, 0.0, 1.0);
+		color = vec4(0.8, 0.0, 0.0, 1.0);
 	}
 }
