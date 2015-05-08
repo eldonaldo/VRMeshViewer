@@ -98,12 +98,12 @@ public:
 protected:
 
 	/**
-	* @brief Uploads a DNC cube to draw the leap image on
+	* @brief Uploads a DNC quad in the back of the scene to draw the leap images on
 	*/
 	virtual void uploadBackgroundCube();
 
 	/**
-	* @brief Uploads the textures to the shader
+	* @brief Uploads the leap textures to the shader
 	*/
 	virtual void drawOnCube(ovrEyeType eye);
 
@@ -119,9 +119,8 @@ protected:
 	*/
 	GLuint leapVAO, leapV_VBO, leapUV_VBO, leapF_VBO; ///< Background cube
 	std::shared_ptr<GLShader> leapShader; ///< Leap passthrough shader
-	GLuint leapRawLeftTexture, leapRawRightTexture; ///< Passthrough textres
-	GLuint leapDistortionLeftTexture, leapDistortionRightTexture; ///< Distorted passthrough textres
-	int leapImageWidth = 0, leapImageHeight = 0, leapDistortionWidth = 0, leapDistortionHeight = 0; ///< Leap image sizes. Can change from frame to frame
+	GLuint leapRawTexture[2]; ///< Distorted passthrough textures
+	GLuint leapDistortionTexture[2];///< Passthrough textures
 };
 
 VR_NAMESPACE_END

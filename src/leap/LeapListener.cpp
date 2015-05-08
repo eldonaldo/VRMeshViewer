@@ -121,12 +121,10 @@ void LeapListener::onConnect(const Controller& controller) {
 	controller.enableGesture(Gesture::TYPE_SCREEN_TAP);
 	controller.enableGesture(Gesture::TYPE_SWIPE);
 	Settings::getInstance().SHOW_HANDS = true;
-	Settings::getInstance().LEAP_USE_PASSTHROUGH = true;
 }
 
 void LeapListener::onDisconnect(const Controller &controller) {
 	Settings::getInstance().SHOW_HANDS = false;
-	Settings::getInstance().LEAP_USE_PASSTHROUGH = false;
 }
 
 void LeapListener::onServiceConnect(const Controller &controller) {
