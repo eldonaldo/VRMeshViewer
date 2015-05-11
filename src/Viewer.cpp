@@ -41,8 +41,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		//window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
@@ -246,6 +246,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glfwSetWindowSize(window, width, height);
 		glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
 		glViewport(0, 0, width, height);
+		leapListener->setSize(width, height, FBWidth, FBHeight);
 	}
 	
 	// Place object in world for immersion
