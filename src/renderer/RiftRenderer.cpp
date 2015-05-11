@@ -6,10 +6,6 @@ RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float 
 	: leapShader(nullptr), leapVAO(0), leapV_VBO(0), leapUV_VBO(0), leapF_VBO(0)
 	, PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
 
-	// Reset all
-	setViewMatrix(Matrix4f::Identity());
-	setProjectionMatrix(Matrix4f::Identity());
-
 	// Leap passthrough shader
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 		leapShader = std::make_shared<GLShader>();
@@ -80,25 +76,6 @@ void RiftRenderer::preProcess () {
 
 		// Upload geometry
 		uploadBackgroundCube();
-
-		// Setup textures sizes
-		Leap::Frame frame = leapController.frame();
-		while (leapController.isConnected() && !frame.isValid())
-			frame = leapController.frame();
-
-		Leap::Image left = frame.images()[0], right = frame.images()[1];
-
-		// Left
-		glBindTexture(GL_TEXTURE_2D, leapRawTexture[0]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, 0);
-		glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[0]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, 0);
-
-		// Right
-		glBindTexture(GL_TEXTURE_2D, leapRawTexture[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, 0);
-		glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, 0);
 	}
 }
 
@@ -112,19 +89,24 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		if (frame.isValid()) {
 			Leap::Image left = frame.images()[0], right = frame.images()[1];
 
-			// Update image and distortion textures
 			if (left.width() > 0) {
+				// Single channel 8bit map = GL_RED
 				glBindTexture(GL_TEXTURE_2D, leapRawTexture[0]);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, left.width(), left.height(), GL_RED, GL_UNSIGNED_BYTE, left.data());
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
+				
+				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
 				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[0]);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, left.distortionWidth() / 2, left.distortionHeight(), GL_RG, GL_FLOAT, left.distortion());
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, left.distortion());
 			}
-
+			
 			if (right.width() > 0) {
+				// Single channel 8bit map = GL_RED
 				glBindTexture(GL_TEXTURE_2D, leapRawTexture[1]);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, right.width(), right.height(), GL_RED, GL_UNSIGNED_BYTE, right.data());
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, right.data());
+				
+				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
 				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[1]);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, right.distortionWidth() / 2, right.distortionHeight(), GL_RG, GL_FLOAT, right.distortion());
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, right.distortion());
 			}
 		}
 	}
@@ -196,8 +178,6 @@ void RiftRenderer::draw () {
 }
 
 void RiftRenderer::uploadBackgroundCube() {
-	glUseProgram(leapShader->getId());
-
 	// Almost at "the end" of the z-buffer
 	GLfloat maxZ = 1.f - std::numeric_limits<GLfloat>::epsilon();
 
@@ -254,7 +234,6 @@ void RiftRenderer::uploadBackgroundCube() {
 	// Reset state
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-	glUseProgram(0);
 }
 
 void RiftRenderer::drawOnCube(ovrEyeType eye) {

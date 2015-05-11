@@ -3,17 +3,15 @@
 uniform sampler2D rawTexture;
 uniform sampler2D distortionTexture;
 
-in vec2 coordinates;
+in vec2 uv;
 out vec4 color;
 
 void main () {
-	vec2 distortionIndex = texture(distortionTexture, coordinates).xy;
-	float hIndex = distortionIndex.r;
-	float vIndex = distortionIndex.g;
+	vec4 index = texture(distortionTexture, uv);
 
-	if (vIndex > 0.0 && vIndex < 1.0 && hIndex > 0.0 && hIndex < 1.0) {
-		color = vec4(texture(rawTexture, distortionIndex).rrr, 1.0);
-	} else {
-		color = vec4(1.0, 0.0, 0.0, 1.0);
-	}
+	// Only use xy within [0, 1]
+	if (index.r > 0.0 && index.r < 1.0 && index.g > 0.0 && index.g < 1.0)
+    	color = vec4(texture(rawTexture, index.rg).rrr, 1);
+	else
+    	color = vec4(0, 0, 0, 1);
 }

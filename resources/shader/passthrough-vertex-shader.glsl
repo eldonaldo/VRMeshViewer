@@ -3,11 +3,11 @@
 in vec3 position;
 in vec2 texCoord;
 
-out vec2 coordinates;
+out vec2 uv;
 
 void main () {
-	coordinates = texCoord;
+	uv = texCoord;
 
 	// We don't need to project, we're already in NDCs!
-	gl_Position = vec4(position, 1.0f);
+	gl_Position = vec4(position, 1);
 }

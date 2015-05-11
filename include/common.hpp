@@ -79,6 +79,8 @@ using Eigen::Vector4i;
 using Eigen::Matrix3f;
 using Eigen::Matrix4f;
 using Eigen::MatrixXf;
+using std::cout;
+using std::endl;
 
 VR_NAMESPACE_BEGIN
 
