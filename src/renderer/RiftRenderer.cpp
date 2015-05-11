@@ -181,12 +181,12 @@ void RiftRenderer::uploadBackgroundCube() {
 	// Almost at "the end" of the z-buffer
 	GLfloat maxZ = 1.f - std::numeric_limits<GLfloat>::epsilon();
 
-	// Vertices
+	// Vertices. The corners must be at position 4 for the distortion correction to work!
 	MatrixXf V(3, 4);
-	V.col(0) = Vector3f(-1.f, -1.f, maxZ);
-	V.col(1) = Vector3f(1.f, -1.f, maxZ);
-	V.col(2) = Vector3f(1.f, 1.f, maxZ);
-	V.col(3) = Vector3f(-1.f, 1.f, maxZ);
+	V.col(0) = Vector3f(-4.f, -4.f, maxZ);
+	V.col(1) = Vector3f(4.f, -4.f, maxZ);
+	V.col(2) = Vector3f(4.f, 4.f, maxZ);
+	V.col(3) = Vector3f(-4.f, 4.f, maxZ);
 
 	// UV coords
 	MatrixXf UV(2, 4);
@@ -237,7 +237,6 @@ void RiftRenderer::uploadBackgroundCube() {
 }
 
 void RiftRenderer::drawOnCube(ovrEyeType eye) {
-	leapShader->bind();
 	glBindVertexArray(leapVAO);
 
 	// Left or right
