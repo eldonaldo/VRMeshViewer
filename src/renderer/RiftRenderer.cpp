@@ -3,7 +3,8 @@
 VR_NAMESPACE_BEGIN
 
 RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
-	: leapShader(nullptr), PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
+	: leapShader(nullptr), leapVAO(0), leapV_VBO(0), leapUV_VBO(0), leapF_VBO(0)
+	, PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
 
 	// Reset all
 	setViewMatrix(Matrix4f::Identity());
@@ -82,7 +83,7 @@ void RiftRenderer::preProcess () {
 
 		// Setup textures sizes
 		Leap::Frame frame = leapController.frame();
-		while (!frame.isValid())
+		while (leapController.isConnected() && !frame.isValid())
 			frame = leapController.frame();
 
 		Leap::Image left = frame.images()[0], right = frame.images()[1];
@@ -107,7 +108,6 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	
 	// Leap passthrough
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH && leapController.isConnected()) {
-		
 		Leap::Frame frame = leapController.frame();
 		if (frame.isValid()) {
 			Leap::Image left = frame.images()[0], right = frame.images()[1];

@@ -40,14 +40,11 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	shader->setUniform("intensity", materialIntensity);
 
 	// Create virtual point light
-	shader->setUniform("light.position", cameraPosition); // Camera position
-	shader->setUniform("light.intensity", lightIntensity);
+	shader->setUniform("light.position", cameraPosition);
 	shader->setUniform("light.intensity", lightIntensity);
 }
 
 void PerspectiveRenderer::draw() {
-	shader->bind();
-	
 	// Draw the mesh
 	mesh->draw(getViewMatrix(), getProjectionMatrix());
 

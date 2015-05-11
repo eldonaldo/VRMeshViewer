@@ -103,7 +103,7 @@ protected:
 	virtual void uploadBackgroundCube();
 
 	/**
-	* @brief Uploads the leap textures to the shader
+	* @brief Uploads the leap textures to the shader and draws them in the background of the scene
 	*/
 	virtual void drawOnCube(ovrEyeType eye);
 
