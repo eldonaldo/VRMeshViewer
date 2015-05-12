@@ -75,6 +75,7 @@ public:
 	 * @return Model Matrix
 	 */
 	Matrix4f getModelMatrix () {
+		//return transMat * rotateMat * scaleMat;
 		return scaleMat * rotateMat * transMat;
 	}
 
@@ -83,7 +84,7 @@ public:
 	 */
 	Matrix3f getNormalMatrix () {
 		// Calculate normal matrix for normal transformation
-		Matrix4f modelMatrix = scaleMat * rotateMat * transMat;
+		Matrix4f modelMatrix = getModelMatrix();
 		Matrix3f tmp = modelMatrix.topLeftCorner<3, 3>();
 		Matrix3f inv = tmp.inverse();
 		return inv.transpose();

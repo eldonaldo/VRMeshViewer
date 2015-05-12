@@ -23,10 +23,10 @@ void PerspectiveRenderer::preProcess () {
 	// Upload hands
 	if (Settings::getInstance().SHOW_HANDS) {
 		leftHand->upload(shader);
-		leftHand->translate(-5.f, 0.f, 0.f);
+		//leftHand->translate(-5.f, 0.f, 0.f);
 
 		rightHand->upload(shader);
-		rightHand->translate(+5.f, 0.f, 0.f);
+		//rightHand->translate(+5.f, 0.f, 0.f);
 	}
 }
 
@@ -46,11 +46,11 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 void PerspectiveRenderer::draw() {
 	// Draw the mesh
-	mesh->draw(getViewMatrix(), getProjectionMatrix());
+	//mesh->draw(getViewMatrix(), getProjectionMatrix());
 
 	// Draw hands
 	if (Settings::getInstance().SHOW_HANDS) {
-		leftHand->draw(getViewMatrix(), getProjectionMatrix());
+		//leftHand->draw(getViewMatrix(), getProjectionMatrix());
 		rightHand->draw(getViewMatrix(), getProjectionMatrix());
 	}
 }

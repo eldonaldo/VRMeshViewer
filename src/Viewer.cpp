@@ -41,8 +41,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		//window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
@@ -99,55 +99,68 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 			exp = 0.2f;
 
 		switch (key) {
-			case GLFW_KEY_ESCAPE:
-				if (action == GLFW_PRESS)
-					glfwSetWindowShouldClose(window, 1);
-				break;
+		case GLFW_KEY_ESCAPE:
+			if (action == GLFW_PRESS)
+				glfwSetWindowShouldClose(window, 1);
+			break;
 
-			case GLFW_KEY_UP:
-				if (action == GLFW_REPEAT)
-					exp = exp + 0.02f;
+		case GLFW_KEY_UP:
+			if (action == GLFW_REPEAT)
+				exp = exp + 0.02f;
 
-				dty = dty + dy + powf(exp, 1.8f);
-				break;
+			dty = dty + dy + powf(exp, 1.8f);
+			break;
 
-			case GLFW_KEY_DOWN:
-				if (action == GLFW_REPEAT)
-					exp = exp - 0.02f;
+		case GLFW_KEY_DOWN:
+			if (action == GLFW_REPEAT)
+				exp = exp - 0.02f;
 
-				dty = dty - dy - powf(exp, 1.8f);
-				break;
+			dty = dty - dy - powf(exp, 1.8f);
+			break;
 
-			case GLFW_KEY_LEFT:
-				if (action == GLFW_REPEAT)
-					exp = exp - 0.02f;
+		case GLFW_KEY_LEFT:
+			if (action == GLFW_REPEAT)
+				exp = exp - 0.02f;
 
-				dtx = dtx - dx - powf(exp, 1.8f);
-				break;
+			dtx = dtx - dx - powf(exp, 1.8f);
+			break;
 
-			case GLFW_KEY_RIGHT:
-				if (action == GLFW_REPEAT)
-					exp = exp + 0.02f;
+		case GLFW_KEY_RIGHT:
+			if (action == GLFW_REPEAT)
+				exp = exp + 0.02f;
 
-				dtx = dtx + dx + powf(exp, 1.8f);
-				break;
+			dtx = dtx + dx + powf(exp, 1.8f);
+			break;
 
-			case GLFW_KEY_R:
-				ovrHmd_RecenterPose(__cbref->hmd);
-				break;
+		case GLFW_KEY_R:
+			ovrHmd_RecenterPose(__cbref->hmd);
+			break;
 
-			case GLFW_KEY_V:
-				// Disable v-sync
-				static bool disable = true;
+		case GLFW_KEY_V: {
+			// Disable v-sync
+			static bool disable = true;
 
-				if (disable)
-					ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
-				else
-					ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
+			if (disable)
+				ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
+			else
+				ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
 
-				disable = !disable;
-				break;
+			disable = !disable;
+			break;
 		}
+
+		case GLFW_KEY_O: {
+			Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD += 1.f;
+			cout << Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD << endl;
+			break;
+		}
+
+		case GLFW_KEY_P: {
+			Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD -= 1.f;
+			cout << Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD << endl;
+			break;
+		}
+	}
 
 		__cbref->translateMatrix = translate(__cbref->translateMatrix, Vector3f(dtx, dty, 0));
 	});

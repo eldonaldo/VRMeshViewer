@@ -28,7 +28,8 @@ Settings::Settings () :
 	SHOW_HANDS					(true),
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
-	LEAP_TO_WORLD_SCALE_HMD		(35.f),
+	//LEAP_TO_WORLD_SCALE_HMD		(50.f),
+	LEAP_TO_WORLD_SCALE_HMD		(30.f),
 	LEAP_TO_WORLD_SCALE_3D		(0.05f),
 	LEAP_TO_WORLD_ORIGIN		(0.f, -300.f, 0.f),
 	LEAP_USE_PASSTHROUGH		(true)

@@ -87,7 +87,7 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH && leapController.isConnected()) {
 		Leap::Frame frame = leapController.frame();
 		if (frame.isValid()) {
-			Leap::Image left = frame.images()[0], right = frame.images()[1];
+			Leap::Image left = leapController.images()[0], right = leapController.images()[1];
 
 			if (left.width() > 0) {
 				// Single channel 8bit map = GL_RED
@@ -162,6 +162,7 @@ void RiftRenderer::draw () {
 		// Leap passthrough
 		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 			leapShader->bind();
+			leapShader->setUniform("mvp", getProjectionMatrix());
 			drawOnCube(eye);
 		}
 
@@ -178,10 +179,9 @@ void RiftRenderer::draw () {
 }
 
 void RiftRenderer::uploadBackgroundCube() {
-	// Almost at "the end" of the z-buffer
-	GLfloat maxZ = 1.f - std::numeric_limits<GLfloat>::epsilon();
-
 	// Vertices. The corners must be at position 4 for the distortion correction to work!
+	GLfloat maxZ = -1.0f;
+
 	MatrixXf V(3, 4);
 	V.col(0) = Vector3f(-4.f, -4.f, maxZ);
 	V.col(1) = Vector3f(4.f, -4.f, maxZ);

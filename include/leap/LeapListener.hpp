@@ -61,6 +61,11 @@ protected:
 	Leap::Vector leapToWorld (Leap::Vector &v);
 
 	/**
+	* @brief Returns the transformation matrix from Leap to World coordinates
+	*/
+	Matrix4f getTransformationMatrix();
+
+	/**
 	 * @brief Leap to Eigen conversion
 	 */
 	Vector3f leapToEigen (Leap::Vector v) {
