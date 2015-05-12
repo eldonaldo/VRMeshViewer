@@ -75,8 +75,8 @@ public:
 	 * @return Model Matrix
 	 */
 	Matrix4f getModelMatrix () {
-		//return transMat * rotateMat * scaleMat;
-		return scaleMat * rotateMat * transMat;
+		return transMat * rotateMat * scaleMat;
+//		return scaleMat * rotateMat * transMat;
 	}
 
 	/**

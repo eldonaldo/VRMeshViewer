@@ -46,7 +46,7 @@ Matrix4f LeapListener::getTransformationMatrix() {
 }
 
 Vector LeapListener::leapToWorld(Vector &v) {
-	// No Rift transformation
+	// No HMD transformation - means normal 3D translation
 	if (!riftMounted)
 		return (v + Settings::getInstance().LEAP_TO_WORLD_ORIGIN) * Settings::getInstance().LEAP_TO_WORLD_SCALE_3D;
 
@@ -72,7 +72,7 @@ void LeapListener::onFrame(const Controller &controller) {
 
 	// For all available hands
 	HandList hands = frame.hands();
-	for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); ++hl) {
+	for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); hl++) {
 		const Hand hand = *hl;
 		currentHand = leftHand;
 		if (hand.isRight())
@@ -92,15 +92,30 @@ void LeapListener::onFrame(const Controller &controller) {
 		const Vector3f palmDir = (rotation * hand.direction().toVector3<Vector3f>()).normalized();
 		const Vector3f palmNormal = (rotation * hand.palmNormal().toVector3<Vector3f>()).normalized();
 		const Vector3f palmSide = palmDir.cross(palmNormal).normalized();
-
 		const Matrix3f palmRotation = rotation * (Matrix3f(hand.basis().toArray3x3())) * rotation.inverse();
 		const Matrix3f palmBasis = rotation * (Matrix3f(hand.basis().toArray3x3()));
 
-		// Palm Translation
-		float scale = 1.f;// Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD;
-		cout << palm.x() * scale << ", " << palm.y() * scale << ", " << palm.z() * scale << ", " << endl;
+		// Construct 4x4 rotation matrix
+		Matrix4f rot = Matrix4f::Identity();
+		rot.block<3, 3>(0, 0) = palmRotation;
 
+		float scale = 1.f;//Settings::getInstance().LEAP_TO_WORLD_SCALE_HMD;
+//		cout << palm.x() * scale << ", " << palm.y() * scale << ", " << palm.z() * scale << ", " << endl;
+
+		// Palm world position
 		currentHand->mesh.palm.translate(palm.x() * scale, palm.y() * scale, palm.z() * scale);
+		currentHand->mesh.palm.setRotationMatrix(rot);
+
+		// For all fingers
+		const FingerList fingers = hand.fingers();
+		for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
+			const Finger finger = *fl;
+
+			// Finger tip world position
+			Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
+			currentHand->mesh.finger[finger.type()].translate(tip.x() * scale, tip.y() * scale, tip.z() * scale);
+			currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
+		}
 	}
 }
 
