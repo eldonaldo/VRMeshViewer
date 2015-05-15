@@ -164,16 +164,13 @@ void RiftRenderer::draw () {
 			
 			// Offset for the corresponding leap cameras
 			float sign = (eye == ovrEyeType::ovrEye_Right ? -0.5f : +0.5f);
-			OVR::Vector3f leapCam = shiftedEyePos + OVR::Vector3f(sign * Settings::getInstance().LEAP_CAMERA_SHIFT_X, 0.f, Settings::getInstance().LEAP_CAMERA_SHIFT_Z);
+			OVR::Vector3f leapCam = shiftedEyePos + OVR::Vector3f(sign * Settings::getInstance().LEAP_CAMERA_SHIFT_X, 0.f, 0.5f * Settings::getInstance().LEAP_CAMERA_SHIFT_Z);
 
 			// Each has its own view matrix
 			OVR::Matrix4f viewLeapCam = OVR::Matrix4f::LookAtRH(leapCam, leapCam + forward, up);
+			setViewMatrixLeap(Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M));
 
-			if (eye == ovrEyeType::ovrEye_Right)
-				setViewMatrixLeapRight(Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M));
-			else
-				setViewMatrixLeapLeft(Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M));
-
+			// Draw Leap distorted image
 			leapShader->bind();
 			leapShader->setUniform("mvp", getProjectionMatrix());
 			drawOnCube(eye);

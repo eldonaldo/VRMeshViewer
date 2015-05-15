@@ -129,31 +129,17 @@ public:
 	}
 
 	/**
-	* @return View Matrix Leap left
+	* @return View Matrix Leap
 	*/
-	const Matrix4f &getViewMatrixLeapLeft() const {
-		return viewMatrixLeapLeft;
+	const Matrix4f &getLeapViewMatrix() const {
+		return leapViewMatrix;
 	}
 
 	/**
-	* @param viewMatrix View Matrix Leap left
+	* @param viewMatrix View Matrix Leap
 	*/
-	void setViewMatrixLeapLeft(const Matrix4f &viewMatrix) {
-		this->viewMatrixLeapLeft = viewMatrix;
-	}
-
-	/**
-	* @return View Matrix Leap right
-	*/
-	const Matrix4f &getViewMatrixLeapRight() const {
-		return viewMatrixLeapRight;
-	}
-
-	/**
-	* @param viewMatrix View Matrix Leap right
-	*/
-	void setViewMatrixLeapRight(const Matrix4f &viewMatrix) {
-		this->viewMatrixLeapRight = viewMatrix;
+	void setViewMatrixLeap(const Matrix4f &viewMatrix) {
+		this->leapViewMatrix = viewMatrix;
 	}
 
 	/**
@@ -210,8 +196,7 @@ protected:
 private:
 
 	Matrix4f viewMatrix; ///< View matrix
-	Matrix4f viewMatrixLeapLeft; ///< View for Leap left camera
-	Matrix4f viewMatrixLeapRight; ///< View for Leap right camera
+	Matrix4f leapViewMatrix; ///< View for Leap camera
 	Matrix4f projectionMatrix; ///< Projection matrix
 };
 

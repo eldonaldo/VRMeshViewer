@@ -39,7 +39,7 @@ Matrix4f LeapListener::getTransformationMatrix() {
 		0.f, 0.f, 0.f, 1.f
 	);
 
-	// mm -> m
+	// mm -> m including zooming of factor Rift basline / Leap baseline = 0.064f / 40.0f
 	float s = 0.064f / 40.0f;
 	static const OVR::Matrix4f mmTom(
 		s, 0.f, 0.f, 0.f,
@@ -72,11 +72,24 @@ void LeapListener::onFrame(const Controller &controller) {
 
 			currentHand->id = hand.id();
 			currentHand->confidence = hand.confidence();
+			currentHand->pinchStrength = hand.pinchStrength();
+			currentHand->grabStrength = hand.grabStrength();
+
+			static bool t = false;
+			if (!t && currentHand->pinchStrength > 0.9) {
+				cout << "pinch start" << endl;
+				t = true;
+			}
+
+			if (t && currentHand->pinchStrength < 0.9) {
+				cout << "pinch end" << endl;
+				t = false;
+			}
 
 			// Get Rotation and translation matrix
 			const Matrix4f worldTransform = getTransformationMatrix();
 			const Matrix3f rotation = worldTransform.block<3, 3>(0, 0);
-			Vector3f translation = worldTransform.block<3, 1>(0, 3);
+			const Vector3f translation = worldTransform.block<3, 1>(0, 3);
 
 			// Transform palm
 			const Vector3f palm = rotation * hand.palmPosition().toVector3<Vector3f>() + translation;

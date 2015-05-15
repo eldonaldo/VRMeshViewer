@@ -54,10 +54,10 @@ void PerspectiveRenderer::draw() {
 	// Draw hands
 	if (Settings::getInstance().SHOW_HANDS) {
 		shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		leftHand->draw(getViewMatrix(), getProjectionMatrix());
+		leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
 
 		shader->setUniform("alpha", rightHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		rightHand->draw(getViewMatrix(), getProjectionMatrix());
+		rightHand->draw(getLeapViewMatrix(), getProjectionMatrix());
 	}
 }
 

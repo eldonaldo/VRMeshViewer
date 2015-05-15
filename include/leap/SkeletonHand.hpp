@@ -40,6 +40,8 @@ public:
 		Cube palm; ///< Mesh for the palm
 		Cube finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
 	} mesh; ///< Composite mesh
+	float pinchStrength; ///< Pinch strength
+	float grabStrength; ///< Grab strength
 };
 
 VR_NAMESPACE_END
