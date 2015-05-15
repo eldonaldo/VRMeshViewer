@@ -32,16 +32,14 @@ public:
 
 public:
 
+	int id; ///< Leap hand id
+	float confidence; ///< Confidence of hand position, ranges between [0, 1]
+	Vector3f palmPosition; ///< Hands palm position
+	bool isRight; ///< Is it the right hand?
 	struct mesh_s {
 		Cube palm; ///< Mesh for the palm
 		Cube finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
 	} mesh; ///< Composite mesh
-
-protected:
-
-	int id; ///< Leap hand id
-	bool isRight; ///< Is it the right hand?
-	Vector3f palmPosition; ///< Hands palm position
 };
 
 VR_NAMESPACE_END

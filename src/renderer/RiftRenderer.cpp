@@ -161,6 +161,19 @@ void RiftRenderer::draw () {
 
 		// Leap passthrough
 		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
+			
+			// Offset for the corresponding leap cameras
+			float sign = (eye == ovrEyeType::ovrEye_Right ? -0.5f : +0.5f);
+			OVR::Vector3f leapCam = shiftedEyePos + OVR::Vector3f(sign * Settings::getInstance().LEAP_CAMERA_SHIFT_X, 0.f, Settings::getInstance().LEAP_CAMERA_SHIFT_Z);
+
+			// Each has its own view matrix
+			OVR::Matrix4f viewLeapCam = OVR::Matrix4f::LookAtRH(leapCam, leapCam + forward, up);
+
+			if (eye == ovrEyeType::ovrEye_Right)
+				setViewMatrixLeapRight(Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M));
+			else
+				setViewMatrixLeapLeft(Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M));
+
 			leapShader->bind();
 			leapShader->setUniform("mvp", getProjectionMatrix());
 			drawOnCube(eye);
@@ -240,7 +253,7 @@ void RiftRenderer::drawOnCube(ovrEyeType eye) {
 	glBindVertexArray(leapVAO);
 
 	// Left or right
-	int i = eye == 0 ? 0 : 1;
+	int i = eye == ovrEyeType::ovrEye_Left ? 0 : 1;
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, leapRawTexture[i]);

@@ -36,7 +36,7 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setRotationMatrix(r);
 	mesh->setTranslateMatrix(t);
 
-	// Model material intensity
+	// Material intensity
 	shader->setUniform("intensity", materialIntensity);
 
 	// Create virtual point light
@@ -45,12 +45,18 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 }
 
 void PerspectiveRenderer::draw() {
+	shader->bind();
+
 	// Draw the mesh
-	//mesh->draw(getViewMatrix(), getProjectionMatrix());
+	shader->setUniform("alpha", 1.f);
+	mesh->draw(getViewMatrix(), getProjectionMatrix());
 
 	// Draw hands
 	if (Settings::getInstance().SHOW_HANDS) {
-		//leftHand->draw(getViewMatrix(), getProjectionMatrix());
+		shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
+		leftHand->draw(getViewMatrix(), getProjectionMatrix());
+
+		shader->setUniform("alpha", rightHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
 		rightHand->draw(getViewMatrix(), getProjectionMatrix());
 	}
 }

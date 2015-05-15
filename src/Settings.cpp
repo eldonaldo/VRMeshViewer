@@ -28,11 +28,15 @@ Settings::Settings () :
 	SHOW_HANDS					(true),
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
-	//LEAP_TO_WORLD_SCALE_HMD		(50.f),
-	LEAP_TO_WORLD_SCALE_HMD		(30.f),
+	// PASSTHROUGH
+	LEAP_USE_PASSTHROUGH		(true),
+	LEAP_ALPHA_SCALE			(0.7f),
+	LEAP_CAMERA_SHIFT_X			(0.012f),
+	LEAP_CAMERA_SHIFT_Z			(-0.08f),
+
+	// No HMD
 	LEAP_TO_WORLD_SCALE_3D		(0.05f),
-	LEAP_TO_WORLD_ORIGIN		(0.f, -300.f, 0.f),
-	LEAP_USE_PASSTHROUGH		(true)
+	LEAP_TO_WORLD_ORIGIN		(0.f, -300.f, 0.f)
 {}
 
 VR_NAMESPACE_END

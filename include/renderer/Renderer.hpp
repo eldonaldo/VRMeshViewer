@@ -129,6 +129,34 @@ public:
 	}
 
 	/**
+	* @return View Matrix Leap left
+	*/
+	const Matrix4f &getViewMatrixLeapLeft() const {
+		return viewMatrixLeapLeft;
+	}
+
+	/**
+	* @param viewMatrix View Matrix Leap left
+	*/
+	void setViewMatrixLeapLeft(const Matrix4f &viewMatrix) {
+		this->viewMatrixLeapLeft = viewMatrix;
+	}
+
+	/**
+	* @return View Matrix Leap right
+	*/
+	const Matrix4f &getViewMatrixLeapRight() const {
+		return viewMatrixLeapRight;
+	}
+
+	/**
+	* @param viewMatrix View Matrix Leap right
+	*/
+	void setViewMatrixLeapRight(const Matrix4f &viewMatrix) {
+		this->viewMatrixLeapRight = viewMatrix;
+	}
+
+	/**
 	 * @brief Updates the frame buffer size
 	 * @param w Width
 	 * @param h Height
@@ -182,6 +210,8 @@ protected:
 private:
 
 	Matrix4f viewMatrix; ///< View matrix
+	Matrix4f viewMatrixLeapLeft; ///< View for Leap left camera
+	Matrix4f viewMatrixLeapRight; ///< View for Leap right camera
 	Matrix4f projectionMatrix; ///< Projection matrix
 };
 

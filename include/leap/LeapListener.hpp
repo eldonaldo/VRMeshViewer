@@ -54,13 +54,6 @@ public:
 protected:
 
 	/**
-	 * @brief Transforms a Leap vector into a Leap world vector
-	 *
-	 * @param v Leap vector
-	 */
-	Leap::Vector leapToWorld (Leap::Vector &v);
-
-	/**
 	* @brief Returns the transformation matrix from Leap to World coordinates
 	*/
 	Matrix4f getTransformationMatrix();

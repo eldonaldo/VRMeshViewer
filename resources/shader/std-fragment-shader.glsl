@@ -11,6 +11,8 @@ uniform float intensity;
 uniform mat4 modelMatrix;
 uniform mat3 normalMatrix;
 
+uniform float alpha;
+
 in vec3 vertexNormal;
 in vec3 vertexPosition;
 
@@ -31,7 +33,7 @@ void main () {
 	brightness = clamp(brightness, 0.0, 1.0);
 	
 	// Calculate final color of the pixel
-	color = vec4(vec3(intensity) * brightness * light.intensity, 1.0);
+	color = vec4(vec3(intensity) * brightness * light.intensity, alpha);
 	
 	// Disable shading for test purposes
 	//color = vec4(0.5, 0.5, 0.5, 1.0);
