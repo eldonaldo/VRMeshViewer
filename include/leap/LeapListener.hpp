@@ -25,7 +25,6 @@ public:
 	virtual void onDisconnect (const Leap::Controller &controller);
 	virtual void onExit(const Leap::Controller &controller) {}
 	virtual void onFrame (const Leap::Controller &controller);
-
 	virtual void onServiceConnect (const Leap::Controller &controller);
 	virtual void onServiceDisconnect (const Leap::Controller &controller);
 
@@ -68,9 +67,6 @@ protected:
 protected:
 
 	bool riftMounted; ///< Leap on HMD?
-	std::string fingerNames[5]; ///< Finger names
-	std::string boneNames[4]; ///< Bone names
-	std::string stateNames[4]; ///< Leap states
 	float windowWidth, windowHeight; ///y GLFW window size
 	float FBWidth, FBHeight; ///< Framebuffer size
 	std::shared_ptr<SkeletonHand> leftHand, rightHand, currentHand; ///< Leap hands

@@ -158,9 +158,16 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	// Enable HMD mode and pass through
 	if (useRift)
 		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
+
+	// A List of all gestures an their states, 0 = right hand, 1 = left hand
+	for (int i = 0; i < 2; i++) {
+		gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
+	}
 }
 
 void Viewer::calcAndAppendFPS () {
+	static float t0 = glfwGetTime();
+
 	// Get the current time in seconds since the program started (non-static, so executed every time)
 	double currentTime = glfwGetTime();
 
@@ -205,6 +212,37 @@ void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 	leapController.addListener(*leapListener);
 }
 
+void Viewer::recognizeGestures() {
+	static float t0 = glfwGetTime();
+
+	// for both hands
+	for (int i = 0; i < 2; i++) {
+		auto hand = hands[i];
+		
+		/**
+		 * Pinch -> ranges between [0, 1]
+		 */
+		float pinchThreshold = 0.96f, pinchMin = 0.2f;
+
+		// Start
+		if (hand->pinchStrength > pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
+			cout << (i == 0 ? "right" : "left") << " ###################start" << hand->pinchStrength << endl;
+			gestures[i][GESTURES::PINCH] = GESTURE_STATES::START;
+		}
+		else if (hand->pinchStrength > pinchThreshold && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
+			// Update
+			cout << (i == 0 ? "right" : "left") << "/////////////update" << hand->pinchStrength << endl;
+			gestures[i][GESTURES::PINCH] = GESTURE_STATES::UPDATE;
+		}
+		else if (hand->pinchStrength < pinchThreshold  && hand->pinchStrength > pinchMin && gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE) {
+			// Stop
+			cout << (i == 0 ? "right" : "left") << "**********************END" << hand->pinchStrength << endl;
+			gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
+		}
+	}
+
+}
+
 void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
 	renderer = std::move(r);
 	mesh = m;
@@ -238,14 +276,14 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Print some info
 	std::cout << info() << std::endl;
 
-	// Init time t0 for FPS calculation
-	t0 = glfwGetTime();
-
 	// Render loop
 	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window)) {
 		// Bind "the" framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Leap gestures
+		recognizeGestures();
 
 		// Update arcball
 		rotationMatrix = arcball.matrix(renderer->getViewMatrix());

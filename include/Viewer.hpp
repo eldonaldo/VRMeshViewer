@@ -13,6 +13,23 @@
 VR_NAMESPACE_BEGIN
 
 /**
+* Gesture states
+*/
+enum GESTURES {
+	PINCH
+};
+
+/**
+ * Gesture states
+*/
+enum GESTURE_STATES {
+	INVALID,
+	START,
+	UPDATE,
+	STOP
+};
+
+/**
  * @brief Basis mesh viewer class.
  *
  * This class uses GLFW to construct a OS specific
@@ -49,6 +66,32 @@ public:
 	virtual void display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw ();
 
 	/**
+	* @brief Returns the arcball
+	*/
+	const Arcball& getArcball () const {
+		return arcball;
+	}
+
+	/**
+	* @brief Returns the model scale matrix
+	*/
+	const Matrix4f& getScaleMatrix () const {
+		return scaleMatrix;
+	}
+
+	/**
+	* @brief Returns the model translate matrix
+	*/
+	const Matrix4f& getTranslateMatrix () const {
+		return translateMatrix;
+	}
+
+	/**
+	* @brief Recognizes Leap gestures
+	*/
+	void recognizeGestures();
+
+	/**
 	 * @brief Retrieve some OpenGL infos
 	 *
 	 * @return Supported OpenGL Versions
@@ -74,18 +117,6 @@ public:
 		);
 	}
 
-	const Arcball& getArcball () const {
-		return arcball;
-	}
-
-	const Matrix4f& getScaleMatrix () const {
-		return scaleMatrix;
-	}
-
-	const Matrix4f& getTranslateMatrix () const {
-		return translateMatrix;
-	}
-
 protected:
 
 	/**
@@ -106,9 +137,8 @@ protected:
 	int FBWidth, FBHeight; ///< Framebuffer size
 	int width, height; ///< Window width and height
 	Color3f background; ///< Background color
-	const float interval; ///< Interval to refresh FPS
+	const float interval; ///< Interval to refresh FPS in seconds
 	unsigned int frameCount = 0; ///< Frame count
-	unsigned int t0 = 0; ///< Initialization time
 	double fps = 0.0; ///< FPS count
 	bool appFPS = true; ///< If true, then the current FPS count is appended to the window title
 	bool useRift; ///< HMD mode
@@ -123,6 +153,7 @@ protected:
 	Leap::Controller leapController; ///< Leap controller
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
+	std::map<GESTURES, GESTURE_STATES> gestures[2]; ///< Gesture states
 };
 
 VR_NAMESPACE_END

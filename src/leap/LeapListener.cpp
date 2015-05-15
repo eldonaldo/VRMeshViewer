@@ -6,10 +6,8 @@ using namespace Leap;
 using namespace std;
 
 LeapListener::LeapListener(bool useRift)
-: windowWidth(0.f), windowHeight(0.f), FBWidth(0.f), FBHeight(0.f), riftMounted(useRift), hmd(nullptr) {
-	fingerNames[0] = "Thumb"; fingerNames[1] = "Index"; fingerNames[2] = "Middle"; fingerNames[3] = "Ring"; fingerNames[4] = "Pinky";
-	boneNames[0] = "Metacarpal"; boneNames[1] = "Proximal"; boneNames[2] = "Middle"; boneNames[3] = "Distal";
-	stateNames[0] = "STATE_INVALID"; stateNames[1] = "STATE_START"; stateNames[2] = "STATE_UPDATE"; stateNames[3] = "STATE_END";
+	: windowWidth(0.f), windowHeight(0.f), FBWidth(0.f), FBHeight(0.f), riftMounted(useRift), hmd(nullptr) {
+
 }
 
 Matrix4f LeapListener::getTransformationMatrix() {
@@ -60,31 +58,21 @@ void LeapListener::onFrame(const Controller &controller) {
 		VRException("Leap hands not set! Call 'leapListener->setHands(hands[0], hands[1])'s");
 
 	const Frame frame = controller.frame();
-	if (frame.isValid()) {
 
-		// For all available hands
-		HandList hands = frame.hands();
-		for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); hl++) {
-			const Hand hand = *hl;
-			currentHand = leftHand;
-			if (hand.isRight())
-				currentHand = rightHand;
+	// For all available hands
+	HandList hands = frame.hands();
+	for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); hl++) {
+		const Hand hand = *hl;
+		currentHand = leftHand;
+		if (hand.isRight())
+			currentHand = rightHand;
 
+		// Only on valid frames
+		if (frame.isValid()) {
 			currentHand->id = hand.id();
 			currentHand->confidence = hand.confidence();
 			currentHand->pinchStrength = hand.pinchStrength();
 			currentHand->grabStrength = hand.grabStrength();
-
-			static bool t = false;
-			if (!t && currentHand->pinchStrength > 0.9) {
-				cout << "pinch start" << endl;
-				t = true;
-			}
-
-			if (t && currentHand->pinchStrength < 0.9) {
-				cout << "pinch end" << endl;
-				t = false;
-			}
 
 			// Get Rotation and translation matrix
 			const Matrix4f worldTransform = getTransformationMatrix();
@@ -118,8 +106,15 @@ void LeapListener::onFrame(const Controller &controller) {
 				currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
 				currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
 			}
+
+		} else {
+			// Reset all Leap states to prevent out of scope gesture tracking
+			currentHand->pinchStrength = 0.f;
+			currentHand->confidence = 0.f;
+			currentHand->pinchStrength = 0.f;
+			currentHand->grabStrength = 0.f;
 		}
-	} 
+	}
 }
 
 void LeapListener::onConnect(const Controller& controller) {
