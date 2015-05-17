@@ -168,7 +168,8 @@ void RiftRenderer::draw () {
 
 			// Each has its own view matrix
 			OVR::Matrix4f viewLeapCam = OVR::Matrix4f::LookAtRH(leapCam, leapCam + forward, up);
-			setViewMatrixLeap(Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M));
+			Matrix4f vl = Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M);
+			setViewMatrixLeap(vl);
 
 			// Draw Leap distorted image
 			leapShader->bind();

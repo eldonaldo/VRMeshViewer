@@ -3,11 +3,13 @@
 VR_NAMESPACE_BEGIN
 
 SkeletonHand::SkeletonHand (bool _isRight)
-	: isRight(_isRight), id(-1), palmPosition(0.f, 0.f, 0.f) {
+	: isRight(_isRight), id(-1), palmPosition(0.f, 0.f, 0.f), confidence(0.f), grabStrength(0.f), pinchStrength(0.0f) {
 
 	mesh.palm.scale(0.03f, 0.03f, 0.01f);
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 5; i++) {
 		mesh.finger[i].scale(0.01f, 0.01f, 0.01f);
+		fingerPosition[i] = Vector3f(0.f, 0.f, 0.f);
+	}
 }
 
 void SkeletonHand::upload (std::shared_ptr<GLShader> &s) {

@@ -35,6 +35,7 @@ public:
 	int id; ///< Leap hand id
 	float confidence; ///< Confidence of hand position, ranges between [0, 1]
 	Vector3f palmPosition; ///< Hands palm position
+	Vector3f fingerPosition[5]; ///< Finger tip positions
 	bool isRight; ///< Is it the right hand?
 	struct mesh_s {
 		Cube palm; ///< Mesh for the palm

@@ -148,7 +148,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 			__cbref->renderer->updateFBSize(__cbref->FBWidth, __cbref->FBHeight);
 	});
 
-	// Set reference for callback functions
+	// Set pointer for callback functions
 	__cbref = this;
 
 	// Leap hands
@@ -159,10 +159,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	if (useRift)
 		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
 
-	// A List of all gestures an their states, 0 = right hand, 1 = left hand
-	for (int i = 0; i < 2; i++) {
-		gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
-	}
+	// Create gesture handler
+	gestureHandler = std::make_shared<GestureHandler>();
+	gestureHandler->setViewer(this);
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -212,37 +211,6 @@ void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 	leapController.addListener(*leapListener);
 }
 
-void Viewer::recognizeGestures() {
-	static float t0 = glfwGetTime();
-
-	// for both hands
-	for (int i = 0; i < 2; i++) {
-		auto hand = hands[i];
-		
-		/**
-		 * Pinch -> ranges between [0, 1]
-		 */
-		float pinchThreshold = 0.96f, pinchMin = 0.2f;
-
-		// Start
-		if (hand->pinchStrength > pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
-			cout << (i == 0 ? "right" : "left") << " ###################start" << hand->pinchStrength << endl;
-			gestures[i][GESTURES::PINCH] = GESTURE_STATES::START;
-		}
-		else if (hand->pinchStrength > pinchThreshold && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
-			// Update
-			cout << (i == 0 ? "right" : "left") << "/////////////update" << hand->pinchStrength << endl;
-			gestures[i][GESTURES::PINCH] = GESTURE_STATES::UPDATE;
-		}
-		else if (hand->pinchStrength < pinchThreshold  && hand->pinchStrength > pinchMin && gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE) {
-			// Stop
-			cout << (i == 0 ? "right" : "left") << "**********************END" << hand->pinchStrength << endl;
-			gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
-		}
-	}
-
-}
-
 void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
 	renderer = std::move(r);
 	mesh = m;
@@ -261,8 +229,11 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	placeObject(mesh);
 
 	// Share the HMD
-	if (leapListener != nullptr)
+	if (leapListener != nullptr) {
 		leapListener->setHmd(hmd);
+		leapListener->setGestureHandler(gestureHandler);
+	}
+
 	renderer->setController(leapController);
 	renderer->setHmd(hmd); 
 
@@ -281,9 +252,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	while (!glfwWindowShouldClose(window)) {
 		// Bind "the" framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// Leap gestures
-		recognizeGestures();
 
 		// Update arcball
 		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
@@ -310,6 +278,39 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 
 	// Renderer cleapup
 	renderer->cleanUp();
+}
+
+std::string Viewer::info () {
+	return tfm::format(
+		"Viewer[\n"
+		"  Size = %s,\n"
+		"  FBSize = %s,\n"
+		"  Engine = %s,\n"
+		"  OpenGL version supported on this machine = %s,\n"
+		"  Acquired OpenGL version = %s,\n"
+		"  Renderer = %s,\n"
+		"  Mesh = %s\n"
+		"]\n",
+		toString(width) + " x " + toString(height),
+		toString(FBWidth) + " x " + toString(FBHeight),
+		glGetString(GL_RENDERER),
+		glGetString(GL_VERSION),
+		glfwGetVersionString(),
+		indent((renderer ? renderer->info() : "null")),
+		indent((mesh ? mesh->toString() : "null"))
+	);
+}
+
+const Arcball& Viewer::getArcball () const {
+	return arcball;
+}
+
+const Matrix4f& Viewer::getScaleMatrix () const {
+	return scaleMatrix;
+}
+
+const Matrix4f& Viewer::getTranslateMatrix () const {
+	return translateMatrix;
 }
 
 Viewer::~Viewer () {

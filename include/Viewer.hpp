@@ -8,26 +8,10 @@
 #include "GLUtil.hpp"
 #include "leap/LeapListener.hpp"
 #include "leap/SkeletonHand.hpp"
+#include "leap/GestureHandler.hpp"
 #include "Eigen/Geometry"
 
 VR_NAMESPACE_BEGIN
-
-/**
-* Gesture states
-*/
-enum GESTURES {
-	PINCH
-};
-
-/**
- * Gesture states
-*/
-enum GESTURE_STATES {
-	INVALID,
-	START,
-	UPDATE,
-	STOP
-};
 
 /**
  * @brief Basis mesh viewer class.
@@ -68,54 +52,24 @@ public:
 	/**
 	* @brief Returns the arcball
 	*/
-	const Arcball& getArcball () const {
-		return arcball;
-	}
+	const Arcball& getArcball () const;
 
 	/**
 	* @brief Returns the model scale matrix
 	*/
-	const Matrix4f& getScaleMatrix () const {
-		return scaleMatrix;
-	}
+	const Matrix4f& getScaleMatrix () const;
 
 	/**
 	* @brief Returns the model translate matrix
 	*/
-	const Matrix4f& getTranslateMatrix () const {
-		return translateMatrix;
-	}
-
-	/**
-	* @brief Recognizes Leap gestures
-	*/
-	void recognizeGestures();
+	const Matrix4f& getTranslateMatrix () const;
 
 	/**
 	 * @brief Retrieve some OpenGL infos
 	 *
 	 * @return Supported OpenGL Versions
 	 */
-	std::string info () {
-		return tfm::format(
-			"Viewer[\n"
-			"  Size = %s,\n"
-			"  FBSize = %s,\n"
-			"  Engine = %s,\n"
-			"  OpenGL version supported on this machine = %s,\n"
-			"  Acquired OpenGL version = %s,\n"
-			"  Renderer = %s,\n"
-			"  Mesh = %s\n"
-			"]\n",
-			toString(width) + " x " + toString(height),
-			toString(FBWidth) + " x " + toString(FBHeight),
-			glGetString(GL_RENDERER),
-			glGetString(GL_VERSION),
-			glfwGetVersionString(),
-			indent((renderer ? renderer->info() : "null")),
-			indent((mesh ? mesh->toString() : "null"))
-		);
-	}
+	std::string info ();
 
 protected:
 
@@ -153,7 +107,7 @@ protected:
 	Leap::Controller leapController; ///< Leap controller
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
-	std::map<GESTURES, GESTURE_STATES> gestures[2]; ///< Gesture states
+	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
 };
 
 VR_NAMESPACE_END

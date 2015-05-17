@@ -66,4 +66,47 @@ Matrix4f scale(const Matrix4f &m, float x, float y, float z) {
 	return scale;
 }
 
+std::string gestureStateName (GESTURE_STATES state) {
+	std::string name = "NOT DEFINED";
+	switch (state) {
+		case GESTURE_STATES::INVALID : {
+			name = "INVALID";
+			break;
+		}
+
+		case GESTURE_STATES::START : {
+			name = "START";
+			break;
+		}
+
+		case GESTURE_STATES::UPDATE : {
+			name = "UPDATE";
+			break;
+		}
+
+		case GESTURE_STATES::STOP : {
+			name = "STOP";
+			break;
+		}
+	}
+
+	return name;
+}
+
+std::string handName (HANDS hand) {
+	std::string name = "NOT DEFINED";
+	switch (hand) {
+		case HANDS::RIGHT : {
+			name = "RIGHT";
+			break;
+		}
+
+		case HANDS::LEFT : {
+			name = "LEFT";
+			break;
+		}
+	}
+	return name;
+}
+
 VR_NAMESPACE_END

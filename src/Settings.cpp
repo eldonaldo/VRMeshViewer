@@ -34,6 +34,9 @@ Settings::Settings () :
 	LEAP_CAMERA_SHIFT_X			(0.012f),
 	LEAP_CAMERA_SHIFT_Z			(-0.08f),
 
+	// GESTURES
+	GESTURES_PINCH_THRESHOLD	(0.96f),
+
 	// No HMD
 	LEAP_TO_WORLD_SCALE_3D		(0.05f),
 	LEAP_TO_WORLD_ORIGIN		(0.f, -300.f, 0.f)

@@ -89,6 +89,9 @@ template <typename Scalar, int Dimension> struct TVector;
 template <typename Scalar, int Dimension> struct TPoint;
 template <typename Point> struct TBoundingBox;
 
+class GestureHandler;
+class LeapListener;
+
 // Some typedefs
 typedef Eigen::Matrix<float, 3, 1> Color3f;
 typedef Eigen::Matrix<unsigned int, Eigen::Dynamic, Eigen::Dynamic> MatrixXu;
@@ -99,6 +102,25 @@ typedef TPoint<float, 3> Point3f;
 typedef TPoint<float, 2> Point2f;
 typedef TBoundingBox<Point3f> BoundingBox3f;
 typedef Eigen::Quaternion<float> Quaternionf;
+
+/// Hands
+enum HANDS {
+	RIGHT,
+	LEFT
+};
+
+/// Gesture states
+enum GESTURES {
+	PINCH //!< PINCH
+};
+
+/// Gesture states
+enum GESTURE_STATES {
+	INVALID,
+	START,
+	UPDATE,
+	STOP
+};
 
 /// Stores an RGBA color value
 class Color : public Eigen::Vector4f {
@@ -167,6 +189,10 @@ extern Matrix4f scale (const Matrix4f &m, float s);
 /// Computes scale matrix
 extern Matrix4f scale(const Matrix4f &m, float x, float y, float z);
 
+/// Get state name
+extern std::string gestureStateName (GESTURE_STATES state);
 
+/// Get hand name
+extern std::string handName (HANDS hand);
 
 VR_NAMESPACE_END

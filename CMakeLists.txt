@@ -107,6 +107,7 @@ add_executable(VRMeshViewer
 	include/mesh/Cube.hpp
 	include/Settings.hpp
 	include/leap/SkeletonHand.hpp
+	include/leap/GestureHandler.hpp
 	
 	# Source code files
 	src/main.cpp
@@ -121,6 +122,7 @@ add_executable(VRMeshViewer
 	src/mesh/Cube.cpp
 	src/Settings.cpp
 	src/leap/SkeletonHand.cpp
+	src/leap/GestureHandler.cpp
 
 	# Ext
 	#ext/leap/util/LeapUtilGL.h
