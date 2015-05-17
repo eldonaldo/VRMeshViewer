@@ -8,8 +8,6 @@
 
 VR_NAMESPACE_BEGIN
 
-
-
 /**
  * @brief Leap listener
  *
@@ -71,7 +69,8 @@ protected:
 	float FBWidth, FBHeight; ///< Framebuffer size
 	std::shared_ptr<SkeletonHand> leftHand, rightHand, currentHand; ///< Leap hands
 	std::shared_ptr<SkeletonHand> skeletonHands[2]; ///< Pointer to the hands above
-	std::map<GESTURES, GESTURE_STATES> gestures[2]; ///< Gesture states
+	std::map<GESTURES, GESTURE_STATES> gestures[2]; ///< Gesture states (for both hands)
+	GESTURE_STATES gestureZoom; ///< Gesture states, not applicapable to two hands
 	ovrHmd hmd; ///< The Rift
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
 };

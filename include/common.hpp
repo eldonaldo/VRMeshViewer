@@ -111,7 +111,9 @@ enum HANDS {
 
 /// Gesture states
 enum GESTURES {
-	PINCH //!< PINCH
+	PINCH, //!< PINCH
+	GRAB, //!< GRAB
+	ZOOM //!< ZOOM
 };
 
 /// Gesture states
@@ -194,5 +196,8 @@ extern std::string gestureStateName (GESTURE_STATES state);
 
 /// Get hand name
 extern std::string handName (HANDS hand);
+
+/// Clamp to [0, 1]
+extern float clamp(float x);
 
 VR_NAMESPACE_END

@@ -193,13 +193,13 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	// Apply Pythagoras to calculate current diagonal length
 	float a = fabs(bbox.max.z() - bbox.min.z());
 	float b = fabs(bbox.max.x() - bbox.min.x());
-	float c = fabs(bbox.max.x() - bbox.min.x());
+	float c = fabs(bbox.max.y() - bbox.min.y());
 	float l = sqrtf(a * a + b * b);
 	float diag = sqrtf(l * l + c * c);
 	float factor = Settings::getInstance().MESH_DIAGONAL / diag;
 
 	// Translate to center
-	translateMatrix = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
+	translateMatrix = translate(Matrix4f::Identity(), factor * Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
 
 	// Compute scaling matrix
 	scaleMatrix = scale(Matrix4f::Zero(), factor);
@@ -224,9 +224,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glViewport(0, 0, width, height);
 		leapListener->setSize(width, height, FBWidth, FBHeight);
 	}
-	
-	// Place object in world for immersion
-	placeObject(mesh);
 
 	// Share the HMD
 	if (leapListener != nullptr) {
@@ -247,6 +244,9 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Print some info
 	std::cout << info() << std::endl;
 
+	// Place object in world for immersion
+	placeObject(mesh);
+
 	// Render loop
 	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window)) {
@@ -254,7 +254,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Update arcball
-		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+		//rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Update state
 		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
@@ -301,16 +301,28 @@ std::string Viewer::info () {
 	);
 }
 
-const Arcball& Viewer::getArcball () const {
+Arcball& Viewer::getArcball () {
 	return arcball;
 }
 
-const Matrix4f& Viewer::getScaleMatrix () const {
+Matrix4f& Viewer::getScaleMatrix () {
 	return scaleMatrix;
 }
 
-const Matrix4f& Viewer::getTranslateMatrix () const {
+Matrix4f& Viewer::getTranslateMatrix () {
 	return translateMatrix;
+}
+
+Matrix4f& Viewer::getRotationMatrix() {
+	return rotationMatrix;
+}
+
+Vector2i& Viewer::getLastPos() {
+	return lastPos;
+}
+
+void Viewer::setLastPos(Vector2i &v) {
+	lastPos = v;
 }
 
 Viewer::~Viewer () {

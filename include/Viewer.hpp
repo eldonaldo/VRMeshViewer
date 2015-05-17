@@ -52,17 +52,32 @@ public:
 	/**
 	* @brief Returns the arcball
 	*/
-	const Arcball& getArcball () const;
+	Arcball& getArcball ();
 
 	/**
 	* @brief Returns the model scale matrix
 	*/
-	const Matrix4f& getScaleMatrix () const;
+	Matrix4f& getScaleMatrix ();
 
 	/**
 	* @brief Returns the model translate matrix
 	*/
-	const Matrix4f& getTranslateMatrix () const;
+	Matrix4f& getTranslateMatrix ();
+
+	/**
+	* @brief Returns the model rotation matrix
+	*/
+	Matrix4f& getRotationMatrix();
+
+	/**
+	* @brief Returns the last position used for the arcball
+	*/
+	Vector2i& getLastPos();
+
+	/**
+	* @brief Set the last position for the arcball
+	*/
+	void setLastPos(Vector2i &v);
 
 	/**
 	 * @brief Retrieve some OpenGL infos
@@ -83,13 +98,16 @@ protected:
 	 */
 	virtual void placeObject (std::shared_ptr<Mesh> &m);
 
+public:
+
+	int FBWidth, FBHeight; ///< Framebuffer size
+	int width, height; ///< Window width and height
+
 protected:
 
 	ovrHmd hmd; ///< Head mounted device
 	GLFWwindow *window; ///< GLFW window pointer
 	const std::string title; ///< Window title
-	int FBWidth, FBHeight; ///< Framebuffer size
-	int width, height; ///< Window width and height
 	Color3f background; ///< Background color
 	const float interval; ///< Interval to refresh FPS in seconds
 	unsigned int frameCount = 0; ///< Frame count

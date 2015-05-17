@@ -109,4 +109,12 @@ std::string handName (HANDS hand) {
 	return name;
 }
 
+extern float clamp(float x) {
+	if (x > 1.f)
+		return 1.f;
+	else if (x < 0.f)
+		return 0.f;
+	else return x;
+}
+
 VR_NAMESPACE_END
