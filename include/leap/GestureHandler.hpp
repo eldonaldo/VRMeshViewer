@@ -33,6 +33,11 @@ public:
 	virtual void zoom (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]);
 
 	/**
+	* @brief Swipe gesture
+	*/
+	virtual void swipe (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::SwipeGesture &swipe);
+
+	/**
 	* @brief Sets the pointer to the Viewer
 	*/
 	void setViewer (Viewer *v);

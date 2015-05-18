@@ -96,6 +96,35 @@ void GestureHandler::zoom(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&h
 	}
 }
 
+void GestureHandler::swipe (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::SwipeGesture &swipe) {
+	assert(swipe.hands().count() == 1);
+
+	// Determine which hand does what
+	auto &pointerHand = hands[HANDS::LEFT];
+	if (swipe.hands()[0].isLeft())
+		pointerHand = hands[HANDS::RIGHT];
+
+	Quaternionf q;
+	q = Eigen::AngleAxis<float>(swipe.duration() * DEG_TO_RAD, pointerHand->finger[Finger::Type::TYPE_INDEX].direction.normalized());
+
+	Matrix4f R = Matrix4f::Identity();
+	R.block<3, 3>(0, 0) = q.toRotationMatrix();
+
+	switch (state) {
+		case GESTURE_STATES::START:
+			break;
+
+		case GESTURE_STATES::UPDATE:
+			//viewer->getRotationMatrix() = R;
+			break;
+
+		default:
+		case GESTURE_STATES::STOP:
+		case GESTURE_STATES::INVALID:
+			break;
+	}
+}
+
 void GestureHandler::setViewer (Viewer *v) {
 	viewer = v;
 }

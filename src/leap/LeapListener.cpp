@@ -122,8 +122,10 @@ void LeapListener::onFrame(const Controller &controller) {
 
 					// Finger tip world position
 					Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
+					Vector3f direction = rotation * finger.direction().toVector3<Vector3f>() + translation;
 					currentHand->finger[finger.type()].position = Vector3f(tip.x(), tip.y(), tip.z());
-					currentHand->finger[finger.type()].extended = finger.isExtended();
+					currentHand->finger[finger.type()].extended = hand.grabStrength() > 0.9f || finger.isExtended();
+					currentHand->finger[finger.type()].direction = direction;
 
 					// Transform
 					currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
@@ -132,9 +134,12 @@ void LeapListener::onFrame(const Controller &controller) {
 			}
 
 			// Reset tracking states if no hands found
-			if (hands.count() == 0)
+			if (hands.count() == 0) {
 				for (auto &h : skeletonHands)
 					h->confidence = h->pinchStrength = h->grabStrength = 0.f;
+
+				gestureZoom = GESTURE_STATES::STOP;
+			}
 
 			// Reset tracking state of the other hand
 			if (hands.count() == 1) {
@@ -148,15 +153,40 @@ void LeapListener::onFrame(const Controller &controller) {
 
 				for (auto &g : gestures[handIndex])
 					g.second = GESTURE_STATES::STOP;
+
+				gestureZoom = GESTURE_STATES::STOP;
+			}
+		}
+
+		// Process built in Leap gestures
+		const GestureList gestures = frame.gestures();
+		for (int g = 0; g < gestures.count(); g++) {
+			Gesture gesture = gestures[g];
+			switch (gesture.type()) {
+				case Gesture::TYPE_SWIPE: {
+					SwipeGesture swipe = gesture;
+					Gesture::State leapState = swipe.state();
+
+//					if (swipe.hands().count() == 1)
+//						gestureHandler->swipe(leapToInternState(leapState), skeletonHands, swipe);
+
+					break;
+				}
+
+				case Gesture::TYPE_CIRCLE:
+				case Gesture::TYPE_INVALID:
+				case Gesture::TYPE_KEY_TAP:
+				case Gesture::TYPE_SCREEN_TAP:
+					break;
 			}
 		}
 	}
 
-	// Do something useful with it ...
-	recognizeGestures();
+	// Process own built gesture state machines
+	gesturesStateMachines();
 }
 
-void LeapListener::recognizeGestures() {
+void LeapListener::gesturesStateMachines() {
 	// for both hands
 	for (int i = 0; i < 2; i++) {
 		auto &hand = skeletonHands[i];
@@ -275,6 +305,29 @@ void LeapListener::setHmd(ovrHmd h) {
 
 void LeapListener::setGestureHandler (std::shared_ptr<GestureHandler> &s) {
 	gestureHandler = s;
+}
+
+GESTURE_STATES LeapListener::leapToInternState (Leap::Gesture::State &s) {
+	GESTURE_STATES state = GESTURE_STATES::INVALID;
+	switch (s) {
+		case Leap::Gesture::State::STATE_INVALID:
+			state = GESTURE_STATES::INVALID;
+			break;
+
+		case Leap::Gesture::State::STATE_START:
+			state = GESTURE_STATES::START;
+			break;
+
+		case Leap::Gesture::State::STATE_UPDATE:
+			state = GESTURE_STATES::UPDATE;
+			break;
+
+		case Leap::Gesture::State::STATE_STOP:
+			state = GESTURE_STATES::STOP;
+			break;
+	}
+
+	return state;
 }
 
 VR_NAMESPACE_END

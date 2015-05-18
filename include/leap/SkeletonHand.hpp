@@ -37,6 +37,8 @@ public:
 
 	int id; ///< Leap hand id
 	bool isRight; ///< Is it the right hand?
+
+	/// Estimates
 	float confidence; ///< Confidence of hand position, ranges between [0, 1]
 	float pinchStrength; ///< Pinch strength
 	float grabStrength; ///< Grab strength
@@ -53,6 +55,7 @@ public:
 	///< Fingers
 	struct finger_t {
 		Vector3f position; ///< Finger tip positions
+		Vector3f direction; ///< Finger direction
 		bool extended;
 	} finger[5];
 

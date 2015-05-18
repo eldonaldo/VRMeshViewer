@@ -11,7 +11,10 @@ void main () {
 
 	// Only use xy within [0, 1]
 	if (index.r > 0.0 && index.r < 1.0 && index.g > 0.0 && index.g < 1.0)
-    	color = vec4(texture(rawTexture, index.rg).rrr, 1);
+		//if (texture(rawTexture, index.rg).r > 0.5)
+    		color = vec4(texture(rawTexture, index.rg).rrr, 1);
+		//else
+    	//	color = vec4(0, 0, 0, 1);
 	else
     	color = vec4(1, 0, 0, 1);
 }

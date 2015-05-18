@@ -191,7 +191,7 @@ void RiftRenderer::draw () {
 
 void RiftRenderer::uploadBackgroundCube() {
 	// Vertices. The corners must be at position 4 for the distortion correction to work!
-	GLfloat maxZ = -1.0f;
+	GLfloat maxZ = -1.f;
 
 	MatrixXf V(3, 4);
 	V.col(0) = Vector3f(-4.f, -4.f, maxZ);

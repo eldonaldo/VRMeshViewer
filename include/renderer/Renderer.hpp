@@ -46,6 +46,7 @@ public:
 	 * @param background Background color
 	 */
 	virtual void clear (Vector3f background) {
+		glClearDepth(1.0f);
 		glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}

@@ -33,7 +33,7 @@ public:
 	/**
 	* @brief Recognizes gestures
 	*/
-	void recognizeGestures();
+	void gesturesStateMachines();
 
 	/**
 	 * @brief Updates the window and framebuffer sizes
@@ -61,6 +61,11 @@ protected:
 	* @brief Returns the transformation matrix from Leap to World coordinates
 	*/
 	Matrix4f getTransformationMatrix();
+
+	/**
+	 * @brief Leap state to intern state
+	 */
+	GESTURE_STATES leapToInternState (Leap::Gesture::State &s);
 
 protected:
 
