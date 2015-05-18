@@ -13,6 +13,7 @@ Settings::Settings () :
 	Z_FAR						(100.f),
 
 	// CAMERA, 1.f = 1 Unit = 1 meter
+	USE_RIFT					(true),
 	CAMERA_OFFSET				(0.f, 0.10f, 0.30f),
 	CAMERA_LOOK_AT				(0.f, 0.f, 0.f),
 	CAMERA_HEADS_UP				(0.f, 1.f, 0.f),

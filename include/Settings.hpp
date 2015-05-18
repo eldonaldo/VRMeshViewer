@@ -48,6 +48,7 @@ public:
 	float Z_NEAR;
 	float Z_FAR;
 
+	bool USE_RIFT;
 	Eigen::Vector3f CAMERA_OFFSET;
 	Eigen::Vector3f CAMERA_LOOK_AT;
 	Eigen::Vector3f CAMERA_HEADS_UP;

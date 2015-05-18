@@ -146,7 +146,6 @@ protected:
 	Matrix4f transMat;
 	Matrix4f scaleMat;
 	Matrix4f rotateMat;
-	
 	enum BUFFERS {
 		VERTEX_BUFFER,  //!< VERTEX_BUFFER
 		TEXCOORD_BUFFER,//!< TEXCOORD_BUFFER

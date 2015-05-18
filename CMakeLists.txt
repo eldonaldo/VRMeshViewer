@@ -21,7 +21,7 @@ ExternalProject_Add(glfw_p
 
 # Rift SDK
 # Create debug symbols
-set(OVR_DEBUG_BUILD 1)
+#set(OVR_DEBUG_BUILD 1)
 
 # The primary SDK artifact, a static library for Oculus access 
 add_subdirectory(ext/ovr)

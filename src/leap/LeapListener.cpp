@@ -124,7 +124,7 @@ void LeapListener::onFrame(const Controller &controller) {
 					Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
 					Vector3f direction = rotation * finger.direction().toVector3<Vector3f>() + translation;
 					currentHand->finger[finger.type()].position = Vector3f(tip.x(), tip.y(), tip.z());
-					currentHand->finger[finger.type()].extended = hand.grabStrength() > 0.9f || finger.isExtended();
+					currentHand->finger[finger.type()].extended = !(hand.grabStrength() > 0.9f || !finger.isExtended());
 					currentHand->finger[finger.type()].direction = direction;
 
 					// Transform
@@ -167,8 +167,8 @@ void LeapListener::onFrame(const Controller &controller) {
 					SwipeGesture swipe = gesture;
 					Gesture::State leapState = swipe.state();
 
-//					if (swipe.hands().count() == 1)
-//						gestureHandler->swipe(leapToInternState(leapState), skeletonHands, swipe);
+					//if (swipe.hands().count() == 1)
+					//	gestureHandler->swipe(leapToInternState(leapState), skeletonHands, swipe);
 
 					break;
 				}
@@ -244,15 +244,15 @@ void LeapListener::gesturesStateMachines() {
 	}
 
 	if (extendedCount == 5 && gestureZoom == GESTURE_STATES::STOP) {
-		gestureHandler->zoom(GESTURE_STATES::START, skeletonHands);
+		gestureHandler->scale(GESTURE_STATES::START, skeletonHands);
 		gestureZoom = GESTURE_STATES::START;
 	}
 	else if (extendedCount == 5 && (gestureZoom == GESTURE_STATES::START || gestureZoom == GESTURE_STATES::UPDATE)) {
-		gestureHandler->zoom(GESTURE_STATES::UPDATE, skeletonHands);
+		gestureHandler->scale(GESTURE_STATES::UPDATE, skeletonHands);
 		gestureZoom = GESTURE_STATES::UPDATE;
 	}
 	else if (extendedCount < 5 && gestureZoom == GESTURE_STATES::UPDATE) {
-		gestureHandler->zoom(GESTURE_STATES::STOP, skeletonHands);
+		gestureHandler->scale(GESTURE_STATES::STOP, skeletonHands);
 		gestureZoom = GESTURE_STATES::STOP;
 	}
 }

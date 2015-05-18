@@ -7,7 +7,9 @@
 VR_NAMESPACE_BEGIN
 
 /**
- * Gesture handling
+ * Gesture handling.
+ *
+ * Handling is based on state machines.
  */
 class GestureHandler {
 public:
@@ -28,9 +30,9 @@ public:
 	virtual void grab (GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]);
 
 	/**
-	* @brief Zoom gesture
+	* @brief Scale gesture
 	*/
-	virtual void zoom (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]);
+	virtual void scale (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]);
 
 	/**
 	* @brief Swipe gesture
@@ -42,9 +44,15 @@ public:
 	*/
 	void setViewer (Viewer *v);
 
+	/**
+	* @brief Sets the pointer to the mesh
+	*/
+	void setMesh (std::shared_ptr<Mesh> &m);
+
 private:
 
 	Viewer *viewer; ///< Viewer
+	std::shared_ptr<Mesh> mesh; ///< Mesh
 	float lastDistance = 0.f; ///< Last known sclaing distance in milimeter
 };
 

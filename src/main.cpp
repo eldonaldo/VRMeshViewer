@@ -14,8 +14,7 @@ int main (int argc, char *argv[]) {
 	float &fov = Settings::getInstance().FOV, &zNear = Settings::getInstance().Z_NEAR, &zFar = Settings::getInstance().Z_FAR;
 
 	try {
-
-		bool useRift = true;
+		bool useRift = Settings::getInstance().USE_RIFT;
 
 		// This sets up the OpenGL context and needs the be first call
 		Viewer viewer("Virtual Reality Mesh Viewer", width, height, useRift, false);
@@ -33,7 +32,7 @@ int main (int argc, char *argv[]) {
 
 		// Load mesh
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon.obj");
-//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon-no-normals.obj");
+//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/muro/muro.obj");
 		
 		// Create Leap listener
 		std::unique_ptr<LeapListener> leap(new LeapListener(useRift));
@@ -41,7 +40,6 @@ int main (int argc, char *argv[]) {
 
 		// Run
 		viewer.display(mesh, renderer);
-
 	} catch (std::runtime_error &e) {
 		std::cout << "Runtime error: "<< e.what() << std::endl;
 		std::cin.get();

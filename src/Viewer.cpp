@@ -222,7 +222,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glfwSetWindowSize(window, width, height);
 		glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
 		glViewport(0, 0, width, height);
-		leapListener->setSize(width, height, FBWidth, FBHeight);
+		if (leapListener != nullptr)
+			leapListener->setSize(width, height, FBWidth, FBHeight);
 	}
 
 	// Share the HMD
@@ -235,6 +236,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	renderer->setHmd(hmd); 
 
 	// Renderer pre processing
+	gestureHandler->setMesh(mesh);
 	renderer->setMesh(mesh);
 	renderer->setHands(hands[0], hands[1]);
 	renderer->setWindow(window);
