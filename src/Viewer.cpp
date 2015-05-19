@@ -110,13 +110,23 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 			// Enable / disable v-sync
 			case GLFW_KEY_V: {
 				static bool disable = true;
+				if (action == GLFW_PRESS) {
+					if (disable)
+						ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
+					else
+						ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
+					disable = !disable;
+				}
+				break;
+			}
 
-				if (disable)
-					ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
-				else
-					ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
-
-				disable = !disable;
+			// Draw wireframe overlay
+			case GLFW_KEY_W: {
+				static bool disable = true;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().MESH_DRAW_WIREFRAME = disable;
+					disable = !disable;
+				}
 				break;
 			}
 		}

@@ -57,6 +57,7 @@ public:
 	Eigen::Vector3f LIGHT_INTENSITY;
 
 	float MESH_DIAGONAL;
+	bool MESH_DRAW_WIREFRAME;
 	bool SHOW_HANDS;
 
 	float LEAP_ALPHA_SCALE;

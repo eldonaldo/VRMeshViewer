@@ -23,10 +23,7 @@ void PerspectiveRenderer::preProcess () {
 	// Upload hands
 	if (Settings::getInstance().SHOW_HANDS) {
 		leftHand->upload(shader);
-		//leftHand->translate(-5.f, 0.f, 0.f);
-
 		rightHand->upload(shader);
-		//rightHand->translate(+5.f, 0.f, 0.f);
 	}
 }
 
@@ -42,6 +39,9 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Create virtual point light
 	shader->setUniform("light.position", cameraPosition);
 	shader->setUniform("light.intensity", lightIntensity);
+
+	// Default no wireframe overlay
+	shader->setUniform("wireframe", false);
 }
 
 void PerspectiveRenderer::draw() {
@@ -50,6 +50,15 @@ void PerspectiveRenderer::draw() {
 	// Draw the mesh
 	shader->setUniform("alpha", 1.f);
 	mesh->draw(getViewMatrix(), getProjectionMatrix());
+
+	// Draw wireframe overlay for debugging
+	if (Settings::getInstance().MESH_DRAW_WIREFRAME) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		shader->setUniform("wireframe", true);
+		mesh->draw(getViewMatrix(), getProjectionMatrix());
+		shader->setUniform("wireframe", false);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
 
 	// Draw hands
 	if (Settings::getInstance().SHOW_HANDS) {
