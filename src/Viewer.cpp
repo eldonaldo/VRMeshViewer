@@ -195,7 +195,7 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	float factor = Settings::getInstance().MESH_DIAGONAL / diag;
 
 	// Translate to center
-	Matrix4f T = translate(Matrix4f::Identity(), factor * Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
+	Matrix4f T = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
 
 	// Compute scaling matrix
 	Matrix4f S = scale(Matrix4f::Zero(), factor);
