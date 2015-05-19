@@ -307,12 +307,31 @@ template <typename _PointType> struct TBoundingBox {
     }
 
     /// Transform bounding box
-    TBoundingBox transform (const Eigen::Matrix<PointType, PointType::Dimension, PointType::Dimension> &m) {
-    	PointType transformedMin = m * min;
-    	PointType transformedMax = m * max;
-    	TBoundingBox<PointType> bbox(transformedMin, transformedMax);
-    	return bbox;
+    template <typename T>
+    void transform (const Eigen::Matrix<T, PointType::Dimension, PointType::Dimension> &m) {
+    	static PointType initial_min = min, initial_max = max;
+
+    	min = m * initial_min;
+    	max = m * initial_max;
     }
+
+    /// Transform bounding box sucht that it is still axis aligned
+	void transformAxisAligned (const Eigen::Matrix<float, 4, 4> &m) {
+		static PointType initial_min = min, initial_max = max;
+
+		const Eigen::Matrix<float, 3, 3> m1 = m.block<3, 3>(0, 0);
+		PointType xa = m1.col(0) * initial_max[0];
+		PointType xb = m1.col(0) * initial_min[0];
+
+		PointType ya = m1.col(1) * initial_max[1];
+		PointType yb = m1.col(1) * initial_min[1];
+
+		PointType za = m1.col(2) * initial_max[2];
+		PointType zb = m1.col(2) * initial_min[2];
+
+		min = xa.cwiseMin(xb) + ya.cwiseMin(yb) + za.cwiseMin(zb) + m.block<3, 1>(0, 3);
+		max = xa.cwiseMax(xb) + ya.cwiseMax(yb) + za.cwiseMax(zb) + m.block<3, 1>(0, 3);
+	}
 
     /// Return a string representation of the bounding box
     std::string toString() const {

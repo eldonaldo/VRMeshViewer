@@ -190,19 +190,29 @@ void Viewer::calcAndAppendFPS () {
 void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	BoundingBox3f bbox = m->getBoundingBox();
 
-	// Apply Pythagoras to calculate current diagonal length
-	float a = fabs(bbox.max.z() - bbox.min.z());
-	float b = fabs(bbox.max.x() - bbox.min.x());
-	float c = fabs(bbox.max.y() - bbox.min.y());
-	float l = sqrtf(a * a + b * b);
-	float diag = sqrtf(l * l + c * c);
+	// Calculate current bounding box diagonal length
+	float diag = (bbox.max - bbox.min).norm();
 	float factor = Settings::getInstance().MESH_DIAGONAL / diag;
 
 	// Translate to center
-	translateMatrix = translate(Matrix4f::Identity(), factor * Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
+	Matrix4f T = translate(Matrix4f::Identity(), factor * Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
 
 	// Compute scaling matrix
-	scaleMatrix = scale(Matrix4f::Zero(), factor);
+	Matrix4f S = scale(Matrix4f::Zero(), factor);
+
+	// Transform object outside of OpenGL such that the correct metric units and center position are right away passed into OpenGL
+	MatrixXf vertices = m->getVertexPositions();
+	MatrixXf newPos(3, vertices.cols());
+	Matrix4f transformMat = T * S;
+
+	bbox.reset();
+	for (int i = 0; i < vertices.cols(); i++) {
+		Vector3f v = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
+		newPos.col(i) = v;
+		bbox.expandBy(v);
+	}
+
+	m->setVertexPositions(newPos);
 }
 
 void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
@@ -235,6 +245,9 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	renderer->setController(leapController);
 	renderer->setHmd(hmd); 
 
+	// Place object in world for immersion
+	placeObject(mesh);
+
 	// Renderer pre processing
 	gestureHandler->setMesh(mesh);
 	renderer->setMesh(mesh);
@@ -246,8 +259,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Print some info
 	std::cout << info() << std::endl;
 
-	// Place object in world for immersion
-	placeObject(mesh);
 
 	// Render loop
 	glfwSwapInterval(0);
@@ -256,7 +267,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Update arcball
-		//rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Update state
 		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
