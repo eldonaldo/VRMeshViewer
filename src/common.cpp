@@ -50,8 +50,8 @@ Matrix4f scale (const Matrix4f &m, float s) {
 	scale += Matrix4f::Identity() * s;
 	scale(3, 3) = 1.f;
 
-	if (scale(0, 0) <= 0)
-		scale = Matrix4f::Zero();
+	if (scale(0, 0) <= 10e-4)
+		scale = Matrix4f::Identity() * 10e-4;
 
 	return scale;
 }

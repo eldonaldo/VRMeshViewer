@@ -37,6 +37,10 @@ void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	// Transform bounding box ... ok to do not on the GPU because its a transformation of only two points ...
 	m_bbox.transformAxisAligned(getModelMatrix());
 
+//	if (m_name == "resources/models/dragon/dragon-smooth-shifted.obj") {
+//		cout << (m_bbox.max - m_bbox.min).norm() << endl;
+//		cout << getModelMatrix() <<"\n" <<endl;
+//	}
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, getTriangleCount() * 3, GL_UNSIGNED_INT, NULL);
 	glBindVertexArray(0);

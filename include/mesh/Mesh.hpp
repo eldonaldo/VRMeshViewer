@@ -32,7 +32,7 @@ public:
     uint32_t getVertexCount() const { return (uint32_t) m_V.cols(); }
 
     /// Return an axis-aligned bounding box of the entire mesh
-    const BoundingBox3f &getBoundingBox() const { return m_bbox; }
+    BoundingBox3f &getBoundingBox() { return m_bbox; }
 
     /// Return a pointer to the vertex positions
     const MatrixXf &getVertexPositions() const { return m_V; }

@@ -188,7 +188,7 @@ void Viewer::calcAndAppendFPS () {
 }
 
 void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
-	BoundingBox3f bbox = m->getBoundingBox();
+	BoundingBox3f &bbox = m->getBoundingBox();
 
 	// Calculate current bounding box diagonal length
 	float diag = (bbox.max - bbox.min).norm();
