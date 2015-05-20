@@ -105,6 +105,7 @@ add_executable(VRMeshViewer
 	include/renderer/RiftRenderer.hpp
 	include/leap/LeapListener.hpp
 	include/mesh/Cube.hpp
+	include/mesh/Sphere.hpp
 	include/Settings.hpp
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
@@ -120,17 +121,10 @@ add_executable(VRMeshViewer
 	src/renderer/RiftRenderer.cpp
 	src/leap/LeapListener.cpp
 	src/mesh/Cube.cpp
+	src/mesh/Sphere.cpp
 	src/Settings.cpp
 	src/leap/SkeletonHand.cpp
 	src/leap/GestureHandler.cpp
-
-	# Ext
-	#ext/leap/util/LeapUtilGL.h
-	#ext/leap/util/LeapUtilGL.cpp
-	#ext/leap/util/LeapUtil.h
-	#ext/leap/util/LeapUtil.cpp
-	#ext/leap/util/LeapScene.h
-	#ext/leap/util/LeapScene.cpp
 )
 
 # Make sure to build in the right order
