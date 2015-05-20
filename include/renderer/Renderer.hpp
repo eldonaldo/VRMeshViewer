@@ -185,9 +185,9 @@ public:
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
+	Cube bbox; ///< Visual representation of the bounding box of the mesh
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
 	std::shared_ptr<SkeletonHand> leftHand, rightHand; ///< Leap hands
-	std::unique_ptr<GLShader> bboxShader; ///< Bounding box shader
 	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
 	GLFWwindow *window; ///< GFLW window handle
 	ovrHmd hmd; ///< Head mounted device

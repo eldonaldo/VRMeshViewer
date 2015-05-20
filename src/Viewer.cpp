@@ -129,6 +129,16 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 				}
 				break;
 			}
+
+			// Draw wireframe overlay
+			case GLFW_KEY_B: {
+				static bool disable = true;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().MESH_DRAW_BBOX = disable;
+					disable = !disable;
+				}
+				break;
+			}
 		}
 	});
 

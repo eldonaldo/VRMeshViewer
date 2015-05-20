@@ -5,7 +5,10 @@ VR_NAMESPACE_BEGIN
 Cube::Cube() : Mesh() {
 	Point3f min(-1.f, -1.f, -1.f);
 	Point3f max(1.f, 1.f, 1.f);
+	Cube(min, max);
+}
 
+Cube::Cube(Vector3f &min, Vector3f &max) : Mesh() {
 	// Face normals
 	Vector3f A(0.f, -1.f, 0.f);
 	Vector3f B(1.f, 0.f, 0.f);

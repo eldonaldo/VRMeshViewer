@@ -12,7 +12,8 @@ uniform mat4 modelMatrix;
 uniform mat3 normalMatrix;
 
 uniform float alpha;
-uniform int wireframe = 0;
+uniform bool wireframe = false;
+uniform bool bbox = false;
 
 in vec3 vertexNormal;
 in vec3 vertexPosition;
@@ -21,7 +22,7 @@ out vec4 color;
 
 void main () {
 	// Without wireframe overlay
-	if (wireframe == 0) {
+	if (!wireframe && !bbox) {
 		// Transform normal
 		vec3 normal = normalize(normalMatrix * vertexNormal);
 		
@@ -37,8 +38,11 @@ void main () {
 		
 		// Calculate final color of the pixel
 		color = vec4(vec3(intensity) * brightness * light.intensity, alpha);
-	} else {
+	} else if (wireframe) {
 		// Draw wireframe overlay with solid lines
 		color = vec4(0.2, 0.2, 0.2, 1.0);
+	} else if (bbox) {
+		// Draw boundingbox in red
+		color = vec4(1.0, 0.0, 0.0, 1.0);
 	}
 }

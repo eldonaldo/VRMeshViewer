@@ -58,6 +58,7 @@ public:
 
 	float MESH_DIAGONAL;
 	bool MESH_DRAW_WIREFRAME;
+	bool MESH_DRAW_BBOX;
 	bool SHOW_HANDS;
 
 	float LEAP_ALPHA_SCALE;

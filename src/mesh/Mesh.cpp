@@ -15,6 +15,10 @@ Mesh::Mesh()
 }
 
 Mesh::~Mesh () {
+	releaseBuffers();
+}
+
+void Mesh::releaseBuffers () {
 	if (vbo[VERTEX_BUFFER])
 		glDeleteBuffers(1, &vbo[VERTEX_BUFFER]);
 	if (vbo[TEXCOORD_BUFFER])
@@ -86,6 +90,38 @@ void Mesh::upload(std::shared_ptr<GLShader> &s) {
 	// Reset state
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+}
+
+void Mesh::setTranslateMatrix (Matrix4f t) { transMat = t; }
+
+void Mesh::setScaleMatrix (Matrix4f t) { scaleMat = t; }
+
+void Mesh::setRotationMatrix (Matrix4f t) { rotateMat = t; }
+
+void Mesh::translate (float x, float y, float z) {
+	transMat = VR_NS::translate(Matrix4f::Identity(), Vector3f(x, y, z));
+}
+
+void Mesh::scale (float s){
+	scaleMat = VR_NS::scale(Matrix4f::Zero(), s);
+}
+
+void Mesh::scale (float x, float y, float z){
+	scaleMat = VR_NS::scale(Matrix4f::Zero(), x, y, z);
+}
+
+void Mesh::rotate (float roll, float pitch, float yaw) {
+	rotate(roll, Vector3f::UnitX(), pitch, Vector3f::UnitY(), yaw, Vector3f::UnitZ());
+}
+
+void Mesh::rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy) {
+	Eigen::AngleAxisf rollAngle(roll, vr.normalized());
+	Eigen::AngleAxisf yawAngle(yaw, vy.normalized());
+	Eigen::AngleAxisf pitchAngle(pitch, vp.normalized());
+
+	Quaternionf q = rollAngle * yawAngle * pitchAngle;
+	rotateMat = Matrix4f::Identity();
+	rotateMat.block<3, 3>(0, 0) = q.matrix();
 }
 
 VR_NAMESPACE_END

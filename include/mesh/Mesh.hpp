@@ -15,6 +15,7 @@ VR_NAMESPACE_BEGIN
  * the specifics of how to create its contents (e.g. by loading from an
  * external file)
  */
+
 class Mesh {
 
 public:
@@ -24,6 +25,9 @@ public:
 
     /// Release all memory
     virtual ~Mesh();
+
+    /// Release all memory
+    virtual void releaseBuffers ();
 
     /// Return the total number of triangles in this hsape
     uint32_t getTriangleCount() const { return (uint32_t) m_F.cols(); }
@@ -97,45 +101,29 @@ public:
 	void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 
 	/// Sets translation matrix
-	void setTranslateMatrix (Matrix4f t) { transMat = t; }
+	void setTranslateMatrix (Matrix4f t);
 
 	/// Sets scale matrix
-	void setScaleMatrix (Matrix4f t) { scaleMat = t; }
+	void setScaleMatrix (Matrix4f t);
 
 	/// Sets rotation matrix
-	void setRotationMatrix (Matrix4f t) { rotateMat = t; }
+	void setRotationMatrix (Matrix4f t);
 
 	/// Translate x, y, z
-	void translate (float x, float y, float z) {
-		transMat = VR_NS::translate(Matrix4f::Identity(), Vector3f(x, y, z));
-	}
+	void translate (float x, float y, float z);
 
 	/// Scale equally
-	void scale (float s){
-		scaleMat = VR_NS::scale(Matrix4f::Zero(), s);
-	}
+	void scale (float s);
 
 	/// Scale x, y, z
-	void scale (float x, float y, float z){
-		scaleMat = VR_NS::scale(Matrix4f::Zero(), x, y, z);
-	}
+	void scale (float x, float y, float z);
 
 	/// Rotation around roll, pitch and yaw in radiants
-	void rotate (float roll, float pitch, float yaw) {
-		rotate(roll, Vector3f::UnitX(), pitch, Vector3f::UnitY(), yaw, Vector3f::UnitZ());
-	}
+	void rotate (float roll, float pitch, float yaw);
 
 	/// Rotation around roll, pitch and yaw in radiants
-	void rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy) {
-		Eigen::AngleAxisf rollAngle(roll, vr.normalized());
-		Eigen::AngleAxisf yawAngle(yaw, vy.normalized());
-		Eigen::AngleAxisf pitchAngle(pitch, vp.normalized());
+	void rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy);
 
-		Quaternionf q = rollAngle * yawAngle * pitchAngle;
-		rotateMat = Matrix4f::Identity();
-		rotateMat.block<3, 3>(0, 0) = q.matrix();
-	}
-   
 protected:
     std::string m_name;                  ///< Identifying name
     MatrixXf      m_V;                   ///< Vertex positions

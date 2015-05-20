@@ -27,6 +27,7 @@ Settings::Settings () :
 	// MESH, 1.f = 1 Unit = 1 meter
 	MESH_DIAGONAL				(0.35f),
 	MESH_DRAW_WIREFRAME			(false),
+	MESH_DRAW_BBOX				(false),
 	SHOW_HANDS					(true),
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
