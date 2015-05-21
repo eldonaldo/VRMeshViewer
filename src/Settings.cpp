@@ -13,7 +13,7 @@ Settings::Settings () :
 	Z_FAR						(100.f),
 
 	// CAMERA, 1.f = 1 Unit = 1 meter
-	USE_RIFT					(false),
+	USE_RIFT					(true),
 	CAMERA_OFFSET				(0.f, 0.10f, 0.30f),
 	CAMERA_LOOK_AT				(0.f, 0.f, 0.f),
 	CAMERA_HEADS_UP				(0.f, 1.f, 0.f),
@@ -30,7 +30,7 @@ Settings::Settings () :
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
 	// PASSTHROUGH
-	LEAP_USE_PASSTHROUGH		(false),
+	LEAP_USE_PASSTHROUGH		(true),
 	LEAP_ALPHA_SCALE			(0.7f),
 	LEAP_CAMERA_SHIFT_X			(0.012f),
 	LEAP_CAMERA_SHIFT_Z			(-0.08f),

@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "mesh/Cube.hpp"
+#include "mesh/Sphere.hpp"
 #include "GLUtil.hpp"
 
 VR_NAMESPACE_BEGIN
@@ -62,7 +63,7 @@ public:
 	///< Composite mesh
 	struct mesh_t {
 		Cube palm; ///< Mesh for the palm
-		Cube finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
+		Sphere finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
 	} mesh; ///< Composite mesh
 };
 

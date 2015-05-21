@@ -2,6 +2,10 @@
 
 VR_NAMESPACE_BEGIN
 
+Sphere::Sphere () {
+	Sphere(1.f, 24, 24);
+}
+
 Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors) : Mesh() {
 	float const R = 1.f / (float) (rings - 1);
 	float const S = 1.f / (float) (sectors - 1);
@@ -12,9 +16,9 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors) : Mesh() 
 	int i = 0;
 	for (int r = 0; r < rings; r++) {
 		for (int s = 0; s < sectors; s++) {
-			float y = sin(-M_PI_2 + M_PI * r * R);
-			float x = cos(2 * M_PI * s * S) * sin(M_PI * r * R);
-			float z = sin(2 * M_PI * s * S) * sin(M_PI * r * R);
+			float y = sinf(-M_PI_2 + M_PI * r * R);
+			float x = cosf(2 * M_PI * s * S) * sinf(M_PI * r * R);
+			float z = sinf(2 * M_PI * s * S) * sinf(M_PI * r * R);
 
 			m_V.col(i) = Vector3f(x * radius, y * radius, z * radius);
 			m_N.col(i) = Vector3f(x, y, z);
