@@ -27,7 +27,7 @@ public:
     virtual ~Mesh();
 
     /// Release all memory
-    virtual void releaseBuffers ();
+    void releaseBuffers ();
 
     /// Return the total number of triangles in this hsape
     uint32_t getTriangleCount() const { return (uint32_t) m_F.cols(); }

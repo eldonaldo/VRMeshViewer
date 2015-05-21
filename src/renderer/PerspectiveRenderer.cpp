@@ -20,11 +20,6 @@ void PerspectiveRenderer::preProcess () {
 	shader->bind();
 	mesh->upload(shader);
 
-//	// Bounding box
-//	BoundingBox3f mbbox = mesh->getBoundingBox();
-//	bbox = Cube(mbbox.min, mbbox.max);
-//	bbox.upload(shader);
-
 	// Upload hands
 	if (Settings::getInstance().SHOW_HANDS) {
 		leftHand->upload(shader);
@@ -37,11 +32,6 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setScaleMatrix(s);
 	mesh->setRotationMatrix(r);
 	mesh->setTranslateMatrix(t);
-
-//	// Mesh model matrix
-//	bbox.setScaleMatrix(s);
-//	bbox.setRotationMatrix(r);
-//	bbox.setTranslateMatrix(t);
 
 	// Material intensity
 	shader->setUniform("intensity", materialIntensity);
