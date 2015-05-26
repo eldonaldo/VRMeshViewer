@@ -20,17 +20,17 @@ Matrix4f LeapListener::getTransformationMatrix() {
 	// Average of the left and right camera positions
 	ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
 
-	// Add camera offset the head position
-	ovrVector3f C;
-	C.x = headPose.Position.x + Settings::getInstance().CAMERA_OFFSET.x();
-	C.y = headPose.Position.y + Settings::getInstance().CAMERA_OFFSET.y();
-	C.z = headPose.Position.z + Settings::getInstance().CAMERA_OFFSET.z();
+	// Add camera offset to the head position
+	ovrVector3f cameraPose;
+	cameraPose.x = headPose.Position.x + Settings::getInstance().CAMERA_OFFSET.x();
+	cameraPose.y = headPose.Position.y + Settings::getInstance().CAMERA_OFFSET.y();
+	cameraPose.z = headPose.Position.z + Settings::getInstance().CAMERA_OFFSET.z();
 
-	OVR::Matrix4f trans = OVR::Matrix4f::Translation(C);
+	OVR::Matrix4f trans = OVR::Matrix4f::Translation(cameraPose);
 	OVR::Matrix4f rot = OVR::Matrix4f(headPose.Orientation);
 
 	// Rift to world transformation
-	OVR::Matrix4f riftToWorld = trans *rot;
+	OVR::Matrix4f riftToWorld = trans * rot;
 
 	// Encode the location (flip axis, rotation and translation) on the Rift where the Leap is mounted
 	// x -> -x
@@ -43,7 +43,7 @@ Matrix4f LeapListener::getTransformationMatrix() {
 		0.f, 0.f, 0.f, 1.f
 	);
 
-	// mm -> m including zooming of factor Rift basline / Leap baseline = 0.064f / 40.0f
+	// mm -> m including zooming of factor Rift baseline / Leap baseline = 0.064f / 40.0f
 	float s = 0.064f / 40.0f;
 	static const OVR::Matrix4f mmTom(
 		s, 0.f, 0.f, 0.f,
@@ -91,10 +91,12 @@ void LeapListener::onFrame(const Controller &controller) {
 
 				// Transform palm
 				const Vector3f palm = rotation * hand.palmPosition().toVector3<Vector3f>() + translation;
-				const Matrix3f palmRotation = rotation * (Matrix3f(hand.basis().toArray3x3())) * rotation.inverse();
 				const Vector3f palmDirection = (rotation * hand.direction().toVector3<Vector3f>()).normalized();
 				const Vector3f palmNormal = (rotation * hand.palmNormal().toVector3<Vector3f>()).normalized();
 				const Vector3f palmSide = palmDirection.cross(palmNormal).normalized();
+
+				// Conjugation by rotation -> cancel out the length changes
+				const Matrix3f palmRotation = rotation * (Matrix3f(hand.basis().toArray3x3())) * rotation.inverse();
 
 				// Construct 4x4 rotation matrix
 				Matrix4f rot(Matrix4f::Identity());
