@@ -13,7 +13,7 @@ class Cube : public Mesh {
 public:
 	
 	Cube();
-	Cube(Vector3f &min, Vector3f &max);
+	Cube(Vector3f min, Vector3f max);
 	virtual ~Cube() = default;
 	
 };

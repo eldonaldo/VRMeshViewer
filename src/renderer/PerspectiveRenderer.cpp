@@ -40,8 +40,9 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	shader->setUniform("light.position", cameraPosition);
 	shader->setUniform("light.intensity", lightIntensity);
 
-	// Default no wireframe overlay
+	// Default no wireframe and bbox overlay
 	shader->setUniform("wireframe", false);
+	shader->setUniform("bbox", false);
 }
 
 void PerspectiveRenderer::draw() {
