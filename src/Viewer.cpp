@@ -157,7 +157,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
 		float scaleFactor = 0.45f;
-		if (y > 0)
+		if (y >= 0)
 			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
 		else
 			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
@@ -220,14 +220,14 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 
 	// Translate to center
 	Matrix4f T = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
-
+	
 	// Compute scaling matrix
 	Matrix4f S = scale(Matrix4f::Identity(), factor);
 
 	// Transform object outside of OpenGL such that the correct metric units and center position are right away passed into OpenGL
 	MatrixXf vertices = m->getVertexPositions();
 	MatrixXf newPos(3, vertices.cols());
-	Matrix4f transformMat = T * S;
+	Matrix4f transformMat = S * T;
 
 	bbox.reset();
 	for (int i = 0; i < vertices.cols(); i++) {

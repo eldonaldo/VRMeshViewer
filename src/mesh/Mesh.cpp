@@ -33,7 +33,7 @@ void Mesh::releaseBuffers () {
 
 Matrix4f Mesh::getModelMatrix() {
 	return transMat * rotateMat * scaleMat;
-//		return scaleMat * rotateMat * transMat;
+
 }
 
 Matrix3f Mesh::getNormalMatrix() {
@@ -45,9 +45,11 @@ Matrix3f Mesh::getNormalMatrix() {
 }
 
 void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
-	Matrix4f mvp = projectionMatrix * viewMatrix * getModelMatrix();
+	Matrix4f mm = getModelMatrix();
+	Matrix4f mvp = projectionMatrix * viewMatrix * mm;
+
 	shader->bind();
-	shader->setUniform("modelMatrix", getModelMatrix());
+	shader->setUniform("modelMatrix", mm);
 	shader->setUniform("normalMatrix", getNormalMatrix());
 	shader->setUniform("mvp", mvp);
 
@@ -56,7 +58,7 @@ void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	glBindVertexArray(0);
 
 	// Transform bounding box ... ok to do not on the GPU because its a transformation of only two points ...
-	m_bbox.transformAxisAligned(getModelMatrix());
+	m_bbox.transformAxisAligned(mm);
 }
 
 
@@ -116,11 +118,11 @@ void Mesh::translate (float x, float y, float z) {
 }
 
 void Mesh::scale (float s){
-	scaleMat = VR_NS::scale(Matrix4f::Zero(), s);
+	scaleMat = VR_NS::scale(scaleMat, s);
 }
 
 void Mesh::scale (float x, float y, float z){
-	scaleMat = VR_NS::scale(Matrix4f::Zero(), x, y, z);
+	scaleMat = VR_NS::scale(scaleMat, x, y, z);
 }
 
 void Mesh::rotate (float roll, float pitch, float yaw) {

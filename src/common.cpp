@@ -57,12 +57,10 @@ Matrix4f scale (const Matrix4f &m, float s) {
 }
 
 Matrix4f scale(const Matrix4f &m, float x, float y, float z) {
-	Matrix4f scale(m);
-	scale(0, 0) = x;
-	scale(1, 1) = y;
-	scale(2, 2) = z;
-	scale(3, 3) = 1.f;
-
+	Matrix4f scale(Matrix4f::Identity());
+	scale(0, 0) = m(0, 0) * x;
+	scale(1, 1) = m(1, 1) * y;
+	scale(2, 2) = m(2, 2) * z;
 	return scale;
 }
 
