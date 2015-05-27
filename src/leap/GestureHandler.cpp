@@ -10,88 +10,57 @@ GestureHandler::GestureHandler()
 }
 
 void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand> (&hands)[2]) {
-	Vector3f &position = hands[hand]->finger[Finger::Type::TYPE_INDEX].position;
-	
-	//cout << "State: " << gestureStateName(state) << ", Hand: " << handName(hand) <<
-	//		", [" << position.x() << ", " << position.y() << ", " << position.z() << "]" << endl;
+	static Vector3f diff(0.f, 0.f, 0.f);
+	switch (state) {
+		case GESTURE_STATES::START: {
+			BoundingBox3f bbox = mesh->getBoundingBox();
+			diff = bbox.getCenter() - hands[hand]->finger[Finger::Type::TYPE_INDEX].position;
+			break;
+		}
 
+		case GESTURE_STATES::UPDATE: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+			float distance = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position - hands[hand]->finger[Finger::Type::TYPE_THUMB].position).norm();
+			
+			// Compute translation only if middle up to pinky are extended and thumb and index are near to each other (approx. 3cm)
+			if (hands[hand]->finger[Finger::Type::TYPE_MIDDLE].extended &&
+				hands[hand]->finger[Finger::Type::TYPE_RING].extended && 
+				hands[hand]->finger[Finger::Type::TYPE_PINKY].extended &&
+				distance <= 0.035f) {
 
-	// Normalized x to [0, 1]
-	float maxX = fabs(position.z() + Settings::getInstance().CAMERA_OFFSET.z()) * tanf(degToRad(75.f / 2.f));
-	float normalizedX = 1.f - clamp(fabs((position.x() - maxX) / (2.f * maxX)));
+				if (!Settings::getInstance().GESTURES_RELATIVE_TRANSLATE)
+					// Translate absolute
+					viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), hands[hand]->finger[Finger::Type::TYPE_INDEX].position);
+				else
+					// Translate relative
+					viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), hands[hand]->finger[Finger::Type::TYPE_INDEX].position + diff);
+			}
 
-	// Normalized y to [0, 1]
-	float maxY = fabs(position.z() + Settings::getInstance().CAMERA_OFFSET.z()) * tanf(degToRad(75.f / 2.f));
-	float normalizedY = clamp(fabs((position.y() - maxY) / (2.f * maxY)));
+			break;
+		}
 
-	//cout << "x: " << normalizedX << ", y: " << normalizedY << "" << endl;
-
-	//switch (state) {
-	//	case GESTURE_STATES::START:
-	//		viewer->getArcball().button(viewer->getLastPos(), true);
-	//		break;
-
-	//	case GESTURE_STATES::UPDATE:
-	//		viewer->setLastPos(Vector2i(int(normalizedX * viewer->width), int(normalizedY * viewer->height)));
-	//		viewer->getArcball().motion(viewer->getLastPos());
-	//		break;
-	//	
-	//	default:
-	//	case GESTURE_STATES::STOP:
-	//	case GESTURE_STATES::INVALID:
-	//		viewer->getArcball().button(viewer->getLastPos(), false);
-	//		break;
-	//}
+		default:
+		case GESTURE_STATES::STOP:
+		case GESTURE_STATES::INVALID:
+			diff = Vector3f(0.f, 0.f, 0.f);
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			break;
+	}
 }
 
 void GestureHandler::grab(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 
-	//Quaternionf q;
-	//q = Eigen::AngleAxis<float>(hands[hand]->palm.roll, hands[hand]->palm.normal)
-	// * Eigen::AngleAxis<float>(hands[hand]->palm.yaw, hands[hand]->palm.direction)
-	// * Eigen::AngleAxis<float>(hands[hand]->palm.pitch, hands[hand]->palm.direction);
-
-	//Matrix4f R = Matrix4f::Identity();
-	//R.block<3, 3>(0, 0) = q.toRotationMatrix();
-
-	//switch (state) {
-	//	case GESTURE_STATES::START:
-	//		break;
-
-	//	case GESTURE_STATES::UPDATE:
-	//		//viewer->getRotationMatrix() = R;
-	//		break;
-
-	//	default:
-	//	case GESTURE_STATES::STOP:
-	//	case GESTURE_STATES::INVALID:
-	//		break;
-	//}
-
-
-	// Determine which hand does what
-	auto &pointerHand = hands[HANDS::LEFT];
-
-	float angle = (pointerHand->finger[Finger::Type::TYPE_INDEX].position - hands[HANDS::RIGHT]->palm.position).squaredNorm();
-
 	switch (state) {
-	case GESTURE_STATES::START:
-		break;
-
-	case GESTURE_STATES::UPDATE: {
-			Quaternionf q;
-			q = Eigen::AngleAxis<float>(angle * DEG_TO_RAD * 800.f, pointerHand->finger[Finger::Type::TYPE_INDEX].direction.normalized());
-
-			Matrix4f R = Matrix4f::Identity();
-			R.block<3, 3>(0, 0) = q.toRotationMatrix();
-			//viewer->getRotationMatrix() = R;
+		case GESTURE_STATES::START:
 			break;
-	}
 
-	default:
-	case GESTURE_STATES::STOP:
-	case GESTURE_STATES::INVALID:
-		break;
+		case GESTURE_STATES::UPDATE:
+			break;
+
+		default:
+		case GESTURE_STATES::STOP:
+		case GESTURE_STATES::INVALID:
+			break;
 	}
 }
 
@@ -128,38 +97,38 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 }
 
 void GestureHandler::swipe (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::SwipeGesture &swipe) {
-	assert(swipe.hands().count() == 1);
+	//assert(swipe.hands().count() == 1);
 
-	// Determine which hand does what
-	auto &pointerHand = hands[HANDS::LEFT];
-	if (swipe.hands()[0].isLeft())
-		pointerHand = hands[HANDS::RIGHT];
+	//// Determine which hand does what
+	//auto &pointerHand = hands[HANDS::LEFT];
+	//if (swipe.hands()[0].isLeft())
+	//	pointerHand = hands[HANDS::RIGHT];
 
 
-	switch (state) {
-		case GESTURE_STATES::START:
-			Settings::getInstance().MATERIAL_INTENSITY = 0.2;
-			break;
+	//switch (state) {
+	//	case GESTURE_STATES::START:
+	//		Settings::getInstance().MATERIAL_INTENSITY = 0.2;
+	//		break;
 
-		case GESTURE_STATES::UPDATE: {
-			Quaternionf q;
-			cout << swipe.duration() << endl;
-			q = Eigen::AngleAxis<float>((swipe.duration() / 10000.f) * DEG_TO_RAD, pointerHand->finger[Finger::Type::TYPE_INDEX].direction.normalized());
+	//	case GESTURE_STATES::UPDATE: {
+	//		Quaternionf q;
+	//		cout << swipe.duration() << endl;
+	//		q = Eigen::AngleAxis<float>((swipe.duration() / 10000.f) * DEG_TO_RAD, pointerHand->finger[Finger::Type::TYPE_INDEX].direction.normalized());
 
-			Matrix4f R = Matrix4f::Identity();
-			R.block<3, 3>(0, 0) = q.toRotationMatrix();
-			viewer->getRotationMatrix() = R;
+	//		Matrix4f R = Matrix4f::Identity();
+	//		R.block<3, 3>(0, 0) = q.toRotationMatrix();
+	//		viewer->getRotationMatrix() = R;
 
-			Settings::getInstance().MATERIAL_INTENSITY = 0.2;
-			break;
-		}
+	//		Settings::getInstance().MATERIAL_INTENSITY = 0.2;
+	//		break;
+	//	}
 
-		default:
-		case GESTURE_STATES::STOP:
-		case GESTURE_STATES::INVALID:
-			Settings::getInstance().MATERIAL_INTENSITY = 0.8;
-			break;
-	}
+	//	default:
+	//	case GESTURE_STATES::STOP:
+	//	case GESTURE_STATES::INVALID:
+	//		Settings::getInstance().MATERIAL_INTENSITY = 0.8;
+	//		break;
+	//}
 }
 
 void GestureHandler::setViewer (Viewer *v) {

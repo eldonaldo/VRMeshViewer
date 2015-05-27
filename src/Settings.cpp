@@ -19,12 +19,13 @@ Settings::Settings () :
 	CAMERA_HEADS_UP				(0.f, 1.f, 0.f),
 
 	// MATERIAL
-	MATERIAL_INTENSITY			(0.8f),
+	MATERIAL_COLOR				(0.8f, 0.8f, 0.8f),
 
 	// LIGHTNING
 	LIGHT_INTENSITY				(1.f, 1.f, 1.f),
 
 	// MESH, 1.f = 1 Unit = 1 meter
+	MESH_DRAW					(true),
 	MESH_DIAGONAL				(0.35f),
 	MESH_DRAW_WIREFRAME			(false),
 	MESH_DRAW_BBOX				(false),
@@ -40,6 +41,7 @@ Settings::Settings () :
 	// GESTURES
 	GESTURES_PINCH_THRESHOLD	(1.f),
 	GESTURES_GRAB_THRESHOLD		(0.9f),
+	GESTURES_RELATIVE_TRANSLATE	(true),
 
 	// No HMD
 	LEAP_TO_WORLD_SCALE_3D		(0.05f),

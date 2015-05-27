@@ -5,7 +5,7 @@ VR_NAMESPACE_BEGIN
 PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
 	: Renderer(shader), fov(fov), width(width), height(height), zNear(zNear), zFar(zFar), aspectRatio(width / height)
 	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio), lightIntensity(Settings::getInstance().LIGHT_INTENSITY)
-	, materialIntensity(Settings::getInstance().MATERIAL_INTENSITY), headsUp(Settings::getInstance().CAMERA_HEADS_UP)
+	, materialColor(Settings::getInstance().MATERIAL_COLOR), headsUp(Settings::getInstance().CAMERA_HEADS_UP)
 	, lookAtPosition(Settings::getInstance().CAMERA_LOOK_AT)
 	, cameraPosition(Settings::getInstance().CAMERA_OFFSET) {
 
@@ -34,7 +34,7 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setTranslateMatrix(t);
 
 	// Material intensity
-	shader->setUniform("intensity", materialIntensity);
+	shader->setUniform("materialColor", materialColor);
 
 	// Create virtual point light
 	shader->setUniform("light.position", cameraPosition);
@@ -49,8 +49,10 @@ void PerspectiveRenderer::draw() {
 	shader->bind();
 
 	// Draw the mesh
-	shader->setUniform("alpha", 1.f);
-	mesh->draw(getViewMatrix(), getProjectionMatrix());
+	if (Settings::getInstance().MESH_DRAW) {
+		shader->setUniform("alpha", 1.f);
+		mesh->draw(getViewMatrix(), getProjectionMatrix());
+	}
 
 	/**
 	 * Draw bounding box

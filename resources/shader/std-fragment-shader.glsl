@@ -7,7 +7,7 @@ struct Light {
 };
 
 uniform Light light;
-uniform float intensity;
+uniform vec3 materialColor;
 uniform mat4 modelMatrix;
 uniform mat3 normalMatrix;
 
@@ -37,7 +37,7 @@ void main () {
 		brightness = clamp(brightness, 0.0, 1.0);
 		
 		// Calculate final color of the pixel
-		color = vec4(vec3(intensity) * brightness * light.intensity, alpha);
+		color = vec4(materialColor * brightness * light.intensity, alpha);
 	} else if (wireframe) {
 		// Draw wireframe overlay with solid lines
 		color = vec4(0.2, 0.2, 0.2, 1.0);

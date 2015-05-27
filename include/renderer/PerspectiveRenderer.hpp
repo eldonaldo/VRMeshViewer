@@ -87,7 +87,7 @@ protected:
 	float aspectRatio; ///< Width / height
 	float zNear, zFar; ///< Clipping planes
 	float fH, fW; ///< Frustum width and height
-	float &materialIntensity; /// Material intensity
+	Vector3f &materialColor; /// Material intensity
 	Vector3f &cameraPosition; ///< Camera position
 	Vector3f &lookAtPosition; ///< Look at position
 	Vector3f &headsUp; ///< Camera heads up

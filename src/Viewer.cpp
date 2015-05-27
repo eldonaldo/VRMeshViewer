@@ -139,6 +139,16 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 				}
 				break;
 			}
+
+			// Draw mesh or not?
+			case GLFW_KEY_M: {
+				static bool disable = false;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().MESH_DRAW = disable;
+					disable = !disable;
+				}
+				break;
+			}
 		}
 	});
 
@@ -290,7 +300,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Update arcball
-		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+		//rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Update state
 		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);

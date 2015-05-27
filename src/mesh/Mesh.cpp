@@ -48,6 +48,9 @@ void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	Matrix4f mm = getModelMatrix();
 	Matrix4f mvp = projectionMatrix * viewMatrix * mm;
 
+	// Transform bounding box ... ok to do not on the GPU because its a transformation of only two points ...
+	m_bbox.transformAxisAligned(mm);
+
 	shader->bind();
 	shader->setUniform("modelMatrix", mm);
 	shader->setUniform("normalMatrix", getNormalMatrix());
@@ -56,9 +59,6 @@ void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, getTriangleCount() * 3, GL_UNSIGNED_INT, NULL);
 	glBindVertexArray(0);
-
-	// Transform bounding box ... ok to do not on the GPU because its a transformation of only two points ...
-	m_bbox.transformAxisAligned(mm);
 }
 
 
