@@ -103,18 +103,16 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 
 	switch (state) {
 		case GESTURE_STATES::UPDATE: {
-			// Only if distance is bigger than 5 mm in change and hands point together (dot product)
-			if (dotProd <= -0.8f && fabs(distance - lastDistance) >= 0.005f) {
+			// Only if distance is bigger than 2 cm in change and hands point together (dot product)
+			if (dotProd <= -0.8f && fabs(distance - lastDistance) >= 0.02f) {	
 				// We want that the bounding box fits our hands when scaling
 				BoundingBox3f bbox = mesh->getBoundingBox();
 				float diag = (bbox.max - bbox.min).norm();
-				float factor = (distance / diag) * (distance < lastDistance ? -1.f : 1.f);
+				float factor = (distance / diag);
 
 				// Compute scaling matrix
-				viewer->getScaleMatrix() = VR_NS::scale(Matrix4f::Identity(), factor);
+				viewer->getScaleMatrix() = VR_NS::scale(viewer->getScaleMatrix(), factor);
 				lastDistance = distance;
-
-				cout << "Factor: " << factor << ", Diag: " << diag << ", Distance: " << distance << endl;
 			}
 
 			break;

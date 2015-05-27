@@ -101,10 +101,10 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 					glfwSetWindowShouldClose(window, 1);
 				break;
 
-			// Recemter HDM pose
+			// Recenter HDM pose
 			case GLFW_KEY_R:
-
-				ovrHmd_RecenterPose(__cbref->hmd);
+				if (action == GLFW_PRESS)
+					ovrHmd_RecenterPose(__cbref->hmd);
 				break;
 
 			// Enable / disable v-sync
@@ -156,7 +156,11 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 0.015f * y);
+		float scaleFactor = 0.45f;
+		if (y > 0)
+			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
+		else
+			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
 	});
 
 	/* Window size callback */
@@ -218,7 +222,7 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	Matrix4f T = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
 
 	// Compute scaling matrix
-	Matrix4f S = scale(Matrix4f::Zero(), factor);
+	Matrix4f S = scale(Matrix4f::Identity(), factor);
 
 	// Transform object outside of OpenGL such that the correct metric units and center position are right away passed into OpenGL
 	MatrixXf vertices = m->getVertexPositions();

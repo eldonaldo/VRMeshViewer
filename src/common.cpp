@@ -46,12 +46,12 @@ std::vector<std::string> tokenize(const std::string &string, const std::string &
 }
 
 Matrix4f scale (const Matrix4f &m, float s) {
-	Matrix4f scale(m);
-	scale += Matrix4f::Identity() * s;
-	scale(3, 3) = 1.f;
+	if (m(0, 0) <= std::numeric_limits<float>::epsilon() + 10e-6)
+		s += 10e2 * std::numeric_limits<float>::epsilon();
 
-	if (scale(0, 0) <= 10e-4)
-		scale = Matrix4f::Identity() * 10e-4;
+	Matrix4f scale(m);
+	scale *= s;
+	scale(3, 3) = 1.f;
 
 	return scale;
 }
