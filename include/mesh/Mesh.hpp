@@ -78,21 +78,12 @@ public:
 	/**
 	 * @return Model Matrix
 	 */
-	Matrix4f getModelMatrix () {
-		return transMat * rotateMat * scaleMat;
-//		return scaleMat * rotateMat * transMat;
-	}
+	Matrix4f getModelMatrix();
 
 	/**
 	 * @return Transpose inverse model matrix
 	 */
-	Matrix3f getNormalMatrix () {
-		// Calculate normal matrix for normal transformation
-		Matrix4f modelMatrix = getModelMatrix();
-		Matrix3f tmp = modelMatrix.topLeftCorner<3, 3>();
-		Matrix3f inv = tmp.inverse();
-		return inv.transpose();
-	}
+	Matrix3f getNormalMatrix();
 
 	/// Upload the mesh (positions, normals, indices and uv) to the shader
 	void upload(std::shared_ptr<GLShader> &s);
@@ -101,13 +92,13 @@ public:
 	void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 
 	/// Sets translation matrix
-	void setTranslateMatrix (Matrix4f t);
+	void setTranslateMatrix (Matrix4f &t);
 
 	/// Sets scale matrix
-	void setScaleMatrix (Matrix4f t);
+	void setScaleMatrix (Matrix4f &t);
 
 	/// Sets rotation matrix
-	void setRotationMatrix (Matrix4f t);
+	void setRotationMatrix (Matrix4f &t);
 
 	/// Translate x, y, z
 	void translate (float x, float y, float z);

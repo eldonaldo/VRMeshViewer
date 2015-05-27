@@ -2,8 +2,8 @@
 
 VR_NAMESPACE_BEGIN
 
-Sphere::Sphere () {
-	Sphere(1.f, 24, 24);
+Sphere::Sphere() : Sphere(1.f, 24, 24) {
+
 }
 
 Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors) : Mesh() {

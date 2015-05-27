@@ -279,7 +279,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Print some info
 	std::cout << info() << std::endl;
 
-
 	// Render loop
 	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window)) {
