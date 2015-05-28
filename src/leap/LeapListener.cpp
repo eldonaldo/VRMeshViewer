@@ -119,8 +119,8 @@ void LeapListener::onFrame(const Controller &controller) {
 
 				// For all fingers
 				const FingerList fingers = hand.fingers();
-				for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
-					const Finger finger = *fl;
+				for (int i = 0; i < 5; i++) {
+					const Finger &finger = hand.fingers()[i];
 
 					// Finger tip world position
 					Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
@@ -132,7 +132,23 @@ void LeapListener::onFrame(const Controller &controller) {
 					// Transform
 					currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
 					currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
+
+					// Bones
+					for (int k = 0; k < 3; k++) {
+
+						// We do not want to draw that akward bone in the middle of the hand which somehow belongs to the thumb
+						if (!(finger.type() == Finger::TYPE_THUMB && k == 0)) {
+							Leap::Bone bone = finger.bone(static_cast<Leap::Bone::Type>(k));
+							Vector3f bonePosition = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
+							currentHand->mesh.joints[i * 3 + k].translate(bonePosition.x(), bonePosition.y(), bonePosition.z());
+							currentHand->mesh.joints[i * 3 + k].setRotationMatrix(rot);
+						}
+
+//						currentHand->mesh.joints[i * 3 + k] = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
+//						currentHand->mesh.jointConnections[i * 3 + k] = rotation * bone.prevJoint().toVector3<Vector3f>() + translation;
+					}
 				}
+
 			}
 
 			// Reset tracking states if no hands found

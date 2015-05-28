@@ -9,27 +9,39 @@ SkeletonHand::SkeletonHand (bool _isRight)
 	mesh.palm.scale(0.03f, 0.03f, 0.01f);
 	
 	for (int i = 0; i < 5; i++) {
-		mesh.finger[i].scale(0.01f, 0.01f, 0.01f);
+		mesh.finger[i].scale(0.012f, 0.012f, 0.012f);
 		finger[i].position = Vector3f(0.f, 0.f, 0.f);
 	}
+
+	for (int i = 0; i < 14; i++)
+		mesh.joints[i].scale(0.01f, 0.01f, 0.01f);
 }
 
 void SkeletonHand::upload (std::shared_ptr<GLShader> &s) {
 	mesh.palm.upload(s);
 	for (int i = 0; i < 5; i++)
 		mesh.finger[i].upload(s);
+
+	for (int i = 0; i < 14; i++)
+		mesh.joints[i].upload(s);
 }
 
 void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	mesh.palm.draw(viewMatrix, projectionMatrix);
 	for (int i = 0; i < 5; i++)
 		mesh.finger[i].draw(viewMatrix, projectionMatrix);
+
+	for (int i = 0; i < 14; i++)
+		mesh.joints[i].draw(viewMatrix, projectionMatrix);
 }
 
 void SkeletonHand::translate(float x, float y, float z) {
 	mesh.palm.translate(x, y, z);
 	for (int i = 0; i < 5; i++)
 		mesh.finger[i].translate(x, y, z);
+
+	for (int i = 0; i < 14; i++)
+		mesh.joints[i].translate(x, y, z);
 }
 
 VR_NAMESPACE_END

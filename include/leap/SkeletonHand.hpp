@@ -57,13 +57,15 @@ public:
 	struct finger_t {
 		Vector3f position; ///< Finger tip positions
 		Vector3f direction; ///< Finger direction
-		bool extended;
+		bool extended; ///< The finger extended or not?
 	} finger[5];
 
 	///< Composite mesh
 	struct mesh_t {
 		Cube palm; ///< Mesh for the palm
 		Sphere finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
+		Sphere joints[14]; ///< Finger joints
+//		Vector3f jointConnections[14]; ///< Joint connections
 	} mesh; ///< Composite mesh
 };
 
