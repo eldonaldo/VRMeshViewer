@@ -5,6 +5,7 @@
 #include "Leap.h"
 #include "leap/SkeletonHand.hpp"
 #include "leap/GestureHandler.hpp"
+#include "Viewer.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -48,7 +49,13 @@ public:
 	/**
 	* @brief Sets the pointer to the Hmd
 	*/
-	void setHmd(ovrHmd h);
+	void setHmd (ovrHmd h);
+
+	/**
+	* @brief Sets the pointer to the viewer
+	*/
+	// TODO: Remove
+	void setViewer (Viewer *v);
 
 	/**
 	 * @brief Sets the gesture handler
@@ -78,6 +85,7 @@ protected:
 	GESTURE_STATES gestureZoom; ///< Gesture states, not applicapable to two hands
 	ovrHmd hmd; ///< The Rift
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
+	Viewer *viewer; ///< Pointer to viewer
 };
 
 VR_NAMESPACE_END

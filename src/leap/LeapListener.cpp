@@ -67,6 +67,11 @@ void LeapListener::onFrame(const Controller &controller) {
 	const Frame frame = controller.frame();
 	if (frame.isValid()) {
 
+		// Get Rotation and translation matrix
+		const Matrix4f worldTransform = getTransformationMatrix();
+		const Matrix3f rotation = worldTransform.block<3, 3>(0, 0);
+		const Vector3f translation = worldTransform.block<3, 1>(0, 3);
+
 		// Only handle 1 or 2 hands, but not more
 		HandList hands = frame.hands();
 		if (hands.count() <= 2) {
@@ -83,11 +88,6 @@ void LeapListener::onFrame(const Controller &controller) {
 				currentHand->confidence = hand.confidence();
 				currentHand->pinchStrength = hand.pinchStrength();
 				currentHand->grabStrength = hand.grabStrength();
-
-				// Get Rotation and translation matrix
-				const Matrix4f worldTransform = getTransformationMatrix();
-				const Matrix3f rotation = worldTransform.block<3, 3>(0, 0);
-				const Vector3f translation = worldTransform.block<3, 1>(0, 3);
 
 				// Transform palm
 				const Vector3f palm = rotation * hand.palmPosition().toVector3<Vector3f>() + translation;
@@ -124,7 +124,7 @@ void LeapListener::onFrame(const Controller &controller) {
 
 					// Finger tip world position
 					Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
-					Vector3f direction = rotation * finger.direction().toVector3<Vector3f>() + translation;
+					Vector3f direction = rotation * finger.direction().toVector3<Vector3f>();
 					currentHand->finger[finger.type()].position = Vector3f(tip.x(), tip.y(), tip.z());
 					currentHand->finger[finger.type()].extended = !(hand.grabStrength() > 0.9f || !finger.isExtended());
 					currentHand->finger[finger.type()].direction = direction;
@@ -132,6 +132,13 @@ void LeapListener::onFrame(const Controller &controller) {
 					// Transform
 					currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
 					currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
+
+					// Arcball
+					// TODO: Remove
+					if (finger.type() == Finger::Type::TYPE_INDEX) {
+						Vector2f normalizedTip = GestureHandler::normalize(tip);
+						viewer->setLastPos(Vector2i(int(normalizedTip.x() * viewer->width), int(normalizedTip.y() * viewer->height)));
+					}
 				}
 			}
 
@@ -169,6 +176,12 @@ void LeapListener::onFrame(const Controller &controller) {
 					SwipeGesture swipe = gesture;
 					Gesture::State leapState = swipe.state();
 
+					Swipe s;
+					//s.direction = rotation * swipe.direction().toVector3<Vector3f>();
+					s.direction = swipe.pointable().direction().toVector3<Vector3f>();
+
+
+
 					if (swipe.hands().count() == 1)
 						gestureHandler->swipe(leapToInternState(leapState), skeletonHands, swipe);
 
@@ -178,7 +191,14 @@ void LeapListener::onFrame(const Controller &controller) {
 				case Gesture::TYPE_CIRCLE:
 				case Gesture::TYPE_INVALID:
 				case Gesture::TYPE_KEY_TAP:
-				case Gesture::TYPE_SCREEN_TAP:
+				case Gesture::TYPE_SCREEN_TAP: {
+					ScreenTapGesture tap = gesture;
+					Gesture::State leapState = tap.state();
+					//gestureHandler->screenTap(leapToInternState(leapState), skeletonHands, tap);
+
+					break;
+				}
+
 					break;
 			}
 		}
@@ -218,7 +238,6 @@ void LeapListener::gesturesStateMachines() {
 		* Grab state machine
 		*/
 		float grabThreshold = Settings::getInstance().GESTURES_PINCH_THRESHOLD;
-
 		if (hand->grabStrength >= grabThreshold && gestures[i][GESTURES::GRAB] == GESTURE_STATES::STOP) {
 			// Start
 			gestures[i][GESTURES::GRAB] = GESTURE_STATES::START;
@@ -307,6 +326,10 @@ void LeapListener::setHmd(ovrHmd h) {
 
 void LeapListener::setGestureHandler (std::shared_ptr<GestureHandler> &s) {
 	gestureHandler = s;
+}
+
+void LeapListener::setViewer(Viewer *v) {
+	viewer = v;
 }
 
 GESTURE_STATES LeapListener::leapToInternState (Leap::Gesture::State &s) {

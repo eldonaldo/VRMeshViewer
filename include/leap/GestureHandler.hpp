@@ -11,6 +11,14 @@ VR_NAMESPACE_BEGIN
  *
  * Handling is based on state machines.
  */
+class Swipe {
+public:
+	Swipe() = default;
+	virtual ~Swipe() = default;
+
+	Vector3f direction;
+};
+
 class GestureHandler {
 public:
 	/**

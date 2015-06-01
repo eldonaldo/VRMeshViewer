@@ -163,8 +163,9 @@ void RiftRenderer::draw () {
 		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 			
 			// Offset for the corresponding leap cameras
-			float sign = (eye == ovrEyeType::ovrEye_Right ? -0.5f : +0.5f);
-			OVR::Vector3f leapCam = shiftedEyePos + OVR::Vector3f(sign * Settings::getInstance().LEAP_CAMERA_SHIFT_X, 0.f, 0.5f * Settings::getInstance().LEAP_CAMERA_SHIFT_Z);
+			float mid = 0.5f;
+			float sign = (eye == ovrEyeType::ovrEye_Right ? -mid : +mid);
+			OVR::Vector3f leapCam = shiftedEyePos + OVR::Vector3f(sign * Settings::getInstance().LEAP_CAMERA_SHIFT_X, 0.f, mid * Settings::getInstance().LEAP_CAMERA_SHIFT_Z);
 
 			// Each has its own view matrix
 			OVR::Matrix4f viewLeapCam = OVR::Matrix4f::LookAtRH(leapCam, leapCam + forward, up);
