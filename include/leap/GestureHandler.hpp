@@ -40,6 +40,11 @@ public:
 	virtual void swipe (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::SwipeGesture &swipe);
 
 	/**
+	* @brief Screen tap gesture
+	*/
+	virtual void screenTap (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::ScreenTapGesture &tap);
+
+	/**
 	* @brief Sets the pointer to the Viewer
 	*/
 	void setViewer (Viewer *v);
@@ -48,6 +53,13 @@ public:
 	* @brief Sets the pointer to the mesh
 	*/
 	void setMesh (std::shared_ptr<Mesh> &m);
+
+	/**
+	* @brief Transform Leap -> Rift coordinates to normalized 2D coordinates [0, 1] x [0, 1]
+	*
+	* Top left = 0, bottom right = 1
+	*/
+	static Vector2f normalize (const Vector3f &v);
 
 private:
 

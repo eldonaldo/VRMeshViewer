@@ -169,8 +169,8 @@ void LeapListener::onFrame(const Controller &controller) {
 					SwipeGesture swipe = gesture;
 					Gesture::State leapState = swipe.state();
 
-					//if (swipe.hands().count() == 1)
-					//	gestureHandler->swipe(leapToInternState(leapState), skeletonHands, swipe);
+					if (swipe.hands().count() == 1)
+						gestureHandler->swipe(leapToInternState(leapState), skeletonHands, swipe);
 
 					break;
 				}

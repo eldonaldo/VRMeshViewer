@@ -10,8 +10,17 @@ GestureHandler::GestureHandler()
 }
 
 void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand> (&hands)[2]) {
-	static Vector3f diff(0.f, 0.f, 0.f);
-	switch (state) {
+	bool extended = hands[hand]->finger[Finger::Type::TYPE_MIDDLE].extended && 
+					hands[hand]->finger[Finger::Type::TYPE_RING].extended && 
+					hands[hand]->finger[Finger::Type::TYPE_PINKY].extended;
+
+	float distance = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position - hands[hand]->finger[Finger::Type::TYPE_THUMB].position).norm();
+	float threshold = 0.035f;
+
+	if (extended) {
+		static Vector3f diff(0.f, 0.f, 0.f);
+
+		switch (state) {
 		case GESTURE_STATES::START: {
 			BoundingBox3f bbox = mesh->getBoundingBox();
 			diff = bbox.getCenter() - hands[hand]->finger[Finger::Type::TYPE_INDEX].position;
@@ -96,39 +105,72 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 	}
 }
 
-void GestureHandler::swipe (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::SwipeGesture &swipe) {
-	//assert(swipe.hands().count() == 1);
+void GestureHandler::grab(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]) {
+	switch (state) {
+		case GESTURE_STATES::START: {
+			
+			break;
+		}
 
-	//// Determine which hand does what
-	//auto &pointerHand = hands[HANDS::LEFT];
-	//if (swipe.hands()[0].isLeft())
-	//	pointerHand = hands[HANDS::RIGHT];
+		case GESTURE_STATES::UPDATE: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
+			break;
+		}
 
+		default:
+		case GESTURE_STATES::STOP:
+		case GESTURE_STATES::INVALID:
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			break;
+	}
+}
 
-	//switch (state) {
-	//	case GESTURE_STATES::START:
-	//		Settings::getInstance().MATERIAL_INTENSITY = 0.2;
-	//		break;
+void GestureHandler::screenTap (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::ScreenTapGesture &tap) {
 
-	//	case GESTURE_STATES::UPDATE: {
-	//		Quaternionf q;
-	//		cout << swipe.duration() << endl;
-	//		q = Eigen::AngleAxis<float>((swipe.duration() / 10000.f) * DEG_TO_RAD, pointerHand->finger[Finger::Type::TYPE_INDEX].direction.normalized());
+}
 
-	//		Matrix4f R = Matrix4f::Identity();
-	//		R.block<3, 3>(0, 0) = q.toRotationMatrix();
-	//		viewer->getRotationMatrix() = R;
+void GestureHandler::swipe (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Swipe &swipe) {
+	assert(swipe.hands().count() == 1);
 
-	//		Settings::getInstance().MATERIAL_INTENSITY = 0.2;
-	//		break;
-	//	}
+	switch (state) {
+		case GESTURE_STATES::START:
+			break;
 
-	//	default:
-	//	case GESTURE_STATES::STOP:
-	//	case GESTURE_STATES::INVALID:
-	//		Settings::getInstance().MATERIAL_INTENSITY = 0.8;
-	//		break;
-	//}
+		case GESTURE_STATES::UPDATE: {
+			//Quaternionf q;
+			//cout << swipe.duration() << endl;
+			//q = Eigen::AngleAxis<float>((swipe.duration() / 10000.f) * DEG_TO_RAD, pointerHand->finger[Finger::Type::TYPE_INDEX].direction.normalized());
+
+			//Matrix4f R = Matrix4f::Identity();
+			//R.block<3, 3>(0, 0) = q.toRotationMatrix();
+			//viewer->getRotationMatrix() = R;
+
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+			Leap::Matrix T = Leap::Matrix(swipe.direction(), 1.23);
+			Matrix4f M = Eigen::Map<Matrix4f>((float *)T.toArray4x4());
+			cout << M << "\n" << endl;
+			viewer->getRotationMatrix() = M;
+			break;
+		}
+
+		default:
+		case GESTURE_STATES::STOP:
+		case GESTURE_STATES::INVALID:
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			break;
+	}
+}
+
+Vector2f GestureHandler::normalize(const Vector3f &v) {
+	// Normalized x to [0, 1]
+	float maxX = fabs(v.z() + Settings::getInstance().CAMERA_OFFSET.z()) * tanf(degToRad(75.f / 2.f));
+	float normalizedX = 1.f - clamp(fabs((v.x() - maxX) / (2.f * maxX)));
+
+	// Normalized y to [0, 1]
+	float maxY = fabs(v.z() + Settings::getInstance().CAMERA_OFFSET.z()) * tanf(degToRad(75.f / 2.f));
+	float normalizedY = clamp(fabs((v.y() - maxY) / (2.f * maxY)));
+
+	return Vector2f(normalizedX, normalizedY);
 }
 
 void GestureHandler::setViewer (Viewer *v) {
