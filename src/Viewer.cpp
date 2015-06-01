@@ -162,8 +162,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glfwSetCursorPosCallback(window, [] (GLFWwindow *window, double x, double y) {
 		__cbref->lastPos = Vector2i(int(x), int(y));
 		__cbref->arcball.motion(__cbref->lastPos);
-
-		cout << "x: " << x << ", y: " << y << "" << endl;
 	});
 
 	/* Mouse wheel callback */
