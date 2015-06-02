@@ -51,51 +51,46 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 
 void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	auto &right = hands[0], &left = hands[1];
-	float distance = (right->palm.position - left->palm.position).norm();
-	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
 
+	static Vector3f lastPos;
+	static Quaternionf incr = Quaternionf::Identity();
+	static Quaternionf quat = Quaternionf::Identity();
 	switch (state) {
 		case GESTURE_STATES::START: {
+			lastPos = right->palm.position;
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
 
-			cout << "RIGHT - Roll: " << right->palm.roll << ", Pitch: " << right->palm.pitch << ", Yaw: " << right->palm.yaw << endl;
-			//cout << "LEFT - Roll: " << left->palm.roll << ", Pitch: " << left->palm.pitch << ", Yaw: " << left->palm.yaw << endl;
+										 Vector3f pos = right->palm.position;
+										 lastPos.normalize(); pos.normalize();
+										 Vector3f axis = lastPos.cross(pos);
+				float sa = std::sqrt(axis.dot(axis)),
+					ca = lastPos.dot(pos),
+					angle = std::atan2(sa, ca);
 
-			Eigen::AngleAxis<float> rollAngle(right->palm.roll, Eigen::Vector3f::UnitZ());
-			Eigen::AngleAxis<float> yawAngle(right->palm.yaw, Eigen::Vector3f::UnitY());
-			Eigen::AngleAxis<float> pitchAngle(right->palm.pitch, Eigen::Vector3f::UnitX());
+				incr = Eigen::AngleAxisf(angle, axis.normalized());
+				if (!std::isfinite(incr.norm()))
+					incr = Quaternionf::Identity();
 
-			Eigen::Quaternion<float> q = rollAngle * yawAngle * pitchAngle;
-				
-
-			Matrix4f R = Matrix4f::Identity();
-			R.block<3, 3>(0, 0) = q.toRotationMatrix();
-
-
-			// Only if hands point together
-			//if (dotProd <= -0.8f) {
-				Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
-				viewer->getRotationMatrix() = R;
-				//cout << R << "\n" << endl;
-			//}
-			//else {
-			//	Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
-			//}
+				Matrix4f result2 = Matrix4f::Identity();
+				result2.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
+				viewer->getRotationMatrix() = result2;
 			break;
 		}
 
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			lastPos = right->palm.position;
+			quat = (incr * quat).normalized();
+			incr = Quaternionf::Identity();
 			break;
 		}
 	}
 
-	scale(state, hands);
+	//scale(state, hands);
 }
 
 void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
