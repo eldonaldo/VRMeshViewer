@@ -52,12 +52,6 @@ public:
 	void setHmd (ovrHmd h);
 
 	/**
-	* @brief Sets the pointer to the viewer
-	*/
-	// TODO: Remove
-	void setViewer (Viewer *v);
-
-	/**
 	 * @brief Sets the gesture handler
 	 */
 	void setGestureHandler (std::shared_ptr<GestureHandler> &s);
@@ -82,10 +76,10 @@ protected:
 	std::shared_ptr<SkeletonHand> leftHand, rightHand, currentHand; ///< Leap hands
 	std::shared_ptr<SkeletonHand> skeletonHands[2]; ///< Pointer to the hands above
 	std::map<GESTURES, GESTURE_STATES> gestures[2]; ///< Gesture states (for both hands)
-	GESTURE_STATES gestureZoom; ///< Gesture states, not applicapable to two hands
+	GESTURE_STATES gestureZoom; ///< Zoom gesture states, not applicapable to one hand
+	GESTURE_STATES gestureRotation; ///< Rotation gesture states, not applicapable to one hand
 	ovrHmd hmd; ///< The Rift
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
-	Viewer *viewer; ///< Pointer to viewer
 };
 
 VR_NAMESPACE_END

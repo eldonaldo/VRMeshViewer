@@ -273,7 +273,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	// Share the HMD
 	if (leapListener != nullptr) {
 		leapListener->setHmd(hmd);
-		leapListener->setViewer(this);// TODO: Remove
 		leapListener->setGestureHandler(gestureHandler);
 	}
 
@@ -301,7 +300,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Update arcball
-		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+		//rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Update state
 		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);

@@ -11,14 +11,6 @@ VR_NAMESPACE_BEGIN
  *
  * Handling is based on state machines.
  */
-class Swipe {
-public:
-	Swipe() = default;
-	virtual ~Swipe() = default;
-
-	Vector3f direction;
-};
-
 class GestureHandler {
 public:
 	/**
@@ -41,6 +33,11 @@ public:
 	* @brief Scale gesture
 	*/
 	virtual void scale (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]);
+
+	/**
+	* @brief Rotate gesture
+	*/
+	virtual void rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]);
 
 	/**
 	* @brief Swipe gesture

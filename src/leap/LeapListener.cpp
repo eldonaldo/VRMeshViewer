@@ -14,6 +14,7 @@ LeapListener::LeapListener(bool useRift)
 	}
 
 	gestureZoom = GESTURE_STATES::STOP;
+	gestureRotation = GESTURE_STATES::STOP;
 }
 
 Matrix4f LeapListener::getTransformationMatrix() {
@@ -126,19 +127,12 @@ void LeapListener::onFrame(const Controller &controller) {
 					Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
 					Vector3f direction = rotation * finger.direction().toVector3<Vector3f>();
 					currentHand->finger[finger.type()].position = Vector3f(tip.x(), tip.y(), tip.z());
-					currentHand->finger[finger.type()].extended = !(hand.grabStrength() > 0.9f || !finger.isExtended());
+					currentHand->finger[finger.type()].extended = finger.isExtended() && hand.grabStrength() <= 0.5f;
 					currentHand->finger[finger.type()].direction = direction;
 
 					// Transform
 					currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
 					currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
-
-					// Arcball
-					// TODO: Remove
-					if (finger.type() == Finger::Type::TYPE_INDEX) {
-						Vector2f normalizedTip = GestureHandler::normalize(tip);
-						viewer->setLastPos(Vector2i(int(normalizedTip.x() * viewer->width), int(normalizedTip.y() * viewer->height)));
-					}
 				}
 			}
 
@@ -176,29 +170,23 @@ void LeapListener::onFrame(const Controller &controller) {
 					SwipeGesture swipe = gesture;
 					Gesture::State leapState = swipe.state();
 
-					Swipe s;
-					//s.direction = rotation * swipe.direction().toVector3<Vector3f>();
-					s.direction = swipe.pointable().direction().toVector3<Vector3f>();
-
-
-
 					if (swipe.hands().count() == 1)
 						gestureHandler->swipe(leapToInternState(leapState), skeletonHands, swipe);
 
 					break;
 				}
 
-				case Gesture::TYPE_CIRCLE:
-				case Gesture::TYPE_INVALID:
-				case Gesture::TYPE_KEY_TAP:
 				case Gesture::TYPE_SCREEN_TAP: {
 					ScreenTapGesture tap = gesture;
 					Gesture::State leapState = tap.state();
-					//gestureHandler->screenTap(leapToInternState(leapState), skeletonHands, tap);
-
+					gestureHandler->screenTap(leapToInternState(leapState), skeletonHands, tap);
 					break;
 				}
 
+				case Gesture::TYPE_CIRCLE:
+				case Gesture::TYPE_INVALID:
+				case Gesture::TYPE_KEY_TAP:
+				default:
 					break;
 			}
 		}
@@ -256,7 +244,9 @@ void LeapListener::gesturesStateMachines() {
 	}
 	
 	/**
-	* Zoom gesture state machine
+	* Zoom  and rotation gesture state machine
+	*
+	* The gestureHandler->rotate internally calls the zoom method.
 	*/
 	unsigned int extendedCount = 0;
 	for (int i = 0; i < 5; i++) {
@@ -264,17 +254,17 @@ void LeapListener::gesturesStateMachines() {
 			extendedCount++;
 	}
 
-	if (extendedCount == 5 && gestureZoom == GESTURE_STATES::STOP) {
-		gestureHandler->scale(GESTURE_STATES::START, skeletonHands);
-		gestureZoom = GESTURE_STATES::START;
+	if (extendedCount == 5 && gestureRotation == GESTURE_STATES::STOP) {
+		gestureHandler->rotate(GESTURE_STATES::START, skeletonHands);
+		gestureRotation = GESTURE_STATES::START;
 	}
-	else if (extendedCount == 5 && (gestureZoom == GESTURE_STATES::START || gestureZoom == GESTURE_STATES::UPDATE)) {
-		gestureHandler->scale(GESTURE_STATES::UPDATE, skeletonHands);
-		gestureZoom = GESTURE_STATES::UPDATE;
+	else if (extendedCount == 5 && (gestureRotation == GESTURE_STATES::START || gestureRotation == GESTURE_STATES::UPDATE)) {
+		gestureHandler->rotate(GESTURE_STATES::UPDATE, skeletonHands);
+		gestureRotation = GESTURE_STATES::UPDATE;
 	}
-	else if (extendedCount < 5 && gestureZoom == GESTURE_STATES::UPDATE) {
-		gestureHandler->scale(GESTURE_STATES::STOP, skeletonHands);
-		gestureZoom = GESTURE_STATES::STOP;
+	else if (extendedCount < 5 && gestureRotation == GESTURE_STATES::UPDATE) {
+		gestureHandler->rotate(GESTURE_STATES::STOP, skeletonHands);
+		gestureRotation = GESTURE_STATES::STOP;
 	}
 }
 
@@ -326,10 +316,6 @@ void LeapListener::setHmd(ovrHmd h) {
 
 void LeapListener::setGestureHandler (std::shared_ptr<GestureHandler> &s) {
 	gestureHandler = s;
-}
-
-void LeapListener::setViewer(Viewer *v) {
-	viewer = v;
 }
 
 GESTURE_STATES LeapListener::leapToInternState (Leap::Gesture::State &s) {
