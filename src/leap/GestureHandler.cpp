@@ -52,31 +52,35 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	auto &right = hands[0], &left = hands[1];
 
-	static Vector3f lastPos;
-	static Quaternionf incr = Quaternionf::Identity();
-	static Quaternionf quat = Quaternionf::Identity();
+	static Vector3f lastPos(0.f, 0.f, 0.f);
+	static Quaternionf incr = Quaternionf::Identity(), quat = Quaternionf::Identity();
+
 	switch (state) {
 		case GESTURE_STATES::START: {
 			lastPos = right->palm.position;
+			incr = Quaternionf::Identity();
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
+			Vector3f pos = 4.f * right->palm.position;
+			lastPos.normalize(); 
+			pos.normalize();
+			
+			// Rotation axis and angle
+			Vector3f axis = lastPos.cross(pos);
+			float sa = std::sqrt(axis.dot(axis)), ca = lastPos.dot(pos), angle = std::atan2(sa, ca);
 
-										 Vector3f pos = right->palm.position;
-										 lastPos.normalize(); pos.normalize();
-										 Vector3f axis = lastPos.cross(pos);
-				float sa = std::sqrt(axis.dot(axis)),
-					ca = lastPos.dot(pos),
-					angle = std::atan2(sa, ca);
+			// Compute rotation using quats
+			incr = Eigen::AngleAxisf(angle, axis.normalized());
+			if (!std::isfinite(incr.norm()))
+				incr = Quaternionf::Identity();
 
-				incr = Eigen::AngleAxisf(angle, axis.normalized());
-				if (!std::isfinite(incr.norm()))
-					incr = Quaternionf::Identity();
+			// Construct rotation matrix
+			Matrix4f result2 = Matrix4f::Identity();
+			result2.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
+			viewer->getRotationMatrix() = result2;
 
-				Matrix4f result2 = Matrix4f::Identity();
-				result2.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
-				viewer->getRotationMatrix() = result2;
 			break;
 		}
 
@@ -90,7 +94,7 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 		}
 	}
 
-	//scale(state, hands);
+	scale(state, hands);
 }
 
 void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
