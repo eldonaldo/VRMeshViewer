@@ -44,8 +44,11 @@ Matrix4f LeapListener::getTransformationMatrix() {
 		0.f, 0.f, 0.f, 1.f
 	);
 
-	// mm -> m including zooming of factor Rift baseline / Leap baseline = 0.064f / 40.0f
-	float s = 0.064f / 40.0f;
+	// mm -> m including zooming of factor Rift baseline / Leap baseline = 64mm / 40mm = 1.6mm / 1000 = 0.0016m
+	float IPD = ovrHmd_GetFloat(hmd, OVR_KEY_IPD, 0.064f);
+	float leapBaseline = 0.040f;
+	float s = (IPD / leapBaseline) / 1000.f;
+
 	static const OVR::Matrix4f mmTom(
 		s, 0.f, 0.f, 0.f,
 		0.f, s, 0.f, 0.f,
