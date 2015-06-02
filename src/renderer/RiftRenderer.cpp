@@ -168,9 +168,6 @@ void RiftRenderer::draw () {
 			OVR::Vector3f eyeOffset(x, 0.f, 0.5f * Settings::getInstance().LEAP_CAMERA_SHIFT_Z);
 			OVR::Vector3f leapCam = shiftedEyePos + eyeOffset;
 
-			OVR::Vector3f o = eyeOffset;
-			cout << (eye == ovrEyeType::ovrEye_Right ? "right : " : "left: ") << o.x << ", " << o.y << ", " << o.z << endl;
-
 			// Each has its own view matrix
 			OVR::Matrix4f viewLeapCam = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
 			Matrix4f vl = Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M);
