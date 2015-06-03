@@ -43,7 +43,7 @@ public:
 	float confidence; ///< Confidence of hand position, ranges between [0, 1]
 	float pinchStrength; ///< Pinch strength
 	float grabStrength; ///< Grab strength
-	
+
 	///< Palm
 	struct palm_t {
 		Vector3f position; ///< Palm position

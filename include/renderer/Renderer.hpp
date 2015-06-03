@@ -182,6 +182,20 @@ public:
 		leapController = l;
 	}
 
+	/**
+	* @brief Sets the sphere radius
+	*/
+	void setSphereRadius(float r) {
+		sphereRadius = r;
+	}
+
+	/**
+	* @brief Sets the sphere center
+	*/
+	void setSphereCenter(Vector3f &c) {
+		sphereCenter = c;
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
@@ -193,6 +207,9 @@ protected:
 	ovrHmd hmd; ///< Head mounted device
 	bool showHands; ///< Display leap hands
 	Leap::Controller leapController; ///< Leap controller
+	Sphere sphere; ///< Bounding hand sphere
+	Vector3f sphereCenter; ///< Sphere center
+	float sphereRadius; ///< Sphere radius
 
 private:
 

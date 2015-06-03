@@ -86,6 +86,16 @@ public:
 	 */
 	std::string info ();
 
+	/**
+	 * @brief Places the object in the world coordindate system and scales it for the immersion effect
+	 */
+	virtual void placeObject (std::shared_ptr<Mesh> &m);
+
+	/**
+	* @brief Returns the mesh
+	*/
+	std::shared_ptr<Mesh> getMesh ();
+
 protected:
 
 	/**
@@ -93,15 +103,12 @@ protected:
 	 */
 	virtual void calcAndAppendFPS ();
 
-	/**
-	 * @brief Places the object in the world coordindate system and scales it for the immersion effect
-	 */
-	virtual void placeObject (std::shared_ptr<Mesh> &m);
-
 public:
 
 	int FBWidth, FBHeight; ///< Framebuffer size
 	int width, height; ///< Window width and height
+	Vector3f sphereCenter; ///< Sphere center
+	float sphereRadius; ///< Sphere radius
 
 protected:
 

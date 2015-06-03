@@ -121,6 +121,17 @@ void LeapListener::onFrame(const Controller &controller) {
 				currentHand->mesh.palm.translate(palm.x(), palm.y(), palm.z());
 				currentHand->mesh.palm.setRotationMatrix(rot);
 
+				//// Sphere
+				//Vector3f sphereCenter = rotation * hand.sphereCenter().toVector3<Vector3f>() + translation;
+				//currentHand->sphere.radius = hand.sphereRadius() / 1000.f; // Radius in meter
+				//currentHand->sphere.center = Vector3f(palm.x(), palm.y(), palm.z());
+				//
+				//cout << currentHand->sphere.radius << "\n" << endl;
+
+				//currentHand->mesh.sphere.translate(palm.x(), palm.y(), palm.z());
+				//currentHand->mesh.sphere.setRotationMatrix(rot);
+				////currentHand->mesh.sphere.scale(currentHand->sphere.radius, currentHand->sphere.radius, currentHand->sphere.radius);
+
 				// For all fingers
 				const FingerList fingers = hand.fingers();
 				for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {

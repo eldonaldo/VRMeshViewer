@@ -55,23 +55,36 @@ void PerspectiveRenderer::draw() {
 	}
 
 	/**
-	 * Draw bounding box
-	 *
 	 * I know this is far from optimal but since the bbox is only
 	 * for debugging purposes i upload the data every draw because
 	 * I don't have access to the entire mesh state.
 	 */
+	// Bounding box
 	if (Settings::getInstance().MESH_DRAW_BBOX) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("bbox", true);
-
-		// Bounding box
+	
 		BoundingBox3f mbbox = mesh->getBoundingBox();
 		bbox.releaseBuffers();
 		bbox = Cube(mbbox.min, mbbox.max);
 		bbox.upload(shader);
 
 		bbox.draw(getViewMatrix(), getProjectionMatrix());
+		shader->setUniform("bbox", false);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	}
+
+	// Bounding sphere
+	if (Settings::getInstance().SHOW_SPHERE) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		shader->setUniform("bbox", true);
+		
+		sphere.releaseBuffers();
+		sphere = Sphere(sphereRadius, 24, 24);
+		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
+		sphere.upload(shader);
+
+		sphere.draw(getViewMatrix(), getProjectionMatrix());
 		shader->setUniform("bbox", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}

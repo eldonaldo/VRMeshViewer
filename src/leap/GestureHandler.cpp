@@ -51,35 +51,56 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 
 void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	auto &right = hands[0], &left = hands[1];
+	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
 
-	static Vector3f lastPos(0.f, 0.f, 0.f);
-	static Quaternionf incr = Quaternionf::Identity(), quat = Quaternionf::Identity();
+	float speedFactor = 1.5f; /// Rotation speed factor
+	static Vector3f lastPosRight(0.f, 0.f, 0.f), lastPosLeft(0.f, 0.f, 0.f); /// Last hand positions
+	static Quaternionf incr = Quaternionf::Identity(), quat = Quaternionf::Identity(); /// Rotation quaternions
+
+	// Compute bounding sphere
+	Vector3f midRight = (right->palm.position + right->finger[Finger::Type::TYPE_MIDDLE].position) / 2.f;
+	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) / 2.f;
+	viewer->sphereCenter = (midRight + midLeft)* 0.5f;
+	viewer->sphereRadius = (right->palm.position - left->palm.position).norm() / 2.f;
 
 	switch (state) {
 		case GESTURE_STATES::START: {
-			lastPos = right->palm.position;
+			lastPosRight = right->palm.position;
+			lastPosLeft = left->palm.position;
 			incr = Quaternionf::Identity();
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			Vector3f pos = 4.f * right->palm.position;
-			lastPos.normalize(); 
-			pos.normalize();
-			
-			// Rotation axis and angle
-			Vector3f axis = lastPos.cross(pos);
-			float sa = std::sqrt(axis.dot(axis)), ca = lastPos.dot(pos), angle = std::atan2(sa, ca);
+			// Hands must point together and only if object resides inside the avg. hand sphere
+			if (dotProd <= -0.8f) {
+				Vector3f posRight = right->palm.position;
+				Vector3f posLeft = left->palm.position;
+				
+				// Rotation axis and angle for each hand
+				Vector3f axisRight = lastPosRight.cross(posRight);
+				Vector3f axisLeft = lastPosLeft.cross(posLeft);
+				float saR = std::sqrt(axisRight.dot(axisRight)), caR = lastPosRight.dot(posRight), angleR = std::atan2(saR, caR);
+				float saL = std::sqrt(axisLeft.dot(axisLeft)), caL = lastPosLeft.dot(posLeft), angleL = std::atan2(saL, caL);
 
-			// Compute rotation using quats
-			incr = Eigen::AngleAxisf(angle, axis.normalized());
-			if (!std::isfinite(incr.norm()))
-				incr = Quaternionf::Identity();
+				// Compute average angle and axis
+				float angle = (angleR + angleL) / 2.f;
+				Vector3f axis = axisRight + axisLeft;
+				angle *= speedFactor;
 
-			// Construct rotation matrix
-			Matrix4f result2 = Matrix4f::Identity();
-			result2.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
-			viewer->getRotationMatrix() = result2;
+				// Compute rotation using quats
+				incr = Eigen::AngleAxisf(angle, axis.normalized());
+				if (!std::isfinite(incr.norm()))
+					incr = Quaternionf::Identity();
+
+				// Construct rotation matrix
+				Matrix4f result = Matrix4f::Identity();
+				result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
+				viewer->getRotationMatrix() = result;
+
+				
+				//viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), (posRight + posLeft) * 0.5f);
+			}
 
 			break;
 		}
@@ -87,12 +108,14 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			lastPos = right->palm.position;
+			lastPosRight = right->palm.position;
+			lastPosLeft = left->palm.position;
 			quat = (incr * quat).normalized();
 			incr = Quaternionf::Identity();
 			break;
 		}
 	}
+	
 
 	scale(state, hands);
 }

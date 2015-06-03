@@ -149,6 +149,26 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 				}
 				break;
 			}
+
+			// Pull object back
+			case GLFW_KEY_P: {
+				static bool disable = false;
+				if (action == GLFW_PRESS) {
+					__cbref->placeObject(__cbref->getMesh());
+					disable = !disable;
+				}
+				break;
+			}
+
+			// Pull object back
+			case GLFW_KEY_S: {
+				static bool disable = false;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().SHOW_SPHERE = disable;
+					disable = !disable;
+				}
+				break;
+			}
 		}
 	});
 
@@ -302,6 +322,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		// Update arcball
 		//rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
+		// Bounding sphere
+		renderer->setSphereCenter(sphereCenter);
+		renderer->setSphereRadius(sphereRadius);
+
 		// Update state
 		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
 
@@ -369,6 +393,10 @@ Vector2i& Viewer::getLastPos() {
 
 void Viewer::setLastPos(Vector2i &v) {
 	lastPos = v;
+}
+
+std::shared_ptr<Mesh> Viewer::getMesh() {
+	return mesh;
 }
 
 Viewer::~Viewer () {
