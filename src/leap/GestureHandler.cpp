@@ -58,10 +58,14 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 	static Quaternionf incr = Quaternionf::Identity(), quat = Quaternionf::Identity(); /// Rotation quaternions
 
 	// Compute bounding sphere
-	Vector3f midRight = (right->palm.position + right->finger[Finger::Type::TYPE_MIDDLE].position) / 2.f;
-	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) / 2.f;
-	viewer->sphereCenter = (midRight + midLeft)* 0.5f;
-	viewer->sphereRadius = (right->palm.position - left->palm.position).norm() / 2.f;
+	Vector3f midRight = (right->palm.position + right->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
+	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
+	viewer->sphereCenter = (midRight + midLeft) * 0.5f;
+	viewer->sphereRadius = (right->palm.position - left->palm.position).norm() * 0.5f;
+	
+	// Is the center of the bbox lay inside the sphere?
+	Vector3f p = mesh->getBoundingBox().getCenter() - viewer->sphereCenter;
+	bool insideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((viewer->sphereRadius), 2.f);
 
 	switch (state) {
 		case GESTURE_STATES::START: {
@@ -73,7 +77,7 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 
 		case GESTURE_STATES::UPDATE: {
 			// Hands must point together and only if object resides inside the avg. hand sphere
-			if (dotProd <= -0.8f) {
+			if (dotProd <= -0.6f && insideSphere) {
 				Vector3f posRight = right->palm.position;
 				Vector3f posLeft = left->palm.position;
 				
@@ -84,12 +88,17 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 				float saL = std::sqrt(axisLeft.dot(axisLeft)), caL = lastPosLeft.dot(posLeft), angleL = std::atan2(saL, caL);
 
 				// Compute average angle and axis
-				float angle = (angleR + angleL) / 2.f;
+				float angle = (angleR + angleL) * 0.5f;
 				Vector3f axis = axisRight + axisLeft;
 				angle *= speedFactor;
 
+				// Consider roll angle
+				float angleRoll = -(right->palm.pitch + left->palm.pitch) * 0.5f;
+				Vector3f axisRoll = (-right->palm.normal + left->palm.normal) * 0.5f;;
+				angleRoll *= speedFactor;
+
 				// Compute rotation using quats
-				incr = Eigen::AngleAxisf(angle, axis.normalized());
+				incr = Eigen::AngleAxisf(angle, axis.normalized()) * Eigen::AngleAxisf(angleRoll, axisRoll.normalized());
 				if (!std::isfinite(incr.norm()))
 					incr = Quaternionf::Identity();
 
@@ -97,6 +106,8 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 				Matrix4f result = Matrix4f::Identity();
 				result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
 				viewer->getRotationMatrix() = result;
+
+
 
 				
 				//viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), (posRight + posLeft) * 0.5f);
@@ -116,19 +127,19 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 		}
 	}
 	
-
-	scale(state, hands);
+	if (dotProd <= -0.8f && insideSphere) {
+		scale(state, hands);
+	}
 }
 
 void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	auto &right = hands[0], &left = hands[1];
 	float distance = (right->palm.position - left->palm.position).norm();
-	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
 
 	switch (state) {
 		case GESTURE_STATES::UPDATE: {
 			// Only if distance is bigger than 2 cm in change and hands point together (dot product)
-			if (dotProd <= -0.8f && fabs(distance - lastDistance) >= 0.02f) {	
+			if (fabs(distance - lastDistance) >= 0.02f) {	
 				// We want that the bounding box fits our hands when scaling
 				BoundingBox3f bbox = mesh->getBoundingBox();
 				float diag = (bbox.max - bbox.min).norm();
