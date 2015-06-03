@@ -80,7 +80,7 @@ void PerspectiveRenderer::draw() {
 		shader->setUniform("bbox", true);
 		
 		sphere.releaseBuffers();
-		sphere = Sphere(sphereRadius, 24, 24);
+		sphere = Sphere(sphereRadius, 12, 12);
 		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
 		sphere.upload(shader);
 

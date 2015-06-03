@@ -92,13 +92,13 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 				Vector3f axis = axisRight + axisLeft;
 				angle *= speedFactor;
 
-				// Consider roll angle
-				float angleRoll = -(right->palm.pitch + left->palm.pitch) * 0.5f;
-				Vector3f axisRoll = (-right->palm.normal + left->palm.normal) * 0.5f;;
-				angleRoll *= speedFactor;
+				// Consider pitch angle
+				float anglePitch = -(right->palm.pitch + left->palm.pitch) * 0.5f;
+				Vector3f axisPitch = (-right->palm.normal + left->palm.normal) * 0.5f;;
+				anglePitch *= speedFactor;
 
 				// Compute rotation using quats
-				incr = Eigen::AngleAxisf(angle, axis.normalized()) * Eigen::AngleAxisf(angleRoll, axisRoll.normalized());
+				incr = Eigen::AngleAxisf(angle, axis.normalized()) * Eigen::AngleAxisf(anglePitch, axisPitch.normalized());
 				if (!std::isfinite(incr.norm()))
 					incr = Quaternionf::Identity();
 
@@ -109,10 +109,8 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 
 
 
-				
-				//viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), (posRight + posLeft) * 0.5f);
+				viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), viewer->sphereCenter);
 			}
-
 			break;
 		}
 
