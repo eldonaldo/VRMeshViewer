@@ -136,7 +136,7 @@ void LeapListener::onFrame(const Controller &controller) {
 					// Bones
 					for (int k = 0; k < 3; k++) {
 
-						// We do not want to draw that akward bone in the middle of the hand which somehow belongs to the thumb
+						// We do not want to draw that awkward bone in the middle of the hand which somehow belongs to the thumb
 						if (!(finger.type() == Finger::TYPE_THUMB && k == 0)) {
 							Leap::Bone bone = finger.bone(static_cast<Leap::Bone::Type>(k));
 							Vector3f bonePosition = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "common.hpp"
 #include "mesh/Mesh.hpp"
 #include <unordered_map>
@@ -12,7 +14,9 @@ class WavefrontOBJ : public Mesh {
 
 public:
 
+    WavefrontOBJ();
     WavefrontOBJ(const std::string &file);
+    void loadFromString(std::istream &is);
 
 protected:
 
