@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "mesh/Cube.hpp"
 #include "mesh/Sphere.hpp"
+#include "mesh/Line.hpp"
 #include "GLUtil.hpp"
 
 VR_NAMESPACE_BEGIN
@@ -57,6 +58,7 @@ public:
 	struct finger_t {
 		Vector3f position; ///< Finger tip positions
 		Vector3f direction; ///< Finger direction
+		Vector3f jointPositions[3]; ///< Finger joint positions
 		bool extended; ///< The finger extended or not?
 	} finger[5];
 
@@ -64,9 +66,12 @@ public:
 	struct mesh_t {
 		Cube palm; ///< Mesh for the palm
 		Sphere finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
-		Sphere joints[14]; ///< Finger joints
-//		Vector3f jointConnections[14]; ///< Joint connections
+		Sphere joints[5][3]; ///< Finger joints
+		Line jointConnections[5][3]; ///< Joint connections
+		int nrOfJoints = 3;
 	} mesh; ///< Composite mesh
+
+	std::shared_ptr<GLShader> shader; ///< Bounded shader
 };
 
 VR_NAMESPACE_END

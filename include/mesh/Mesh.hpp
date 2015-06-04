@@ -89,7 +89,7 @@ public:
 	void upload(std::shared_ptr<GLShader> &s);
 
 	/// Draw to the currently bounded shader
-	void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
+	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 
 	/// Sets translation matrix
 	void setTranslateMatrix (Matrix4f &t);

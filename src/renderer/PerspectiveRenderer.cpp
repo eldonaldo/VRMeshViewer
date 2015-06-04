@@ -54,6 +54,7 @@ void PerspectiveRenderer::draw() {
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 	}
 
+
 	/**
 	 * Draw bounding box
 	 *
@@ -70,8 +71,8 @@ void PerspectiveRenderer::draw() {
 		bbox.releaseBuffers();
 		bbox = Cube(mbbox.min, mbbox.max);
 		bbox.upload(shader);
-
 		bbox.draw(getViewMatrix(), getProjectionMatrix());
+
 		shader->setUniform("bbox", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
