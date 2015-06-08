@@ -64,7 +64,7 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 	Vector3f midRight = (right->palm.position + right->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	viewer->sphereCenter = (midRight + midLeft) * 0.5f;
-	viewer->sphereRadius = (right->palm.position - left->palm.position).norm() * 0.5f * 1.5f; // Scale by factor of 1.5
+	viewer->sphereRadius = (right->palm.position - left->palm.position).norm() * 0.5f * Settings::getInstance().SPHERE_SCALE;
 	
 	// Is the center of the bbox lay inside the sphere?
 	Vector3f p1 = mesh->getBoundingBox().min - viewer->sphereCenter;

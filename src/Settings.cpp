@@ -31,6 +31,7 @@ Settings::Settings () :
 	MESH_DRAW_BBOX				(true),
 	SHOW_HANDS					(true),
 	SHOW_SPHERE					(true),
+	SPHERE_SCALE				(1.5f),
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
 	// PASSTHROUGH
