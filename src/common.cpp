@@ -107,12 +107,16 @@ std::string handName (HANDS hand) {
 	return name;
 }
 
-extern float clamp(float x) {
+float clamp(float x) {
 	if (x > 1.f)
 		return 1.f;
 	else if (x < 0.f)
 		return 0.f;
 	else return x;
+}
+
+void ppv(Vector3f v) {
+	cout << "[" << v.x() << ", " << v.y() << ", " << v.z() << "]" << endl;
 }
 
 VR_NAMESPACE_END

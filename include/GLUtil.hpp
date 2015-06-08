@@ -314,7 +314,7 @@ struct Arcball {
         tx *= invMinDim; ty *= invMinDim;
 
         Vector3f v0(ox, oy, 1.0f), v1(tx, ty, 1.0f);
-        if (v0.squaredNorm() > 1e-4f && v1.squaredNorm() > 1e-4f) {
+		if (v0.squaredNorm() > 1e-4f && v1.squaredNorm() > 1e-4f) {
             v0.normalize(); v1.normalize();
             Vector3f axis = v0.cross(v1);
             float sa = std::sqrt(axis.dot(axis)),

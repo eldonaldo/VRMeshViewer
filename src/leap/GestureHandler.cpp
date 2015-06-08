@@ -54,6 +54,10 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
 
 	float speedFactor = 1.5f; /// Rotation speed factor
+	float speedAngle = 1.f;
+	static float lastPitch = 0.f, lastRoll = 0.f, lastYaw = 0.f;
+	static float lastAngle = 0.f;
+
 	static Vector3f lastPosRight(0.f, 0.f, 0.f), lastPosLeft(0.f, 0.f, 0.f); /// Last hand positions
 	static Quaternionf incr = Quaternionf::Identity(), quat = Quaternionf::Identity(); /// Rotation quaternions
 
@@ -69,17 +73,21 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 
 	switch (state) {
 		case GESTURE_STATES::START: {
-			lastPosRight = right->palm.position;
-			lastPosLeft = left->palm.position;
+			lastPosRight = midRight;
+			lastPosLeft = midLeft;
 			incr = Quaternionf::Identity();
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+
+			//cout << (right->palm.position - left->palm.position).squaredNorm() << endl;
+
 			// Hands must point together and only if object resides inside the avg. hand sphere
-			if (dotProd <= -0.6f && insideSphere) {
-				Vector3f posRight = right->palm.position;
-				Vector3f posLeft = left->palm.position;
+			if (/*dotProd <= -0.6f && */insideSphere) {
+				Vector3f posRight = speedFactor * midRight;
+				Vector3f posLeft = speedFactor * midLeft;
 				
 				// Rotation axis and angle for each hand
 				Vector3f axisRight = lastPosRight.cross(posRight);
@@ -88,17 +96,21 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 				float saL = std::sqrt(axisLeft.dot(axisLeft)), caL = lastPosLeft.dot(posLeft), angleL = std::atan2(saL, caL);
 
 				// Compute average angle and axis
-				float angle = (angleR + angleL) * 0.5f;
-				Vector3f axis = axisRight + axisLeft;
-				angle *= speedFactor;
+				float angle = (angleR  + angleL) * 0.5f;
+				float confidence = (right->confidence + left->confidence) * 0.5f;
+				Vector3f axis = axisRight * (right->confidence / confidence) + axisLeft * (left->confidence / confidence);
+				angle *= speedAngle;
 
 				// Consider pitch angle
 				float anglePitch = -(right->palm.pitch + left->palm.pitch) * 0.5f;
+				float angleRoll = -(right->palm.roll + left->palm.roll) * 0.5f;
+				float angleYaw = -(right->palm.yaw + left->palm.yaw) * 0.5f;
 				Vector3f axisPitch = (-right->palm.normal + left->palm.normal) * 0.5f;;
-				anglePitch *= speedFactor;
-
+				anglePitch *= speedAngle;
+				
 				// Compute rotation using quats
-				incr = Eigen::AngleAxisf(angle, axis.normalized()) * Eigen::AngleAxisf(anglePitch, axisPitch.normalized());
+				incr = Eigen::AngleAxisf(angle, axis.normalized());// *Eigen::AngleAxisf(anglePitch, axisPitch.normalized());
+
 				if (!std::isfinite(incr.norm()))
 					incr = Quaternionf::Identity();
 
@@ -106,26 +118,35 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 				Matrix4f result = Matrix4f::Identity();
 				result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
 				viewer->getRotationMatrix() = result;
+				
+				//viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), viewer->sphereCenter);
 
 
+				
+				lastAngle = angle;
 
-				viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), viewer->sphereCenter);
+
+				lastPitch = anglePitch;
+				lastRoll = angleRoll;
+				lastYaw = angleYaw;
 			}
+
 			break;
 		}
 
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			lastPosRight = right->palm.position;
-			lastPosLeft = left->palm.position;
+			 Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			lastPosRight = midRight;
+			lastPosLeft = midLeft;
 			quat = (incr * quat).normalized();
 			incr = Quaternionf::Identity();
 			break;
 		}
 	}
 	
-	if (dotProd <= -0.8f && insideSphere) {
+	if (dotProd <= -0.6f && insideSphere) {
 		scale(state, hands);
 	}
 }
@@ -169,12 +190,14 @@ void GestureHandler::grab(GESTURE_STATES state, HANDS hand, std::shared_ptr<Skel
 		}
 
 		case GESTURE_STATES::UPDATE: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.f);
 			break;
 		}
 
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}
 	}

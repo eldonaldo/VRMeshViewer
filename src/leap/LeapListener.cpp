@@ -130,7 +130,7 @@ void LeapListener::onFrame(const Controller &controller) {
 					Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
 					Vector3f direction = rotation * finger.direction().toVector3<Vector3f>();
 					currentHand->finger[finger.type()].position = Vector3f(tip.x(), tip.y(), tip.z());
-					currentHand->finger[finger.type()].extended = finger.isExtended() && hand.grabStrength() <= 0.5f;
+					currentHand->finger[finger.type()].extended = finger.isExtended() || hand.grabStrength() <= 0.6f;
 					currentHand->finger[finger.type()].direction = direction;
 
 					// Transform
@@ -141,8 +141,11 @@ void LeapListener::onFrame(const Controller &controller) {
 
 			// Reset tracking states if no hands found
 			if (hands.count() == 0) {
-				for (auto &h : skeletonHands)
+				for (auto &h : skeletonHands) {
 					h->confidence = h->pinchStrength = h->grabStrength = 0.f;
+					for (auto &f : h->finger)
+						f.extended = false;
+				}
 
 				gestureZoom = GESTURE_STATES::STOP;
 			}
@@ -161,6 +164,9 @@ void LeapListener::onFrame(const Controller &controller) {
 					g.second = GESTURE_STATES::STOP;
 
 				gestureZoom = GESTURE_STATES::STOP;
+
+				for (auto &f : currentHand->finger)
+					f.extended = false;
 			}
 		}
 

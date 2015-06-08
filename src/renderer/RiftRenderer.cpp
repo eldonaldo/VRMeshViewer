@@ -160,7 +160,6 @@ void RiftRenderer::draw () {
 		setViewMatrix(v);
 
 		// Leap passthrough
-		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 			
 			// Offset for the corresponding leap cameras
 			float mid = 0.5f;
@@ -173,6 +172,7 @@ void RiftRenderer::draw () {
 			Matrix4f vl = Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M);
 			setViewMatrixLeap(vl);
 
+		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 			// Draw Leap distorted image
 			leapShader->bind();
 			leapShader->setUniform("mvp", getProjectionMatrix());

@@ -200,4 +200,7 @@ extern std::string handName (HANDS hand);
 /// Clamp to [0, 1]
 extern float clamp(float x);
 
+/// Pretty print vector
+extern void ppv(Vector3f v);
+
 VR_NAMESPACE_END
