@@ -38,6 +38,7 @@ public:
 
 	int id; ///< Leap hand id
 	bool isRight; ///< Is it the right hand?
+	bool visible; ///< Is this hand in the FOV?
 
 	/// Estimates
 	float confidence; ///< Confidence of hand position, ranges between [0, 1]

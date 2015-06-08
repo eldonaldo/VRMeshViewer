@@ -3,7 +3,7 @@
 VR_NAMESPACE_BEGIN
 
 SkeletonHand::SkeletonHand (bool _isRight)
-	: isRight(_isRight), id(-1), confidence(0.f), grabStrength(0.f), pinchStrength(0.0f) {
+	: isRight(_isRight), visible(false), id(-1), confidence(0.f), grabStrength(0.f), pinchStrength(0.0f) {
 
 	palm.position = Vector3f(0.f, 0.f, 1000.f);
 	mesh.palm.scale(0.03f, 0.03f, 0.005f);

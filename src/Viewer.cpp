@@ -36,7 +36,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_SAMPLES, 2);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
@@ -77,8 +77,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LEQUAL);
-	//glEnable(GL_MULTISAMPLE);
 
 #if defined(PLATFORM_APPLE)
     /* Poll for events once before starting a potentially

@@ -53,39 +53,40 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 	auto &right = hands[0], &left = hands[1];
 	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
 
-	float speedFactor = 1.5f; /// Rotation speed factor
-	float speedAngle = 1.f;
-	static float lastPitch = 0.f, lastRoll = 0.f, lastYaw = 0.f;
-	static float lastAngle = 0.f;
+	float speedFactor = 1.f; /// Rotation speed factor
+	float speedAngle = 1.f; /// Angle speed up
 
 	static Vector3f lastPosRight(0.f, 0.f, 0.f), lastPosLeft(0.f, 0.f, 0.f); /// Last hand positions
 	static Quaternionf incr = Quaternionf::Identity(), quat = Quaternionf::Identity(); /// Rotation quaternions
+	static float lastAngle = 0.f; /// Last known angle
 
 	// Compute bounding sphere
 	Vector3f midRight = (right->palm.position + right->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	viewer->sphereCenter = (midRight + midLeft) * 0.5f;
-	viewer->sphereRadius = (right->palm.position - left->palm.position).norm() * 0.5f;
+	viewer->sphereRadius = (right->palm.position - left->palm.position).norm() * 0.5f * 1.5f; // Scale by factor of 1.5
 	
 	// Is the center of the bbox lay inside the sphere?
-	Vector3f p = mesh->getBoundingBox().getCenter() - viewer->sphereCenter;
-	bool insideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((viewer->sphereRadius), 2.f);
+	Vector3f p1 = mesh->getBoundingBox().min - viewer->sphereCenter;
+	Vector3f p2 = mesh->getBoundingBox().max - viewer->sphereCenter;
+	bool minInside = powf((p1.x()), 2.f) + powf((p1.y()), 2.f) + powf((p1.z()), 2.f) <= powf((viewer->sphereRadius), 2.f);
+	bool maxInside = powf((p2.x()), 2.f) + powf((p2.y()), 2.f) + powf((p2.z()), 2.f) <= powf((viewer->sphereRadius), 2.f);
+	bool insideSphere = minInside && maxInside;
 
 	switch (state) {
 		case GESTURE_STATES::START: {
 			lastPosRight = midRight;
 			lastPosLeft = midLeft;
 			incr = Quaternionf::Identity();
+			lastAngle = 0.f;
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
 			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
 
-			//cout << (right->palm.position - left->palm.position).squaredNorm() << endl;
-
 			// Hands must point together and only if object resides inside the avg. hand sphere
-			if (/*dotProd <= -0.6f && */insideSphere) {
+			if (dotProd < 0.0f && insideSphere) {
 				Vector3f posRight = speedFactor * midRight;
 				Vector3f posLeft = speedFactor * midLeft;
 				
@@ -99,36 +100,30 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 				float angle = (angleR  + angleL) * 0.5f;
 				float confidence = (right->confidence + left->confidence) * 0.5f;
 				Vector3f axis = axisRight * (right->confidence / confidence) + axisLeft * (left->confidence / confidence);
+				//Vector3f axis = (axisRight + axisLeft) * 0.5f;
 				angle *= speedAngle;
 
 				// Consider pitch angle
 				float anglePitch = -(right->palm.pitch + left->palm.pitch) * 0.5f;
-				float angleRoll = -(right->palm.roll + left->palm.roll) * 0.5f;
-				float angleYaw = -(right->palm.yaw + left->palm.yaw) * 0.5f;
 				Vector3f axisPitch = (-right->palm.normal + left->palm.normal) * 0.5f;;
 				anglePitch *= speedAngle;
 				
-				// Compute rotation using quats
-				incr = Eigen::AngleAxisf(angle, axis.normalized());// *Eigen::AngleAxisf(anglePitch, axisPitch.normalized());
+				if (fabs(lastAngle - angle) >= 0.1f * DEG_TO_RAD) {
+					// Compute rotation using quats
+					incr = Eigen::AngleAxisf(angle, axis.normalized())*Eigen::AngleAxisf(anglePitch, axisPitch.normalized());
 
-				if (!std::isfinite(incr.norm()))
-					incr = Quaternionf::Identity();
+					if (!std::isfinite(incr.norm()))
+						incr = Quaternionf::Identity();
 
-				// Construct rotation matrix
-				Matrix4f result = Matrix4f::Identity();
-				result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
-				viewer->getRotationMatrix() = result;
-				
-				//viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), viewer->sphereCenter);
+					// Construct rotation matrix
+					Matrix4f result = Matrix4f::Identity();
+					result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
+					viewer->getRotationMatrix() = result;
+				}
 
-
-				
 				lastAngle = angle;
 
-
-				lastPitch = anglePitch;
-				lastRoll = angleRoll;
-				lastYaw = angleYaw;
+				//viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), viewer->sphereCenter);
 			}
 
 			break;
@@ -142,6 +137,7 @@ void GestureHandler::rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>
 			lastPosLeft = midLeft;
 			quat = (incr * quat).normalized();
 			incr = Quaternionf::Identity();
+			lastAngle = 0.f;
 			break;
 		}
 	}

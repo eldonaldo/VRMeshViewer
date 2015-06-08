@@ -78,7 +78,7 @@ void LeapListener::onFrame(const Controller &controller) {
 
 		// Only handle 1 or 2 hands, but not more
 		HandList hands = frame.hands();
-		if (hands.count() <= 2) {
+		if (hands.count() >= 1 && hands.count() <= 2) {
 
 			// Processing
 			for (HandList::const_iterator hl = hands.begin(); hl != hands.end(); hl++) {
@@ -87,55 +87,58 @@ void LeapListener::onFrame(const Controller &controller) {
 				if (hand.isRight())
 					currentHand = rightHand;
 
-				// Collect tracking state
-				currentHand->id = hand.id();
-				currentHand->confidence = hand.confidence();
-				currentHand->pinchStrength = hand.pinchStrength();
-				currentHand->grabStrength = hand.grabStrength();
+				if (hand.isValid()) {
+					// Collect tracking state
+					currentHand->id = hand.id();
+					currentHand->confidence = hand.confidence();
+					currentHand->pinchStrength = hand.pinchStrength();
+					currentHand->grabStrength = hand.grabStrength();
+					currentHand->visible = true;
 
-				// Transform palm
-				const Vector3f palm = rotation * hand.palmPosition().toVector3<Vector3f>() + translation;
-				const Vector3f palmDirection = (rotation * hand.direction().toVector3<Vector3f>()).normalized();
-				const Vector3f palmNormal = (rotation * hand.palmNormal().toVector3<Vector3f>()).normalized();
-				const Vector3f palmSide = palmDirection.cross(palmNormal).normalized();
+					// Transform palm
+					const Vector3f palm = rotation * hand.palmPosition().toVector3<Vector3f>() + translation;
+					const Vector3f palmDirection = (rotation * hand.direction().toVector3<Vector3f>()).normalized();
+					const Vector3f palmNormal = (rotation * hand.palmNormal().toVector3<Vector3f>()).normalized();
+					const Vector3f palmSide = palmDirection.cross(palmNormal).normalized();
 
-				// Conjugation by rotation -> cancel out the length changes
-				const Matrix3f palmRotation = rotation * (Matrix3f(hand.basis().toArray3x3())) * rotation.inverse();
+					// Conjugation by rotation -> cancel out the length changes
+					const Matrix3f palmRotation = rotation * (Matrix3f(hand.basis().toArray3x3())) * rotation.inverse();
 
-				// Construct 4x4 rotation matrix
-				Matrix4f rot(Matrix4f::Identity());
-				rot.block<3, 3>(0, 0) = palmRotation;
+					// Construct 4x4 rotation matrix
+					Matrix4f rot(Matrix4f::Identity());
+					rot.block<3, 3>(0, 0) = palmRotation;
 
-				// Palm world properties : Angles
-				currentHand->palm.pitch = hand.direction().pitch();
-				currentHand->palm.yaw = hand.direction().yaw();
-				currentHand->palm.roll = hand.palmNormal().roll();
+					// Palm world properties : Angles
+					currentHand->palm.pitch = hand.direction().pitch();
+					currentHand->palm.yaw = hand.direction().yaw();
+					currentHand->palm.roll = hand.palmNormal().roll();
 
-				// Palm world properties : Positions
-				currentHand->palm.position = Vector3f(palm.x(), palm.y(), palm.z());
-				currentHand->palm.direction = palmDirection;
-				currentHand->palm.normal = palmNormal;
-				currentHand->palm.side = palmSide;
-
-				// Transform
-				currentHand->mesh.palm.translate(palm.x(), palm.y(), palm.z());
-				currentHand->mesh.palm.setRotationMatrix(rot);
-
-				// For all fingers
-				const FingerList fingers = hand.fingers();
-				for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
-					const Finger finger = *fl;
-
-					// Finger tip world position
-					Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
-					Vector3f direction = rotation * finger.direction().toVector3<Vector3f>();
-					currentHand->finger[finger.type()].position = Vector3f(tip.x(), tip.y(), tip.z());
-					currentHand->finger[finger.type()].extended = finger.isExtended() || hand.grabStrength() <= 0.6f;
-					currentHand->finger[finger.type()].direction = direction;
+					// Palm world properties : Positions
+					currentHand->palm.position = Vector3f(palm.x(), palm.y(), palm.z());
+					currentHand->palm.direction = palmDirection;
+					currentHand->palm.normal = palmNormal;
+					currentHand->palm.side = palmSide;
 
 					// Transform
-					currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
-					currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
+					currentHand->mesh.palm.translate(palm.x(), palm.y(), palm.z());
+					currentHand->mesh.palm.setRotationMatrix(rot);
+
+					// For all fingers
+					const FingerList fingers = hand.fingers();
+					for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
+						const Finger finger = *fl;
+
+						// Finger tip world position
+						Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
+						Vector3f direction = rotation * finger.direction().toVector3<Vector3f>();
+						currentHand->finger[finger.type()].position = Vector3f(tip.x(), tip.y(), tip.z());
+						currentHand->finger[finger.type()].extended = finger.isExtended();
+						currentHand->finger[finger.type()].direction = direction;
+
+						// Transform
+						currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
+						currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
+					}
 				}
 			}
 
@@ -143,6 +146,7 @@ void LeapListener::onFrame(const Controller &controller) {
 			if (hands.count() == 0) {
 				for (auto &h : skeletonHands) {
 					h->confidence = h->pinchStrength = h->grabStrength = 0.f;
+					h->visible = false;
 					for (auto &f : h->finger)
 						f.extended = false;
 				}
@@ -157,6 +161,7 @@ void LeapListener::onFrame(const Controller &controller) {
 				currentHand = leftHand;
 				if (hands[0].isLeft()) {
 					currentHand = rightHand;
+					currentHand->visible = false;
 					handIndex = HANDS::RIGHT;
 				}
 
@@ -202,7 +207,8 @@ void LeapListener::onFrame(const Controller &controller) {
 	}
 
 	// Process own built gesture state machines
-	gesturesStateMachines();
+	if (frame.isValid())
+		gesturesStateMachines();
 }
 
 void LeapListener::gesturesStateMachines() {
@@ -215,17 +221,17 @@ void LeapListener::gesturesStateMachines() {
 		 */
 		float pinchThreshold = Settings::getInstance().GESTURES_PINCH_THRESHOLD;
 
-		if (hand->pinchStrength >= pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
+		if (hand->visible && hand->pinchStrength >= pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
 			// Start
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::START;
 			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
 		}
-		else if (hand->pinchStrength >= pinchThreshold && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
+		else if (hand->visible && hand->pinchStrength >= pinchThreshold && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
 			// Update
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::UPDATE;
 			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
 		}
-		else if (hand->pinchStrength < pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE) {
+		else if (hand->visible && hand->pinchStrength < pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE) {
 			// Stop
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
 			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
@@ -235,17 +241,17 @@ void LeapListener::gesturesStateMachines() {
 		* Grab state machine
 		*/
 		float grabThreshold = Settings::getInstance().GESTURES_PINCH_THRESHOLD;
-		if (hand->grabStrength >= grabThreshold && gestures[i][GESTURES::GRAB] == GESTURE_STATES::STOP) {
+		if (hand->visible && hand->grabStrength >= grabThreshold && gestures[i][GESTURES::GRAB] == GESTURE_STATES::STOP) {
 			// Start
 			gestures[i][GESTURES::GRAB] = GESTURE_STATES::START;
 			gestureHandler->grab(gestures[i][GESTURES::GRAB], (HANDS)i, skeletonHands);
 		}
-		else if (hand->grabStrength >= grabThreshold && (gestures[i][GESTURES::GRAB] == GESTURE_STATES::START || gestures[i][GESTURES::GRAB] == GESTURE_STATES::UPDATE)) {
+		else if (hand->visible && hand->grabStrength >= grabThreshold && (gestures[i][GESTURES::GRAB] == GESTURE_STATES::START || gestures[i][GESTURES::GRAB] == GESTURE_STATES::UPDATE)) {
 			// Update
 			gestures[i][GESTURES::GRAB] = GESTURE_STATES::UPDATE;
 			gestureHandler->grab(gestures[i][GESTURES::GRAB], (HANDS)i, skeletonHands);
 		}
-		else if (hand->grabStrength < grabThreshold && gestures[i][GESTURES::GRAB] == GESTURE_STATES::UPDATE) {
+		else if (hand->visible && hand->grabStrength < grabThreshold && gestures[i][GESTURES::GRAB] == GESTURE_STATES::UPDATE) {
 			// Stop
 			gestures[i][GESTURES::GRAB] = GESTURE_STATES::STOP;
 			gestureHandler->grab(gestures[i][GESTURES::GRAB], (HANDS)i, skeletonHands);
@@ -259,7 +265,8 @@ void LeapListener::gesturesStateMachines() {
 	*/
 	unsigned int extendedCount = 0;
 	for (int i = 0; i < 5; i++) {
-		if (leftHand->finger[i].extended && rightHand->finger[i].extended)
+		if ((leftHand->visible && (leftHand->finger[i].extended || (!leftHand->finger[i].extended && leftHand->grabStrength <= 0.6f))) &&
+			(rightHand->visible && (rightHand->finger[i].extended || (!rightHand->finger[i].extended && rightHand->grabStrength <= 0.6f))))
 			extendedCount++;
 	}
 
