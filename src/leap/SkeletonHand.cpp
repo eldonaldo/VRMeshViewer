@@ -13,7 +13,7 @@ SkeletonHand::SkeletonHand (bool _isRight)
 		finger[i].position = Vector3f(0.f, 0.f, 0.f);
 	}
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < mesh.nrOfJoints; j++) {
 			mesh.joints[i][j].scale(0.01f, 0.01f, 0.01f);
 			mesh.joints[i][j].translate(0.f, 0.f, 1000.f);
