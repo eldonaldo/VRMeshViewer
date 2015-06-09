@@ -15,6 +15,10 @@ Bachelor Thesis
 * Oculus Rift Runtime 0.5.0 installed
 * LeapSDK/Runtime 2.2.5 installed
 
+#### Leap Motion
+
+* Disable "Robust Mode Tracking" in the Leap Motion settings
+
 ## Installation
 
 1. clone repo

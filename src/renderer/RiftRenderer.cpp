@@ -70,17 +70,17 @@ void RiftRenderer::preProcess () {
 
 		// Leap image textures
 		// Left
-		std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(left.width(), left.height(), left.bytesPerPixel(), 1);
+		std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, left.bytesPerPixel(), 1);
 		leapRawTexture[0] = std::get<0>(t0);
 
-		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(left.distortionWidth() / 2, left.distortionHeight(), left.bytesPerPixel(), 8, false);
+		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(distWidth, distHeight, left.bytesPerPixel(), 8, false);
 		leapDistortionTexture[0] = std::get<0>(t1);
 
 		// Right
-		std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(right.width(), right.height(), right.bytesPerPixel(), 1);
+		std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, right.bytesPerPixel(), 1);
 		leapRawTexture[1] = std::get<0>(t2);
 		
-		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(right.distortionWidth() / 2, right.distortionHeight(), right.bytesPerPixel(), 8, false);
+		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(distWidth, distHeight, right.bytesPerPixel(), 8, false);
 		leapDistortionTexture[1] = std::get<0>(t3);
 
 		// Left PBOs
@@ -104,99 +104,98 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Update global state
 	PerspectiveRenderer::update(s, r, t);
 
-	if (Settings::getInstance().LEAP_USE_PASSTHROUGH && leapController.isConnected()) {
+	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 		Leap::Frame frame = leapController.frame();
-		if (frame.isValid()) {
-			Leap::Image left = leapController.images()[0], right = leapController.images()[1];
+		Leap::Image left = leapController.images()[0], right = leapController.images()[1];
 			
-			// Indices for PBOs
-			static int index = 1;
-			static int nextIndex = 0;
-			index = (index + 1) % 2;
-			nextIndex = (index + 1) % 2;
+		// Indices for PBOs
+		static int index = 1;
+		static int nextIndex = 0;
+		index = (index + 1) % 2;
+		nextIndex = (index + 1) % 2;
 
-			/**
-			* For left and right camera images
-			*
-			* We're using pixel buffer objects to increase performance.
-			* Per texture two PBO are used. On frame n we draw on the n % 2 PBO
-			* and displaz the content of the (n - 1) % 2 PBO. That wat we create from
-			* the synchronous glTexImage/glTexSubImage a pipelined ansync mode.
-			*/
-			for (int i = 0; i < 2; i++) {
-				Leap::Image currentImage = left;
-				if (i == 1)
-					currentImage = right;
+		// Buffer sizes
+		int bufferSizeRaw = 153600;
+		int bufferSizeDistortion = 32768;
 
-				// =======================
-				// DRAW RAW TEXTURE
-				// =======================
+		/**
+		* For left and right camera images
+		*
+		* We're using pixel buffer objects to increase performance.
+		* Per texture two PBO are used. On frame n we draw on the n % 2 PBO
+		* and displaz the content of the (n - 1) % 2 PBO. That wat we create from
+		* the synchronous glTexImage/glTexSubImage a pipelined ansync mode.
+		*/
+		for (int i = 0; i < 2; i++) {
+			Leap::Image &currentImage = left;
+			if (i == 1)
+				currentImage = right;
 
-				// Bind the texture and PBO
-				glBindTexture(GL_TEXTURE_2D, leapRawTexture[i]);
-				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][index][0]);
+			// =======================
+			// DRAW RAW TEXTURE
+			// =======================
 
-				// Copy pixels from PBO to texture object. Use offset instead of ponter.
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, currentImage.width(), currentImage.height(), GL_RED, GL_UNSIGNED_BYTE, 0);
+			// Bind the texture and PBO
+			glBindTexture(GL_TEXTURE_2D, leapRawTexture[i]);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][index][0]);
 
-				// =======================
-				// UPDATE RAW TEXTURE
-				// =======================
+			// Copy pixels from PBO to texture object. Use offset instead of ponter.
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, rawWidth, rawHeight, GL_RED, GL_UNSIGNED_BYTE, 0);
 
-				// Bind PBO to update texture source
-				int bufferSizeRaw = currentImage.width() * currentImage.height() * currentImage.bytesPerPixel();
-				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][0]);
+			// =======================
+			// UPDATE RAW TEXTURE
+			// =======================
 
-				// Note that glMapBufferARB() causes sync issue.
-				// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
-				// until GPU to finish its job. To avoid waiting (idle), you can call
-				// first glBufferDataARB() with NULL pointer before glMapBufferARB().
-				// If you do that, the previous data in PBO will be discarded and
-				// glMapBufferARB() returns a new allocated pointer immediately
-				// even if GPU is still working with the previous data.
-				glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeRaw, 0, GL_STREAM_DRAW);
+			// Bind PBO to update texture source
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][0]);
 
-				// Map the buffer object into client's memory
-				GLubyte* ptr1 = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-				if (ptr1) {
-					memcpy(ptr1, currentImage.data(), bufferSizeRaw); // Update data directly on the mapped buffer
-					glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
-				}
+			// Note that glMapBufferARB() causes sync issue.
+			// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
+			// until GPU to finish its job. To avoid waiting (idle), you can call
+			// first glBufferDataARB() with NULL pointer before glMapBufferARB().
+			// If you do that, the previous data in PBO will be discarded and
+			// glMapBufferARB() returns a new allocated pointer immediately
+			// even if GPU is still working with the previous data.
+			glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeRaw, 0, GL_STREAM_DRAW);
 
-				// =======================
-				// DRAW DISTORTION TEXTURE
-				// =======================
+			// Map the buffer object into client's memory
+			GLubyte* ptr1 = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+			if (ptr1) {
+				memcpy(ptr1, currentImage.data(), bufferSizeRaw); // Update data directly on the mapped buffer
+				glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
+			}
+			// =======================
+			// DRAW DISTORTION TEXTURE
+			// =======================
 
-				// Bbind the texture and PBO
-				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[i]);
-				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][index][1]);
+			// Bbind the texture and PBO
+			glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[i]);
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][index][1]);
 
-				// Copy pixels from PBO to texture object. Use offset instead of ponter.
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, currentImage.distortionWidth() / 2, currentImage.distortionHeight(), GL_RG, GL_FLOAT, 0);
+			// Copy pixels from PBO to texture object. Use offset instead of ponter.
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, distWidth, distHeight, GL_RG, GL_FLOAT, 0);
 
-				// =======================
-				// UPDATE DISTORTION TEXTURE
-				// =======================
+			// =======================
+			// UPDATE DISTORTION TEXTURE
+			// =======================
 
-				// Bind PBO to update texture source
-				int bufferSizeDistortion = (currentImage.distortionWidth() / 2) * currentImage.distortionHeight() * currentImage.bytesPerPixel() * 8;
-				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][1]);
+			// Bind PBO to update texture source
+			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][1]);
 
-				// Note that glMapBufferARB() causes sync issue.
-				// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
-				// until GPU to finish its job. To avoid waiting (idle), you can call
-				// first glBufferDataARB() with NULL pointer before glMapBufferARB().
-				// If you do that, the previous data in PBO will be discarded and
-				// glMapBufferARB() returns a new allocated pointer immediately
-				// even if GPU is still working with the previous data.
-				glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeDistortion, 0, GL_STREAM_DRAW);
+			// Note that glMapBufferARB() causes sync issue.
+			// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
+			// until GPU to finish its job. To avoid waiting (idle), you can call
+			// first glBufferDataARB() with NULL pointer before glMapBufferARB().
+			// If you do that, the previous data in PBO will be discarded and
+			// glMapBufferARB() returns a new allocated pointer immediately
+			// even if GPU is still working with the previous data.
+			glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeDistortion, 0, GL_STREAM_DRAW);
 
-				// Map the buffer object into client's memory
-				GLfloat* ptr2 = (GLfloat*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-				if (ptr2) {
-					memcpy(ptr2, currentImage.distortion(), bufferSizeDistortion); // Ipdate data directly on the mapped buffer
-					glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
-				}
+			// Map the buffer object into client's memory
+			GLfloat* ptr2 = (GLfloat*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+			if (ptr2) {
+				memcpy(ptr2, currentImage.distortion(), bufferSizeDistortion); // Ipdate data directly on the mapped buffer
+				glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
 			}
 		}
 

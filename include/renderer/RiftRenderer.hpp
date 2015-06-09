@@ -122,6 +122,9 @@ protected:
 	std::shared_ptr<GLShader> leapShader; ///< Leap passthrough shader
 	GLuint leapRawTexture[2]; ///< Distorted passthrough textures
 	GLuint leapDistortionTexture[2];///< Passthrough textures
+
+	int rawWidth = 640, rawHeight = 240; ///< Leap texture sizes
+	int distWidth = 64, distHeight = 64; ///< Leap texture sizes
 };
 
 VR_NAMESPACE_END

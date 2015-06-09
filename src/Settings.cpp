@@ -28,7 +28,7 @@ Settings::Settings () :
 	MESH_DRAW					(true),
 	MESH_DIAGONAL				(0.35f),
 	MESH_DRAW_WIREFRAME			(false),
-	MESH_DRAW_BBOX				(true),
+	MESH_DRAW_BBOX				(false),
 	SHOW_HANDS					(true),
 	SHOW_SPHERE					(false),
 	SPHERE_SCALE				(1.5f),
