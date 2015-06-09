@@ -41,8 +41,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		//window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
@@ -155,6 +155,26 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 				static bool disable = false;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().SHOW_SPHERE = disable;
+					disable = !disable;
+				}
+				break;
+			}
+
+			// Show virtual hands or not
+			case GLFW_KEY_H: {
+				static bool disable = false;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().SHOW_HANDS = disable;
+					disable = !disable;
+				}
+				break;
+			}
+
+			// Enable/disable passthrough
+			case GLFW_KEY_P: {
+				static bool disable = false;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().LEAP_USE_PASSTHROUGH = disable;
 					disable = !disable;
 				}
 				break;
