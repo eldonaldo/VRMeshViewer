@@ -66,6 +66,8 @@ public:
 	*/
 	static Vector2f normalize (const Vector3f &v);
 
+	Vector3f projectOnSphere(Vector3f &v, Vector3f &sphereCenter, float sphereRadius);
+
 private:
 
 	Viewer *viewer; ///< Viewer

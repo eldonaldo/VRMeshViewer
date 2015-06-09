@@ -62,7 +62,6 @@ public:
 	bool MESH_DRAW_BBOX;
 	bool SHOW_HANDS;
 	bool SHOW_SPHERE;
-	float SPHERE_SCALE;
 
 	float LEAP_ALPHA_SCALE;
 	float LEAP_TO_WORLD_SCALE_3D;

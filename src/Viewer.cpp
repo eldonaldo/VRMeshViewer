@@ -41,8 +41,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		//window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
