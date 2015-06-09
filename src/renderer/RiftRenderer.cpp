@@ -73,14 +73,14 @@ void RiftRenderer::preProcess () {
 		std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(left.width(), left.height(), left.bytesPerPixel(), 1);
 		leapRawTexture[0] = std::get<0>(t0);
 
-		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(left.distortionWidth() / 2, left.distortionHeight(), left.bytesPerPixel(), 2, false);
+		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(left.distortionWidth() / 2, left.distortionHeight(), left.bytesPerPixel(), 8, false);
 		leapDistortionTexture[0] = std::get<0>(t1);
 
 		// Right
 		std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(right.width(), right.height(), right.bytesPerPixel(), 1);
 		leapRawTexture[1] = std::get<0>(t2);
 		
-		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(right.distortionWidth() / 2, right.distortionHeight(), right.bytesPerPixel(), 2, false);
+		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(right.distortionWidth() / 2, right.distortionHeight(), right.bytesPerPixel(), 8, false);
 		leapDistortionTexture[1] = std::get<0>(t3);
 
 		// Left PBOs
@@ -115,7 +115,14 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 			index = (index + 1) % 2;
 			nextIndex = (index + 1) % 2;
 
-			// For left and right camera images
+			/**
+			* For left and right camera images
+			*
+			* We're using pixel buffer objects to increase performance.
+			* Per texture two PBO are used. On frame n we draw on the n % 2 PBO
+			* and displaz the content of the (n - 1) % 2 PBO. That wat we create from
+			* the synchronous glTexImage/glTexSubImage a pipelined ansync mode.
+			*/
 			for (int i = 0; i < 2; i++) {
 				Leap::Image currentImage = left;
 				if (i == 1)
@@ -137,13 +144,22 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 				// =======================
 
 				// Bind PBO to update texture source
+				int bufferSizeRaw = currentImage.width() * currentImage.height() * currentImage.bytesPerPixel();
 				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][0]);
-				glBufferData(GL_PIXEL_UNPACK_BUFFER, currentImage.width() * currentImage.height() * currentImage.bytesPerPixel(), 0, GL_STREAM_DRAW);
+
+				// Note that glMapBufferARB() causes sync issue.
+				// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
+				// until GPU to finish its job. To avoid waiting (idle), you can call
+				// first glBufferDataARB() with NULL pointer before glMapBufferARB().
+				// If you do that, the previous data in PBO will be discarded and
+				// glMapBufferARB() returns a new allocated pointer immediately
+				// even if GPU is still working with the previous data.
+				glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeRaw, 0, GL_STREAM_DRAW);
 
 				// Map the buffer object into client's memory
 				GLubyte* ptr1 = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 				if (ptr1) {
-					ptr1 = (GLubyte*)currentImage.data(); // Update data directly on the mapped buffer
+					memcpy(ptr1, currentImage.data(), bufferSizeRaw); // Update data directly on the mapped buffer
 					glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
 				}
 
@@ -163,13 +179,22 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 				// =======================
 
 				// Bind PBO to update texture source
+				int bufferSizeDistortion = (currentImage.distortionWidth() / 2) * currentImage.distortionHeight() * currentImage.bytesPerPixel() * 8;
 				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][1]);
-				glBufferData(GL_PIXEL_UNPACK_BUFFER, currentImage.distortionWidth() * currentImage.distortionHeight() * currentImage.bytesPerPixel() * 2, 0, GL_STREAM_DRAW);
+
+				// Note that glMapBufferARB() causes sync issue.
+				// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
+				// until GPU to finish its job. To avoid waiting (idle), you can call
+				// first glBufferDataARB() with NULL pointer before glMapBufferARB().
+				// If you do that, the previous data in PBO will be discarded and
+				// glMapBufferARB() returns a new allocated pointer immediately
+				// even if GPU is still working with the previous data.
+				glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeDistortion, 0, GL_STREAM_DRAW);
 
 				// Map the buffer object into client's memory
 				GLfloat* ptr2 = (GLfloat*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 				if (ptr2) {
-					ptr2 = (GLfloat*)currentImage.distortion(); // Ipdate data directly on the mapped buffer
+					memcpy(ptr2, currentImage.distortion(), bufferSizeDistortion); // Ipdate data directly on the mapped buffer
 					glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
 				}
 			}
@@ -178,38 +203,6 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		// Release PBO buffer
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 	}
-
-
-
-/*
-	// Leap passthrough
-	if (Settings::getInstance().LEAP_USE_PASSTHROUGH && leapController.isConnected()) {
-		Leap::Frame frame = leapController.frame();
-		if (frame.isValid()) {
-			Leap::Image left = leapController.images()[0], right = leapController.images()[1];
-
-			if (left.width() > 0) {
-				// Single channel 8bit map = GL_RED
-				glBindTexture(GL_TEXTURE_2D, leapRawTexture[0]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
-				
-				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
-				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[0]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, left.distortion());
-			}
-			
-			if (right.width() > 0) {
-				// Single channel 8bit map = GL_RED
-				glBindTexture(GL_TEXTURE_2D, leapRawTexture[1]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, right.data());
-				
-				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
-				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[1]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, right.distortion());
-			}
-		}
-	}
-*/
 }
 
 void RiftRenderer::clear (Vector3f background) {

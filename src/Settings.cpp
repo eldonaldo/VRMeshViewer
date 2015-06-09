@@ -30,7 +30,7 @@ Settings::Settings () :
 	MESH_DRAW_WIREFRAME			(false),
 	MESH_DRAW_BBOX				(false),
 	SHOW_HANDS					(true),
-	SHOW_SPHERE					(true),
+	SHOW_SPHERE					(false),
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
 	// PASSTHROUGH

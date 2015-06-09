@@ -150,17 +150,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 				break;
 			}
 
-			// Pull object back
-			case GLFW_KEY_P: {
-				static bool disable = false;
-				if (action == GLFW_PRESS) {
-					__cbref->placeObject(__cbref->getMesh());
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Pull object back
+			// Show sphere or not
 			case GLFW_KEY_S: {
 				static bool disable = false;
 				if (action == GLFW_PRESS) {
@@ -232,7 +222,7 @@ void Viewer::calcAndAppendFPS () {
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
 		glfwSetWindowTitle(window, newTitle.c_str());
-
+		
 		// Reset the FPS frame counter and set the initial time to be now
 		frameCount = 0;
 		t0 = glfwGetTime();
@@ -345,7 +335,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		if (appFPS)
 			calcAndAppendFPS();
 	}
-
+	
 	// Renderer cleapup
 	renderer->cleanUp();
 }
