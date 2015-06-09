@@ -118,6 +118,7 @@ protected:
 	* Leap passthrough
 	*/
 	GLuint leapVAO, leapV_VBO, leapUV_VBO, leapF_VBO; ///< Background cube
+	GLuint leap_PBO[2][2][2]; ///< Pixel buffer objects
 	std::shared_ptr<GLShader> leapShader; ///< Leap passthrough shader
 	GLuint leapRawTexture[2]; ///< Distorted passthrough textures
 	GLuint leapDistortionTexture[2];///< Passthrough textures
