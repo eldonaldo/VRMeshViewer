@@ -36,7 +36,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 	
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
@@ -77,7 +77,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LEQUAL);
 
 #if defined(PLATFORM_APPLE)
@@ -152,7 +152,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 
 			// Show sphere or not
 			case GLFW_KEY_S: {
-				static bool disable = false;
+				static bool disable = true;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().SHOW_SPHERE = disable;
 					disable = !disable;
@@ -282,7 +282,6 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 	leapListener = std::move(l);
 	leapListener->setHands(hands[0], hands[1]);
-	leapController.addListener(*leapListener);
 }
 
 void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
@@ -300,12 +299,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 			leapListener->setSize(width, height, FBWidth, FBHeight);
 	}
 
-	// Share the HMD
-	if (leapListener != nullptr) {
-		leapListener->setHmd(hmd);
-		leapListener->setGestureHandler(gestureHandler);
-	}
-
 	renderer->setController(leapController);
 	renderer->setHmd(hmd); 
 
@@ -320,6 +313,14 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	renderer->updateFBSize(FBWidth, FBHeight);
 	renderer->preProcess();
 
+	// Share the HMD
+	if (leapListener != nullptr) {
+		leapListener->setHmd(hmd);
+		leapListener->setMesh(mesh);
+		leapListener->setGestureHandler(gestureHandler);
+		leapController.addListener(*leapListener);
+	}
+
 	// Print some info
 	std::cout << info() << std::endl;
 
@@ -330,7 +331,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Update arcball
-		//rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+		if (!Settings::getInstance().USE_RIFT)
+			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Bounding sphere
 		renderer->setSphereCenter(sphereCenter);

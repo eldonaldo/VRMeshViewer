@@ -37,7 +37,7 @@ public:
 	/**
 	* @brief Rotate gesture
 	*/
-	virtual void rotate (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]);
+	virtual void rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]);
 
 	/**
 	* @brief Swipe gesture

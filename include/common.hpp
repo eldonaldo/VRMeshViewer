@@ -113,7 +113,8 @@ enum HANDS {
 enum GESTURES {
 	PINCH, //!< PINCH
 	GRAB, //!< GRAB
-	ZOOM //!< ZOOM
+	ZOOM, //!< ZOOM
+	ROTATION //!< ROTATION
 };
 
 /// Gesture states

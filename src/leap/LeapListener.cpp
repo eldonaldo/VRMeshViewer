@@ -11,10 +11,10 @@ LeapListener::LeapListener(bool useRift)
 	// A List of all gestures an their initial state, 0 = right hand, 1 = left hand
 	for (int i = 0; i < 2; i++) {
 		gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
+		gestures[i][GESTURES::ROTATION] = GESTURE_STATES::STOP;
 	}
 
 	gestureZoom = GESTURE_STATES::STOP;
-	gestureRotation = GESTURE_STATES::STOP;
 }
 
 Matrix4f LeapListener::getTransformationMatrix() {
@@ -151,6 +151,10 @@ void LeapListener::onFrame(const Controller &controller) {
 						f.extended = false;
 				}
 
+				for (int i = 0; i < 2; i++)
+					for (auto &g : gestures[i])
+						g.second = GESTURE_STATES::STOP;
+
 				gestureZoom = GESTURE_STATES::STOP;
 			}
 
@@ -212,6 +216,39 @@ void LeapListener::onFrame(const Controller &controller) {
 }
 
 void LeapListener::gesturesStateMachines() {
+	/**
+	* Zoom gesture state machine
+	*/
+	unsigned int extendedCount = 0;
+	for (int i = 0; i < 5; i++) {
+		if ((leftHand->visible && (leftHand->finger[i].extended || (!leftHand->finger[i].extended && leftHand->grabStrength <= 0.6f))) &&
+			(rightHand->visible && (rightHand->finger[i].extended || (!rightHand->finger[i].extended && rightHand->grabStrength <= 0.6f))))
+			extendedCount++;
+	}
+
+	Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
+	float sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+	Vector3f midLeft = (leftHand->palm.position + leftHand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
+	Vector3f midRight = (rightHand->palm.position + rightHand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
+	Vector3f p1 = midLeft - sphereCenter;
+	Vector3f p2 = midRight - sphereCenter;
+	bool p1Inside = powf((p1.x()), 2.f) + powf((p1.y()), 2.f) + powf((p1.z()), 2.f) <= powf((sphereRadius), 2.f);
+	bool p2Inside = powf((p2.x()), 2.f) + powf((p2.y()), 2.f) + powf((p2.z()), 2.f) <= powf((sphereRadius), 2.f);
+	bool insideSphere = p1Inside && p2Inside;
+
+	if (insideSphere && extendedCount == 5 && gestureZoom == GESTURE_STATES::STOP) {
+		gestureHandler->scale(GESTURE_STATES::START, skeletonHands);
+		gestureZoom = GESTURE_STATES::START;
+	}
+	else if (extendedCount == 5 && (gestureZoom == GESTURE_STATES::START || gestureZoom == GESTURE_STATES::UPDATE)) {
+		gestureHandler->scale(GESTURE_STATES::UPDATE, skeletonHands);
+		gestureZoom = GESTURE_STATES::UPDATE;
+	}
+	else if (extendedCount < 5 && gestureZoom == GESTURE_STATES::UPDATE) {
+		gestureHandler->scale(GESTURE_STATES::STOP, skeletonHands);
+		gestureZoom = GESTURE_STATES::STOP;
+	}
+
 	// for both hands
 	for (int i = 0; i < 2; i++) {
 		auto &hand = skeletonHands[i];
@@ -256,31 +293,38 @@ void LeapListener::gesturesStateMachines() {
 			gestures[i][GESTURES::GRAB] = GESTURE_STATES::STOP;
 			gestureHandler->grab(gestures[i][GESTURES::GRAB], (HANDS)i, skeletonHands);
 		}
-	}
-	
-	/**
-	* Zoom  and rotation gesture state machine
-	*
-	* The gestureHandler->rotate internally calls the zoom method.
-	*/
-	unsigned int extendedCount = 0;
-	for (int i = 0; i < 5; i++) {
-		if ((leftHand->visible && (leftHand->finger[i].extended || (!leftHand->finger[i].extended && leftHand->grabStrength <= 0.6f))) &&
-			(rightHand->visible && (rightHand->finger[i].extended || (!rightHand->finger[i].extended && rightHand->grabStrength <= 0.6f))))
-			extendedCount++;
-	}
 
-	if (extendedCount == 5 && gestureRotation == GESTURE_STATES::STOP) {
-		gestureHandler->rotate(GESTURE_STATES::START, skeletonHands);
-		gestureRotation = GESTURE_STATES::START;
-	}
-	else if (extendedCount == 5 && (gestureRotation == GESTURE_STATES::START || gestureRotation == GESTURE_STATES::UPDATE)) {
-		gestureHandler->rotate(GESTURE_STATES::UPDATE, skeletonHands);
-		gestureRotation = GESTURE_STATES::UPDATE;
-	}
-	else if (extendedCount < 5 && gestureRotation == GESTURE_STATES::UPDATE) {
-		gestureHandler->rotate(GESTURE_STATES::STOP, skeletonHands);
-		gestureRotation = GESTURE_STATES::STOP;
+		/**
+		* Rotation gesture state machine
+		*/
+		Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
+		float sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+		Vector3f midPoint = (hand->palm.position + hand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
+		Vector3f p = midPoint - sphereCenter;
+		bool handInsideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
+
+		unsigned int extendedCount = 0;
+		for (int i = 0; i < 5; i++) {
+			if ((hand->visible && (hand->finger[i].extended || (!hand->finger[i].extended && hand->grabStrength <= 0.6f))))
+				extendedCount++;
+		}
+
+		int otherHand = (i + 1) % 2;
+		if (gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP && hand->visible && handInsideSphere && extendedCount == 5 && gestures[i][GESTURES::ROTATION] == GESTURE_STATES::STOP) {
+			// Start
+			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::START;
+			gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
+		}
+		else if (gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP && hand->visible && handInsideSphere && extendedCount == 5 && (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)) {
+			// Update
+			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::UPDATE;
+			gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
+		}
+		else if (gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && (gestureZoom != GESTURE_STATES::STOP || !hand->visible || (handInsideSphere && extendedCount < 5) || (extendedCount == 5 && !handInsideSphere) && gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)) {
+			// Stop
+			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::STOP;
+			gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
+		}
 	}
 }
 
@@ -332,6 +376,10 @@ void LeapListener::setHmd(ovrHmd h) {
 
 void LeapListener::setGestureHandler (std::shared_ptr<GestureHandler> &s) {
 	gestureHandler = s;
+}
+
+void LeapListener::setMesh(std::shared_ptr<Mesh> &m) {
+	mesh = m;
 }
 
 GESTURE_STATES LeapListener::leapToInternState (Leap::Gesture::State &s) {

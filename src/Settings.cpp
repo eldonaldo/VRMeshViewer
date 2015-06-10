@@ -14,7 +14,7 @@ Settings::Settings () :
 
 	// CAMERA, 1.f = 1 Unit = 1 meter
 	USE_RIFT					(true),
-	CAMERA_OFFSET				(0.f, 0.10f, 0.40f),
+	CAMERA_OFFSET				(0.f, 0.20f, 0.40f),
 	CAMERA_LOOK_AT				(0.f, 0.f, 0.f),
 	CAMERA_HEADS_UP				(0.f, 1.f, 0.f),
 
@@ -30,7 +30,7 @@ Settings::Settings () :
 	MESH_DRAW_WIREFRAME			(false),
 	MESH_DRAW_BBOX				(false),
 	SHOW_HANDS					(true),
-	SHOW_SPHERE					(false),
+	SHOW_SPHERE					(true),
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
 	// PASSTHROUGH

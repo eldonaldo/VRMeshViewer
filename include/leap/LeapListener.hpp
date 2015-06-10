@@ -52,6 +52,11 @@ public:
 	void setHmd (ovrHmd h);
 
 	/**
+	* @brief Sets mesh pointer
+	*/
+	void setMesh(std::shared_ptr<Mesh> &m);
+
+	/**
 	 * @brief Sets the gesture handler
 	 */
 	void setGestureHandler (std::shared_ptr<GestureHandler> &s);
@@ -77,8 +82,8 @@ protected:
 	std::shared_ptr<SkeletonHand> skeletonHands[2]; ///< Pointer to the hands above
 	std::map<GESTURES, GESTURE_STATES> gestures[2]; ///< Gesture states (for both hands)
 	GESTURE_STATES gestureZoom; ///< Zoom gesture states, not applicapable to one hand
-	GESTURE_STATES gestureRotation; ///< Rotation gesture states, not applicapable to one hand
 	ovrHmd hmd; ///< The Rift
+	std::shared_ptr<Mesh> mesh;
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
 };
 
