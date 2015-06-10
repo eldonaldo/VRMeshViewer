@@ -134,28 +134,15 @@ void LeapListener::onFrame(const Controller &controller) {
 					currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
 
 					// Bones
-					for (int k = 0; k < 3; k++) {
+					for (int k = 0; k < currentHand->mesh.nrOfJoints; k++) {
+						// Bones
+						Leap::Bone bone = finger.bone(static_cast<Leap::Bone::Type>(k));
+						Vector3f jointPosition = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
+						currentHand->finger[finger.type()].jointPositions[k] = Vector3f(jointPosition.x(), jointPosition.y(), jointPosition.z());
+						currentHand->mesh.joints[i][k].translate(jointPosition.x(), jointPosition.y(), jointPosition.z());
+						currentHand->mesh.joints[i][k].setRotationMatrix(rot);
 
-						// We do not want to draw that awkward bone in the middle of the hand which somehow belongs to the thumb
-						//if (!(finger.type() == Finger::TYPE_THUMB && k == 0)) {
-							Vector3f previousPos;
-							if (finger.type() == Finger::TYPE_THUMB && k == 0)
-								previousPos = currentHand->finger[finger.type()].position;
-							else
-								previousPos = currentHand->finger[i].jointPositions[k - 1];
-
-							Leap::Bone bone = finger.bone(static_cast<Leap::Bone::Type>(k));
-							Vector3f bonePosition = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
-							Vector3f boneCenter = rotation * bone.center().toVector3<Vector3f>() + translation;
-							currentHand->finger[finger.type()].jointPositions[k] = Vector3f(bonePosition.x(), bonePosition.y(), bonePosition.z());
-							currentHand->mesh.joints[i][k].translate(bonePosition.x(), bonePosition.y(), bonePosition.z());
-							currentHand->mesh.joints[i][k].setRotationMatrix(rot);
-
-							Vector3f jcPos = (previousPos - bonePosition) * 0.5f;
-							currentHand->finger[i].jointPositions[k - 1] = boneCenter;
-							currentHand->mesh.jointConnections[i][k].translate(boneCenter.x(), boneCenter.y(), boneCenter.z());
-							currentHand->mesh.jointConnections[i][k].setRotationMatrix(rot);
-						//}
+//						currentHand->finger[i].jointPositions[k] = jointPosition;
 
 //						currentHand->mesh.joints[i * 3 + k] = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
 //						currentHand->mesh.jointConnections[i * 3 + k] = rotation * bone.prevJoint().toVector3<Vector3f>() + translation;

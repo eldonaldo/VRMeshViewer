@@ -66,9 +66,9 @@ public:
 	struct mesh_t {
 		Cube palm; ///< Mesh for the palm
 		Sphere finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
-		Sphere joints[5][3]; ///< Finger joints
-		Line jointConnections[5][3]; ///< Joint connections
-		int nrOfJoints = 3;
+		Sphere joints[5][4]; ///< Finger joints
+		Line jointConnections[5][4]; ///< Joint connections
+		int nrOfJoints = 4;
 	} mesh; ///< Composite mesh
 
 	std::shared_ptr<GLShader> shader; ///< Bounded shader

@@ -35,7 +35,8 @@ void SkeletonHand::upload (std::shared_ptr<GLShader> &s) {
 }
 
 void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
-	mesh.palm.draw(viewMatrix, projectionMatrix);
+	//mesh.palm.draw(viewMatrix, projectionMatrix);
+
 	for (int i = 0; i < 5; i++)
 		mesh.finger[i].draw(viewMatrix, projectionMatrix);
 
@@ -50,10 +51,10 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < mesh.nrOfJoints; j++) {
 			mesh.jointConnections[i][j].releaseBuffers();
-			if (j == 0)
-				mesh.jointConnections[i][j] = Line(finger[i].position, finger[i].jointPositions[j]);
+			if (j == mesh.nrOfJoints - 1)
+				mesh.jointConnections[i][j] = Line(finger[i].jointPositions[j], finger[i].position);
 			else
-				mesh.jointConnections[i][j] = Line(finger[i].jointPositions[j - 1], finger[i].jointPositions[j]);
+				mesh.jointConnections[i][j] = Line(finger[i].jointPositions[j], finger[i].jointPositions[j + 1]);
 
 			mesh.jointConnections[i][j].upload(shader);
 
