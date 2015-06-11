@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "mesh/Mesh.hpp"
 #include "mesh/Cube.hpp"
+#include "mesh/Pin.hpp"
 #include "renderer/Renderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 #include "GLUtil.hpp"
@@ -96,6 +97,11 @@ public:
 	*/
 	std::shared_ptr<Mesh> getMesh ();
 
+	/**
+	* @brief Add an annotation
+	*/
+	void addAnnotation(Vector3f &pos);
+
 protected:
 
 	/**
@@ -133,6 +139,7 @@ protected:
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
+	std::vector<Pin> pinList; ///< List of annotations
 };
 
 VR_NAMESPACE_END

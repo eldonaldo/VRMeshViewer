@@ -102,20 +102,40 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 }
 
 void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]) {
+	auto &h = hands[hand];
+	
+	static Vector3f target(0.f, 0.f, 0.f);
+	static bool found = false;
+
 	switch (state) {
 		case GESTURE_STATES::START: {
-
+			found = false;
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.9f, 0.f);
+			if (!found) {
+				std::shared_ptr<Mesh> mesh = viewer->getMesh();
+				MatrixXf V = mesh->getVertexPositions();
+				for (int i = 0; i < V.cols(); i++) {
+					Vector4f v(V.col(i).x(), V.col(i).y(), V.col(i).z(), 1.f);
+					Vector3f v1 = (mesh->getModelMatrix() * v).head<3>();
+					if ((v1 - h->finger[Finger::Type::TYPE_INDEX].position).norm() <= 0.005f) {
+						Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+						target = v1;
+						found = true;
+						break;
+					}
+				}
+			}
+
 			break;
 		}
 
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
+			found = false;
 			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}

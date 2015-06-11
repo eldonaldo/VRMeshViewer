@@ -374,6 +374,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	renderer->cleanUp();
 }
 
+void Viewer::addAnnotation(Vector3f &pos) {
+	pinList.push_back(Pin(pos));
+}
+
 std::string Viewer::info () {
 	return tfm::format(
 		"Viewer[\n"
