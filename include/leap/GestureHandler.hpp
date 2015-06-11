@@ -40,16 +40,6 @@ public:
 	virtual void rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]);
 
 	/**
-	* @brief Swipe gesture
-	*/
-	virtual void swipe (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::SwipeGesture &swipe);
-
-	/**
-	* @brief Screen tap gesture
-	*/
-	virtual void screenTap (GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::ScreenTapGesture &tap);
-
-	/**
 	* @brief Sets the pointer to the Viewer
 	*/
 	void setViewer (Viewer *v);

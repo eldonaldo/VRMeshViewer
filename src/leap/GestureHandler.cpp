@@ -159,42 +159,6 @@ void GestureHandler::grab(GESTURE_STATES state, HANDS hand, std::shared_ptr<Skel
 	}
 }
 
-void GestureHandler::swipe(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::SwipeGesture &swipe) {
-	switch (state) {
-		case GESTURE_STATES::START: {
-			break;
-		}
-
-		case GESTURE_STATES::UPDATE: {
-			break;
-		}
-
-		case GESTURE_STATES::STOP:
-		case GESTURE_STATES::INVALID:
-		default: {
-			break;
-		}
-	}
-}
-
-void GestureHandler::screenTap(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2], Leap::ScreenTapGesture &tap) {
-	switch (state) {
-		case GESTURE_STATES::START: {
-			break;
-		}
-
-		case GESTURE_STATES::UPDATE: {
-			 break;
-		}
-
-		case GESTURE_STATES::STOP:
-		case GESTURE_STATES::INVALID:
-		default: {
-			break;
-		}
-	}
-}
-
 Vector3f GestureHandler::projectOnSphere(Vector3f &v, Vector3f &sphereCenter, float sphereRadius) {
 	Vector3f r = v - sphereCenter;
 	Vector3f projectedR = (sphereRadius / r.norm()) * r;
