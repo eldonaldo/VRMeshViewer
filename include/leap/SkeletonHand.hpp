@@ -61,14 +61,18 @@ public:
 		Vector3f jointPositions[3]; ///< Finger joint positions
 		bool extended; ///< The finger extended or not?
 	} finger[5];
+	Vector3f handJointPosition; ///< Closing hand
 
 	///< Composite mesh
 	struct mesh_t {
-		Cube palm; ///< Mesh for the palm
+		Sphere palm; ///< Mesh for the palm
 		Sphere finger[5]; ///< Mesh for all five fingers; 0 = Thumb, 4 = Pinky
-		Sphere joints[5][4]; ///< Finger joints
-		Line jointConnections[5][4]; ///< Joint connections
-		int nrOfJoints = 4;
+		Sphere joints[5][3]; ///< Finger joints
+		Sphere handJoint; ///< Closing hand
+		Line jointConnections[5][3]; ///< Joint connections
+		Line handBones[6]; ///< Closing hand bones
+		int nrOfJoints = 3;
+		int nrOfhandBones = 6;
 	} mesh; ///< Composite mesh
 
 	std::shared_ptr<GLShader> shader; ///< Bounded shader

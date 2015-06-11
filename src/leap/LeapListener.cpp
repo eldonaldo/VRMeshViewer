@@ -135,17 +135,20 @@ void LeapListener::onFrame(const Controller &controller) {
 
 					// Bones
 					for (int k = 0; k < currentHand->mesh.nrOfJoints; k++) {
-						// Bones
+						// Joints
 						Leap::Bone bone = finger.bone(static_cast<Leap::Bone::Type>(k));
 						Vector3f jointPosition = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
 						currentHand->finger[finger.type()].jointPositions[k] = Vector3f(jointPosition.x(), jointPosition.y(), jointPosition.z());
 						currentHand->mesh.joints[i][k].translate(jointPosition.x(), jointPosition.y(), jointPosition.z());
 						currentHand->mesh.joints[i][k].setRotationMatrix(rot);
 
-//						currentHand->finger[i].jointPositions[k] = jointPosition;
-
-//						currentHand->mesh.joints[i * 3 + k] = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
-//						currentHand->mesh.jointConnections[i * 3 + k] = rotation * bone.prevJoint().toVector3<Vector3f>() + translation;
+						// Closing joint for metacarpal and proxicarpal
+						if (finger.type() == Finger::Type::TYPE_PINKY && k == 0) {
+							Vector3f handJointPos = rotation * bone.prevJoint().toVector3<Vector3f>() + translation;
+							currentHand->handJointPosition = handJointPos;
+							currentHand->mesh.handJoint.translate(handJointPos.x(), handJointPos.y(), handJointPos.z());
+							currentHand->mesh.handJoint.setRotationMatrix(rot);
+						}
 					}
 				}
 
