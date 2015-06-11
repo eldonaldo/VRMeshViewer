@@ -20,15 +20,13 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 
 	switch (state) {
 		case GESTURE_STATES::START: {
-			BoundingBox3f bbox = mesh->getBoundingBox();
-			diff = bbox.getCenter() - hands[hand]->finger[Finger::Type::TYPE_INDEX].position;
+			diff = mesh->getBoundingBox().getCenter() - hands[hand]->finger[Finger::Type::TYPE_INDEX].position;
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
 			// Compute translation only if middle up to pinky are extended and thumb and index are near to each other (approx. 3cm)
 			if (extended && distance <= threshold) {
-
 				if (!Settings::getInstance().GESTURES_RELATIVE_TRANSLATE)
 					// Translate absolute
 					viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), hands[hand]->finger[Finger::Type::TYPE_INDEX].position);
@@ -43,7 +41,6 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			diff = Vector3f(0.f, 0.f, 0.f);
 			break;
 		}
 	}
@@ -58,20 +55,15 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 	
 	switch (state) {
 		case GESTURE_STATES::START: {
+			Settings::getInstance().SHOW_SPHERE = true;
 			viewer->sphereCenter = mesh->getBoundingBox().getCenter();
 			viewer->sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
-			
-			// Project points on sphere around bbox center
-			midPoint = projectOnSphere(midPoint, viewer->sphereCenter, viewer->sphereRadius);
-
-			lastPos = midPoint;
+			lastPos = projectOnSphere(midPoint, viewer->sphereCenter, viewer->sphereRadius);;
 			incr = Quaternionf::Identity();
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
-
 			// Project points on sphere around bbox center
 			midPoint = projectOnSphere(midPoint, viewer->sphereCenter, viewer->sphereRadius);
 			
@@ -97,8 +89,8 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
-			lastPos = midPoint;
+			Settings::getInstance().SHOW_SPHERE = false;
+			lastPos = projectOnSphere(midPoint, viewer->sphereCenter, viewer->sphereRadius);;
 			quat = (incr * quat).normalized();
 			incr = Quaternionf::Identity();
 			break;

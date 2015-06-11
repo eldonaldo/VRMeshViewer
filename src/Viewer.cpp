@@ -152,9 +152,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 
 			// Show sphere or not
 			case GLFW_KEY_S: {
-				static bool disable = true;
+				static bool disable = false;
 				if (action == GLFW_PRESS) {
-					Settings::getInstance().SHOW_SPHERE = disable;
+					Settings::getInstance().ENABLE_SPHERE = disable;
 					disable = !disable;
 				}
 				break;
@@ -177,6 +177,14 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 					Settings::getInstance().LEAP_USE_PASSTHROUGH = disable;
 					disable = !disable;
 				}
+				break;
+			}
+
+			// Place object to defauls
+			case GLFW_KEY_C: {
+				 __cbref->getTranslateMatrix() = Matrix4f::Identity();
+				 __cbref->getScaleMatrix() = Matrix4f::Identity();
+				 __cbref->getTranslateMatrix() = Matrix4f::Identity();
 				break;
 			}
 		}
@@ -277,6 +285,10 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	}
 
 	m->setVertexPositions(newPos);
+
+	// Bounding sphere
+	sphereCenter = mesh->getBoundingBox().getCenter();
+	sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
 }
 
 void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {

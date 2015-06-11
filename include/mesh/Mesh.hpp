@@ -108,6 +108,9 @@ public:
 
 	/// Scale x, y, z
 	void scale (float x, float y, float z);
+	/// Scale x, y, z
+
+	void scale(Matrix4f mat, float x, float y, float z);
 
 	/// Rotation around roll, pitch and yaw in radiants
 	void rotate (float roll, float pitch, float yaw);

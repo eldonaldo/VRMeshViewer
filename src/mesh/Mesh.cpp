@@ -125,6 +125,10 @@ void Mesh::scale (float x, float y, float z){
 	scaleMat = VR_NS::scale(scaleMat, x, y, z);
 }
 
+void Mesh::scale(Matrix4f mat, float x, float y, float z){
+	scaleMat = VR_NS::scale(mat, x, y, z);
+}
+
 void Mesh::rotate (float roll, float pitch, float yaw) {
 	rotate(roll, Vector3f::UnitX(), pitch, Vector3f::UnitY(), yaw, Vector3f::UnitZ());
 }

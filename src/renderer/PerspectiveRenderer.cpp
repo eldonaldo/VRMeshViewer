@@ -19,12 +19,19 @@ void PerspectiveRenderer::preProcess () {
 	// Upload mesh
 	shader->bind();
 	mesh->upload(shader);
+	sphere.upload(shader);
 
 	// Upload hands
 	if (Settings::getInstance().SHOW_HANDS) {
 		leftHand->upload(shader);
 		rightHand->upload(shader);
 	}
+
+	// Material intensity
+	shader->setUniform("materialColor", materialColor);
+
+	// Create virtual point light
+	shader->setUniform("light.intensity", lightIntensity);
 }
 
 void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
@@ -33,16 +40,20 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setRotationMatrix(r);
 	mesh->setTranslateMatrix(t);
 
-	// Material intensity
-	shader->setUniform("materialColor", materialColor);
+	// Bounding sphere
+	if (Settings::getInstance().SHOW_SPHERE) {
+		sphereCenter = mesh->getBoundingBox().getCenter();
+		sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+
+		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
+		sphere.scale(Matrix4f::Identity(), sphereRadius, sphereRadius, sphereRadius);
+	}
 
 	// Create virtual point light
 	shader->setUniform("light.position", cameraPosition);
-	shader->setUniform("light.intensity", lightIntensity);
 
 	// Default no wireframe and bbox overlay
-	shader->setUniform("wireframe", false);
-	shader->setUniform("bbox", false);
+	shader->setUniform("simpleColor", false);
 }
 
 void PerspectiveRenderer::draw() {
@@ -50,6 +61,7 @@ void PerspectiveRenderer::draw() {
 
 	// Draw the mesh
 	if (Settings::getInstance().MESH_DRAW) {
+		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 		shader->setUniform("alpha", 1.f);
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 	}
@@ -63,44 +75,50 @@ void PerspectiveRenderer::draw() {
 	// Bounding box
 	if (Settings::getInstance().MESH_DRAW_BBOX) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		shader->setUniform("bbox", true);
-	
+		shader->setUniform("simpleColor", true);
+		shader->setUniform("materialColor", Vector3f(1.f, 0.f, 0.f));
+		shader->setUniform("alpha", 1.f);
+
 		BoundingBox3f mbbox = mesh->getBoundingBox();
 		bbox.releaseBuffers();
 		bbox = Cube(mbbox.min, mbbox.max);
 		bbox.upload(shader);
 		bbox.draw(getViewMatrix(), getProjectionMatrix());
 
-		shader->setUniform("bbox", false);
+		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
+		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	// Bounding sphere
-	if (Settings::getInstance().SHOW_SPHERE) {
+	if (Settings::getInstance().SHOW_SPHERE && Settings::getInstance().ENABLE_SPHERE) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		shader->setUniform("bbox", true);
-		
-		sphere.releaseBuffers();
-		sphere = Sphere(sphereRadius, 12, 12);
-		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
-		sphere.upload(shader);
+		shader->setUniform("simpleColor", true);
+		shader->setUniform("materialColor", Vector3f(0.3, 0.3f, 0.3f));
+		shader->setUniform("alpha", 0.3f);
 
 		sphere.draw(getViewMatrix(), getProjectionMatrix());
-		shader->setUniform("bbox", false);
+
+		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	// Draw wireframe overlay for debugging
 	if (Settings::getInstance().MESH_DRAW_WIREFRAME) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		shader->setUniform("wireframe", true);
+		shader->setUniform("simpleColor", true);
+		shader->setUniform("materialColor", Vector3f(0.2f, 0.2f, 0.2f));
+		shader->setUniform("alpha", 1.f);
+
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
-		shader->setUniform("wireframe", false);
+
+		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 	// Draw hands
 	if (Settings::getInstance().SHOW_HANDS) {
+		shader->setUniform("materialColor", Vector3f(0.8f, 0.8f, 0.8f));
 		shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
 		leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
 
@@ -110,7 +128,7 @@ void PerspectiveRenderer::draw() {
 }
 
 void PerspectiveRenderer::cleanUp () {
-
+	
 }
 
 VR_NAMESPACE_END

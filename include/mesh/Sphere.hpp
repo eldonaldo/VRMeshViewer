@@ -15,7 +15,7 @@ public:
 	Sphere();
 	Sphere(float radius, unsigned int rings, unsigned int sectors);
 	virtual ~Sphere() = default;
-	
+	float radius;
 };
 
 VR_NAMESPACE_END
