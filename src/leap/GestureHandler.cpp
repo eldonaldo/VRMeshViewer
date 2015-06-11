@@ -100,6 +100,28 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		}
 	}
 }
+
+void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]) {
+	switch (state) {
+		case GESTURE_STATES::START: {
+
+			break;
+		}
+
+		case GESTURE_STATES::UPDATE: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.9f, 0.f);
+			break;
+		}
+
+		case GESTURE_STATES::STOP:
+		case GESTURE_STATES::INVALID:
+		default: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			break;
+		}
+	}
+}
+
 void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	auto &right = hands[0], &left = hands[1];
 	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
