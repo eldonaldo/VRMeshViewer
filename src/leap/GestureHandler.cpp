@@ -53,26 +53,29 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 	// Calculate sphere
 	Vector3f midPoint = (hands[hand]->palm.position + hands[hand]->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	
+	static Vector3f center(0.f, 0.f, 0.f);
+	static float radius = 0.f;
+
 	switch (state) {
 		case GESTURE_STATES::START: {
 			Settings::getInstance().SHOW_SPHERE = true;
-			viewer->sphereCenter = mesh->getBoundingBox().getCenter();
-			viewer->sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
-			lastPos = projectOnSphere(midPoint, viewer->sphereCenter, viewer->sphereRadius);;
+			center = mesh->getBoundingBox().getCenter();
+			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+			lastPos = projectOnSphere(midPoint, center, radius);
 			incr = Quaternionf::Identity();
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
 			// Project points on sphere around bbox center
-			midPoint = projectOnSphere(midPoint, viewer->sphereCenter, viewer->sphereRadius);
+			midPoint = projectOnSphere(midPoint, center, radius);
 			
 			// Rotation axis and angle
 			Vector3f axis = lastPos.cross(midPoint);
 			float sa = std::sqrt(axis.dot(axis));
 			float ca = lastPos.dot(midPoint);
 			float angle = std::atan2(sa, ca);
-
+			
 			// Compute rotation using quats
 			incr = Eigen::AngleAxisf(angle, axis.normalized());
 			if (!std::isfinite(incr.norm()))
@@ -90,7 +93,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::INVALID:
 		default: {
 			Settings::getInstance().SHOW_SPHERE = false;
-			lastPos = projectOnSphere(midPoint, viewer->sphereCenter, viewer->sphereRadius);;
+			lastPos = projectOnSphere(midPoint, center, radius);
 			quat = (incr * quat).normalized();
 			incr = Quaternionf::Identity();
 			break;
@@ -195,7 +198,7 @@ void GestureHandler::screenTap(GESTURE_STATES state, std::shared_ptr<SkeletonHan
 Vector3f GestureHandler::projectOnSphere(Vector3f &v, Vector3f &sphereCenter, float sphereRadius) {
 	Vector3f r = v - sphereCenter;
 	Vector3f projectedR = (sphereRadius / r.norm()) * r;
-	return projectedR + sphereCenter;
+	return projectedR;
 }
 
 Vector2f GestureHandler::normalize(const Vector3f &v) {
