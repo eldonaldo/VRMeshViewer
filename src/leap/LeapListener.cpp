@@ -125,8 +125,8 @@ void LeapListener::onFrame(const Controller &controller) {
 
 					// For all fingers
 					const FingerList fingers = hand.fingers();
-					for (FingerList::const_iterator fl = fingers.begin(); fl != fingers.end(); ++fl) {
-						const Finger finger = *fl;
+					for (int i = 0; i < 5; i++) {
+						const Finger &finger = hand.fingers()[i];
 
 						// Finger tip world position
 						Vector3f tip = rotation * finger.tipPosition().toVector3<Vector3f>() + translation;
@@ -138,6 +138,24 @@ void LeapListener::onFrame(const Controller &controller) {
 						// Transform
 						currentHand->mesh.finger[finger.type()].translate(tip.x(), tip.y(), tip.z());
 						currentHand->mesh.finger[finger.type()].setRotationMatrix(rot);
+
+						// Bones
+						for (int k = 0; k < currentHand->mesh.nrOfJoints; k++) {
+							// Joints
+							Leap::Bone bone = finger.bone(static_cast<Leap::Bone::Type>(k));
+							Vector3f jointPosition = rotation * bone.nextJoint().toVector3<Vector3f>() + translation;
+							currentHand->finger[finger.type()].jointPositions[k] = Vector3f(jointPosition.x(), jointPosition.y(), jointPosition.z());
+							currentHand->mesh.joints[i][k].translate(jointPosition.x(), jointPosition.y(), jointPosition.z());
+							currentHand->mesh.joints[i][k].setRotationMatrix(rot);
+
+							// Closing joint for metacarpal and proxicarpal
+							if (finger.type() == Finger::Type::TYPE_PINKY && k == 0) {
+								Vector3f handJointPos = rotation * bone.prevJoint().toVector3<Vector3f>() + translation;
+								currentHand->handJointPosition = handJointPos;
+								currentHand->mesh.handJoint.translate(handJointPos.x(), handJointPos.y(), handJointPos.z());
+								currentHand->mesh.handJoint.setRotationMatrix(rot);
+							}
+						}
 					}
 				}
 			}
@@ -304,8 +322,8 @@ void LeapListener::gesturesStateMachines() {
 		bool handInsideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
 
 		unsigned int extendedCount = 0;
-		for (int i = 0; i < 5; i++) {
-			if ((hand->visible && (hand->finger[i].extended || (!hand->finger[i].extended && hand->grabStrength <= 0.6f))))
+		for (int j = 0; j < 5; j++) {
+			if ((hand->visible && (hand->finger[j].extended || (!hand->finger[j].extended && hand->grabStrength <= 0.6f))))
 				extendedCount++;
 		}
 

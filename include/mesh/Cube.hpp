@@ -1,7 +1,8 @@
 #pragma once
 
 #include "common.hpp"
-#include "mesh/Mesh.hpp"
+#include <sstream>
+#include "WavefrontObj.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -9,7 +10,7 @@ VR_NAMESPACE_BEGIN
  * \brief Cube
  *
  */
-class Cube : public Mesh {
+class Cube : public WavefrontOBJ {
 public:
 	
 	Cube();

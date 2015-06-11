@@ -6,55 +6,50 @@ Cube::Cube() : Cube(Vector3f(-1.f, -1.f, -1.f), Vector3f(1.f, 1.f, 1.f)) {
 
 }
 
-Cube::Cube(Vector3f min, Vector3f max) : Mesh() {
-	// Face normals
-	Vector3f A(0.f, -1.f, 0.f);
-	Vector3f B(1.f, 0.f, 0.f);
-	Vector3f C(0.f, 1.f, 0.f);
-	Vector3f D(-1.f, 0.f, 0.f);
-	Vector3f E(0.f, 0.f, 1.f);
-	Vector3f F1(0.f, 0.f, -1.f);
+Cube::Cube(Vector3f min, Vector3f max) {
+	std::string v =
+	"v " + std::to_string(max.x()) + " " + std::to_string(min.y()) + " " + std::to_string(min.z()) + "\n" +
+	"v " + std::to_string(max.x()) + " " + std::to_string(min.y()) + " " + std::to_string(max.z()) + "\n" +
+	"v " + std::to_string(min.x()) + " " + std::to_string(min.y()) + " " + std::to_string(max.z()) + "\n" +
+	"v " + std::to_string(min.x()) + " " + std::to_string(min.y()) + " " + std::to_string(min.z()) + "\n" +
+	"v " + std::to_string(max.x()) + " " + std::to_string(max.y()) + " " + std::to_string(min.z()) + "\n" +
+	"v " + std::to_string(max.x()) + " " + std::to_string(max.y()) + " " + std::to_string(max.z()) + "\n" +
+	"v " + std::to_string(min.x()) + " " + std::to_string(max.y()) + " " + std::to_string(max.z()) + "\n" +
+	"v " + std::to_string(min.x()) + " " + std::to_string(max.y()) + " " + std::to_string(min.z()) + "\n" +
 
-	// Vertices
-	MatrixXf V(3, 8);
-	V.col(0) = Vector3f(min.x(), min.y(), min.z());
-	V.col(1) = Vector3f(min.x(), min.y(), max.z());
-	V.col(2) = Vector3f(max.x(), min.y(), max.z());
-	V.col(3) = Vector3f(max.x(), min.y(), min.z());
-	V.col(4) = Vector3f(max.x(), max.y(), max.z());
-	V.col(5) = Vector3f(max.x(), max.y(), min.z());
-	V.col(6) = Vector3f(min.x(), max.y(), min.z());
-	V.col(7) = Vector3f(min.x(), max.y(), max.z());
+	"v 1.000000 -1.000000 -1.000000" + "\n" +
+	"v 1.000000 -1.000000 1.000000" + "\n" +
+	"v -1.000000 -1.000000 1.000000" + "\n" +
+	"v -1.000000 -1.000000 -1.000000" + "\n" +
+	"v 1.000000 1.000000 -1.000000" + "\n" +
+	"v 0.999999 1.000000 1.000001" + "\n" +
+	"v -1.000000 1.000000 1.000000" + "\n" +
+	"v -1.000000 1.000000 -1.000000" + "\n" +
 
-	// Vertix normals
-	MatrixXf N(3, 8);
-	N.col(0) = A + D + F1;
-	N.col(1) = A + E + D;
-	N.col(2) = A + E + B;
-	N.col(3) = A + B + F1;
-	N.col(4) = B + E + C;
-	N.col(5) = B + F1 + C;
-	N.col(6) = F1 + D + C;
-	N.col(7) = D + E + C;
+	"vn 0.000000 0.000000 -1.000000" + "\n" +
+	"vn -1.000000 -0.000000 -0.000000" + "\n" +
+	"vn -0.000000 -0.000000 1.000000" + "\n" +
+	"vn -0.000001 0.000000 1.000000" + "\n" +
+	"vn 1.000000 -0.000000 0.000000" + "\n" +
+	"vn 1.000000 0.000000 0.000001" + "\n" +
+	"vn 0.000000 1.000000 -0.000000" + "\n" +
+	"vn -0.000000 -1.000000 0.000000" + "\n" +
 
-	// Faces
-	MatrixXu F(3, 12);
-	F.col(0) = Vector3ui(0, 1, 7);
-	F.col(1) = Vector3ui(0, 7, 6);
-	F.col(2) = Vector3ui(0, 1, 2);
-	F.col(3) = Vector3ui(0, 2, 3);
-	F.col(4) = Vector3ui(2, 3, 4);
-	F.col(5) = Vector3ui(3, 4, 5);
-	F.col(6) = Vector3ui(4, 6, 7);
-	F.col(7) = Vector3ui(4, 5, 6);
-	F.col(8) = Vector3ui(1, 2, 4);
-	F.col(9) = Vector3ui(1, 4, 7);
-	F.col(10) = Vector3ui(0, 3, 6);
-	F.col(11) = Vector3ui(3, 5, 6);
-	
-	m_F = F;
-	m_N = N;
-	m_V = V;
+	"f 5//1 1//1 4//1" + "\n" +
+	"f 5//1 4//1 8//1" + "\n" +
+	"f 3//2 7//2 8//2" + "\n" +
+	"f 3//2 8//2 4//2" + "\n" +
+	"f 2//3 6//3 3//3" + "\n" +
+	"f 6//4 7//4 3//4" + "\n" +
+	"f 1//5 5//5 2//5" + "\n" +
+	"f 5//6 6//6 2//6" + "\n" +
+	"f 5//7 8//7 6//7" + "\n" +
+	"f 8//7 7//7 6//7" + "\n" +
+	"f 1//8 2//8 3//8" + "\n" +
+	"f 1//8 3//8 4//8" + "\n";
+
+	std::istringstream is(v);
+	loadFromString(is);
 }
 
 VR_NAMESPACE_END

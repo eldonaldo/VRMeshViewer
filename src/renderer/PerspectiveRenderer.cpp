@@ -54,6 +54,7 @@ void PerspectiveRenderer::draw() {
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 	}
 
+
 	/**
 	 * I know this is far from optimal but since the bbox is only
 	 * for debugging purposes i upload the data every draw because
@@ -68,8 +69,8 @@ void PerspectiveRenderer::draw() {
 		bbox.releaseBuffers();
 		bbox = Cube(mbbox.min, mbbox.max);
 		bbox.upload(shader);
-
 		bbox.draw(getViewMatrix(), getProjectionMatrix());
+
 		shader->setUniform("bbox", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
