@@ -41,9 +41,9 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setTranslateMatrix(t);
 
 	// Update pins
-	if (pinList.size() >= 0)
+	if (!pinList.empty())
 		for (auto &p : pinList)
-			p.translate(p.getPosition().x(), p.getPosition().y(), p.getPosition().z());
+			p->translate(p->getPosition().x(), p->getPosition().y(), p->getPosition().z());
 
 	// Bounding sphere
 	if (Settings::getInstance().SHOW_SPHERE) {
@@ -72,11 +72,11 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Draw annotations
-	if (pinList.size() >= 0) {
+	if (!pinList.empty()) {
 		shader->setUniform("materialColor", Vector3f(0.8f, 0.f, 0.f));
 		shader->setUniform("alpha", 1.f);
 		for (auto &p : pinList)
-			p.draw(getViewMatrix(), getProjectionMatrix());
+			p->draw(getViewMatrix(), getProjectionMatrix());
 	}
 
 	/**

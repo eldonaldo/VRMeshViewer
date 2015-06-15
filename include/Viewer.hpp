@@ -139,7 +139,7 @@ protected:
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
-	std::vector<Pin> pinList; ///< List of annotations
+	std::vector<std::shared_ptr<Pin>> pinList; ///< List of annotations
 };
 
 VR_NAMESPACE_END

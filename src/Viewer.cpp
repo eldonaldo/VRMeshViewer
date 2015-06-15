@@ -375,7 +375,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 }
 
 void Viewer::addAnnotation(Vector3f &pos) {
-	Pin pin(pos);
+	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos);
 	pinList.push_back(pin);
 	renderer->uploadAnnotation(pin);
 }

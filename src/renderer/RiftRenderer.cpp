@@ -200,7 +200,7 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		}
 
 		// Release PBO buffer
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}
 }
 

@@ -30,7 +30,7 @@ public:
 	 */
 	Renderer (std::shared_ptr<GLShader> &s)
 		: shader(s), FBWidth(0), FBHeight(0), window(nullptr), viewMatrix(Matrix4f::Identity())
-		, projectionMatrix(Matrix4f::Identity()), hmd(nullptr), showHands(true), pinPipelined(Vector3f(0.f, 0.f, 00.f)) {
+		, projectionMatrix(Matrix4f::Identity()), hmd(nullptr), showHands(true) {
 
 	};
 
@@ -55,10 +55,7 @@ public:
 	/**
 	 * @brief Allows the renderer to do some processing before the render loop is entered.
 	 */
-	virtual void preProcess () {
-		shader->bind();
-		pinPipelined.upload(shader);
-	}
+	virtual void preProcess () {}
 
 	/**
 	 * @brief Updates the state
@@ -200,11 +197,9 @@ public:
 	/*
 	* Upload a pin to the graphics card
 	*/
-	void uploadAnnotation(Pin &p) {
-		pinList.push_back(pinPipelined);
-
-		pinPipelined = p;
-		pinPipelined.upload(shader);
+	void uploadAnnotation(std::shared_ptr<Pin> &p) {
+		p->upload(shader);
+		pinList.push_back(p);
 	}
 
 protected:
@@ -221,8 +216,7 @@ protected:
 	Sphere sphere; ///< Bounding hand sphere
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
-	Pin pinPipelined; ///< Pipelined pin for upload
-	std::vector<Pin> pinList; ///< List of pins
+	std::vector<std::shared_ptr<Pin>> pinList; ///< List of pins
 
 private:
 

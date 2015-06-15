@@ -13,7 +13,7 @@ Settings::Settings () :
 	Z_FAR						(100.f),
 
 	// CAMERA, 1.f = 1 Unit = 1 meter
-	USE_RIFT					(true),
+	USE_RIFT					(false),
 	CAMERA_OFFSET				(0.f, 0.20f, 0.40f),
 	CAMERA_LOOK_AT				(0.f, 0.f, 0.f),
 	CAMERA_HEADS_UP				(0.f, 1.f, 0.f),
@@ -30,7 +30,7 @@ Settings::Settings () :
 	MESH_DRAW_WIREFRAME			(false),
 	MESH_DRAW_BBOX				(false),
 	SHOW_HANDS					(true),
-	SHOW_SPHERE					(true),
+	SHOW_SPHERE					(false),
 	ENABLE_SPHERE				(true),
 
 	// LEAP, 1.f = 1 Unit = 1 milimeter
@@ -43,11 +43,7 @@ Settings::Settings () :
 	// GESTURES
 	GESTURES_PINCH_THRESHOLD	(1.f),
 	GESTURES_GRAB_THRESHOLD		(1.f),
-	GESTURES_RELATIVE_TRANSLATE	(true),
-
-	// No HMD
-	LEAP_TO_WORLD_SCALE_3D		(0.05f),
-	LEAP_TO_WORLD_ORIGIN		(0.f, -300.f, 0.f)
+	GESTURES_RELATIVE_TRANSLATE	(true)
 {}
 
 VR_NAMESPACE_END
