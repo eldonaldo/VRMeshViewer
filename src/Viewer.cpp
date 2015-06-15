@@ -246,7 +246,7 @@ void Viewer::calcAndAppendFPS () {
 	if ((currentTime - t0) > interval) {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
-		cout << fps << endl;
+
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
 		glfwSetWindowTitle(window, newTitle.c_str());
