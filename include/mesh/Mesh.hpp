@@ -86,7 +86,7 @@ public:
 	Matrix3f getNormalMatrix();
 
 	/// Upload the mesh (positions, normals, indices and uv) to the shader
-	void upload(std::shared_ptr<GLShader> &s);
+	virtual void upload(std::shared_ptr<GLShader> &s);
 
 	/// Draw to the currently bounded shader
 	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
@@ -140,6 +140,7 @@ protected:
 	std::string glNormalName;
 	std::string glTexName;
 	std::shared_ptr<GLShader> shader;
+	bool buffersAllocated;
 };
 
 VR_NAMESPACE_END

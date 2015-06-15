@@ -7,7 +7,7 @@ SkeletonHand::SkeletonHand (bool _isRight)
 
 	palm.position = Vector3f(0.f, 0.f, 1000.f);
 
-	mesh.palm.scale(0.03f, 0.03f, 0.03f);
+	mesh.palm.scale(0.025f, 0.025f, 0.025f);
 	mesh.palm.translate(0.f, 0.f, 1000.f);
 	
 	for (int i = 0; i < 5; i++) {
@@ -49,7 +49,7 @@ void SkeletonHand::upload (std::shared_ptr<GLShader> &s) {
 void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	using namespace Leap;
 
-	//mesh.palm.draw(viewMatrix, projectionMatrix);
+	mesh.palm.draw(viewMatrix, projectionMatrix);
 	mesh.handJoint.draw(viewMatrix, projectionMatrix);
 
 	for (int i = 0; i < 5; i++)
@@ -65,7 +65,6 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	 */
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < mesh.nrOfJoints; j++) {
-			mesh.jointConnections[i][j].releaseBuffers();
 			if (j == mesh.nrOfJoints - 1)
 				mesh.jointConnections[i][j] = Line(finger[i].jointPositions[j], finger[i].position);
 			else
@@ -77,10 +76,7 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 		}
 	}
 
-	// Close proximal and metacarpal
-	for (int i = 0; i < mesh.nrOfhandBones; i++)
-		mesh.handBones[i].releaseBuffers();
-
+	//// Close proximal and metacarpal
 	mesh.handBones[0] = Line(finger[Finger::Type::TYPE_THUMB].jointPositions[1], finger[Finger::Type::TYPE_INDEX].jointPositions[0]);
 	mesh.handBones[1] = Line(finger[Finger::Type::TYPE_INDEX].jointPositions[0], finger[Finger::Type::TYPE_MIDDLE].jointPositions[0]);
 	mesh.handBones[2] = Line(finger[Finger::Type::TYPE_MIDDLE].jointPositions[0], finger[Finger::Type::TYPE_RING].jointPositions[0]);

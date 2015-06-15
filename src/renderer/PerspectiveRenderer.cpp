@@ -80,7 +80,6 @@ void PerspectiveRenderer::draw() {
 		shader->setUniform("alpha", 1.f);
 
 		BoundingBox3f mbbox = mesh->getBoundingBox();
-		bbox.releaseBuffers();
 		bbox = Cube(mbbox.min, mbbox.max);
 		bbox.upload(shader);
 		bbox.draw(getViewMatrix(), getProjectionMatrix());

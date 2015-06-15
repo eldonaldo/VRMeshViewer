@@ -63,24 +63,21 @@ void RiftRenderer::preProcess () {
 		if (!leapController.isConnected())
 			throw VRException("Passthrough enabled but Leap not connected");
 
-		Leap::Frame frame = leapController.frame();
-		Leap::Image left = leapController.images()[0], right = leapController.images()[1];
-
 		leapShader->bind();
 
 		// Leap image textures
 		// Left
-		std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, left.bytesPerPixel(), 1);
+		std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
 		leapRawTexture[0] = std::get<0>(t0);
 
-		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(distWidth, distHeight, left.bytesPerPixel(), 8, false);
+		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
 		leapDistortionTexture[0] = std::get<0>(t1);
 
 		// Right
-		std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, right.bytesPerPixel(), 1);
+		std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
 		leapRawTexture[1] = std::get<0>(t2);
 		
-		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(distWidth, distHeight, right.bytesPerPixel(), 8, false);
+		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
 		leapDistortionTexture[1] = std::get<0>(t3);
 
 		// Left PBOs
@@ -105,8 +102,10 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	PerspectiveRenderer::update(s, r, t);
 
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
-		Leap::Frame frame = leapController.frame();
-		Leap::Image left = leapController.images()[0], right = leapController.images()[1];
+		if (Settings::getInstance().LEAP_USE_LISTENER)
+			frame = leapController.frame();
+
+		Leap::Image left = frame.images()[0], right = frame.images()[1];
 			
 		// Indices for PBOs
 		static int index = 1;

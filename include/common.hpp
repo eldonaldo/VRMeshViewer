@@ -44,7 +44,7 @@
 	#undef PATH_SEPARATOR
 	#define PATH_SEPARATOR "\\"
 	#pragma warning(disable : 4244)
-	#define _GLFW_USE_DWM_SWAP_INTERVAL 1
+	#define _GLFW_USE_DWM_SWAP_INTERVAL 0
 	#define NOMINMAX
 	#include <windows.h>
     #define GLEW_STATIC

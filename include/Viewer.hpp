@@ -133,6 +133,7 @@ protected:
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
+	Leap::Frame frame; ///< Leap Frame
 };
 
 VR_NAMESPACE_END

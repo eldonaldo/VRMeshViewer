@@ -16,6 +16,7 @@ public:
 	Line(Vector3f a, Vector3f b);
 	virtual ~Line() = default;
 	
+	void upload(std::shared_ptr<GLShader> &s);
 	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 
 };

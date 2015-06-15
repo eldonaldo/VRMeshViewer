@@ -39,6 +39,7 @@ Settings::Settings () :
 	LEAP_ALPHA_SCALE			(0.7f),
 	LEAP_CAMERA_SHIFT_X			(0.006f),
 	LEAP_CAMERA_SHIFT_Z			(-0.08f),
+	LEAP_USE_LISTENER			(false),
 
 	// GESTURES
 	GESTURES_PINCH_THRESHOLD	(1.f),

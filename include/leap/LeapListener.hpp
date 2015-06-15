@@ -27,6 +27,7 @@ public:
 	virtual void onDisconnect (const Leap::Controller &controller);
 	virtual void onExit(const Leap::Controller &controller);
 	virtual void onFrame (const Leap::Controller &controller);
+	virtual void onDirectFrame(const Leap::Frame &frame);
 	virtual void onServiceConnect (const Leap::Controller &controller);
 	virtual void onServiceDisconnect (const Leap::Controller &controller);
 	virtual void onDeviceChange (const Leap::Controller &controller);
@@ -35,11 +36,6 @@ public:
 	* @brief Recognizes gestures
 	*/
 	void gesturesStateMachines();
-
-	/**
-	 * @brief Updates the window and framebuffer sizes
-	 */
-	void setSize (float windowWidth, float windowHeight, float FBWidth, float FBHeight);
 
 	/**
 	 * @brief Set the leap hands

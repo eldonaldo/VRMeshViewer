@@ -63,11 +63,9 @@ Matrix4f LeapListener::getTransformationMatrix() {
 	return T;
 }
 
-void LeapListener::onFrame(const Controller &controller) {
+void LeapListener::onDirectFrame(const Frame &frame) {
 	if (leftHand == nullptr || rightHand == nullptr)
 		VRException("Leap hands not set! Call 'leapListener->setHands(hands[0], hands[1])'s");
-
-	const Frame frame = controller.frame();
 
 	// Get Rotation and translation matrix
 	const Matrix4f worldTransform = getTransformationMatrix();
@@ -167,8 +165,8 @@ void LeapListener::onFrame(const Controller &controller) {
 			}
 
 			for (int i = 0; i < 2; i++)
-				for (auto &g : gestures[i])
-					g.second = GESTURE_STATES::STOP;
+			for (auto &g : gestures[i])
+				g.second = GESTURE_STATES::STOP;
 
 			gestureZoom = GESTURE_STATES::STOP;
 		}
@@ -196,6 +194,11 @@ void LeapListener::onFrame(const Controller &controller) {
 
 	// Process own built gesture state machines
 	gesturesStateMachines();
+}
+
+void LeapListener::onFrame(const Controller &controller) {
+	const Frame frame = controller.frame();
+	onDirectFrame(frame);
 }
 
 void LeapListener::gesturesStateMachines() {
@@ -353,11 +356,6 @@ void LeapListener::onExit(const Leap::Controller &controller) {
 
 void LeapListener::onDeviceChange (const Leap::Controller &controller) {
 
-}
-
-void LeapListener::setSize (float windowWidth, float windowHeight, float FBWidth, float FBHeight) {
-	this->windowHeight = windowWidth; this->windowHeight = windowHeight;
-	this->FBWidth = FBWidth; this->FBHeight = FBHeight;
 }
 
 void LeapListener::setHands (std::shared_ptr<SkeletonHand> &l, std::shared_ptr<SkeletonHand> &r) {

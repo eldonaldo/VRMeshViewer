@@ -36,13 +36,13 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_SAMPLES, 4);
 	
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		//window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
@@ -77,7 +77,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 	//glDepthFunc(GL_LEQUAL);
 
 #if defined(PLATFORM_APPLE)
@@ -246,7 +246,7 @@ void Viewer::calcAndAppendFPS () {
 	if ((currentTime - t0) > interval) {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
-
+		cout << fps << endl;
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
 		glfwSetWindowTitle(window, newTitle.c_str());
@@ -307,8 +307,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glfwSetWindowSize(window, width, height);
 		glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
 		glViewport(0, 0, width, height);
-		if (leapListener != nullptr)
-			leapListener->setSize(width, height, FBWidth, FBHeight);
 	}
 
 	renderer->setController(leapController);
@@ -330,7 +328,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		leapListener->setHmd(hmd);
 		leapListener->setMesh(mesh);
 		leapListener->setGestureHandler(gestureHandler);
-		leapController.addListener(*leapListener);
+		if (Settings::getInstance().LEAP_USE_LISTENER)
+			leapController.addListener(*leapListener);
 	}
 
 	// Print some info
@@ -341,6 +340,13 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	while (!glfwWindowShouldClose(window)) {
 		// Bind "the" framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		// Get a new leap frame if no listener is used
+		if (!Settings::getInstance().LEAP_USE_LISTENER) {
+			frame = leapController.frame();
+			renderer->setFrame(frame);
+			leapListener->onDirectFrame(frame);
+		}
 
 		// Update arcball
 		if (!Settings::getInstance().USE_RIFT)

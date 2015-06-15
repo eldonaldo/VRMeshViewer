@@ -196,6 +196,13 @@ public:
 		sphereCenter = c;
 	}
 
+	/**
+	* @brief Sets leap frame
+	*/
+	void setFrame(Leap::Frame &f) {
+		frame = f;
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
@@ -210,6 +217,7 @@ protected:
 	Sphere sphere; ///< Bounding hand sphere
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
+	Leap::Frame frame; ///< Leap motion frame
 
 private:
 
