@@ -140,7 +140,6 @@ protected:
 	std::string glNormalName;
 	std::string glTexName;
 	std::shared_ptr<GLShader> shader;
-	bool buffersAllocated;
 };
 
 VR_NAMESPACE_END

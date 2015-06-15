@@ -13,12 +13,15 @@ class Line : public Mesh {
 public:
 	
 	Line();
-	Line(Vector3f a, Vector3f b);
+	Line(Vector3f &a, Vector3f &b);
 	virtual ~Line() = default;
 	
-	void upload(std::shared_ptr<GLShader> &s);
+	void update (Vector3f &a, Vector3f &b);
+	virtual void upload(std::shared_ptr<GLShader> &s);
 	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 
+protected:
+	bool buffersAllocated;
 };
 
 VR_NAMESPACE_END

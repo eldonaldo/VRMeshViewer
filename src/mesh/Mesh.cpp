@@ -12,7 +12,6 @@ Mesh::Mesh()
 	vbo[NORMAL_BUFFER] = 0;
 	vbo[INDEX_BUFFER] = 0;
 	vao = 0;
-	buffersAllocated = false;
 }
 
 Mesh::~Mesh () {
@@ -67,58 +66,46 @@ void Mesh::upload(std::shared_ptr<GLShader> &s) {
 	shader = s;
 
 	// VAO
-	if (!buffersAllocated)
-		glGenVertexArrays(1, &vao);
+	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
 	// Positions
-	if (!buffersAllocated)
-		glGenBuffers(1, &vbo[VERTEX_BUFFER]);
+	glGenBuffers(1, &vbo[VERTEX_BUFFER]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[VERTEX_BUFFER]);
 	glBufferData(GL_ARRAY_BUFFER, 3 * m_V.cols() * sizeof(GLfloat), (const uint8_t *)m_V.data(), GL_DYNAMIC_DRAW);
-	if (!buffersAllocated) {
-		GLuint pp = glGetAttribLocation(s->getId(), glPositionName.c_str());
-		glVertexAttribPointer(pp, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(pp);
-	}
+	GLuint pp = glGetAttribLocation(s->getId(), glPositionName.c_str());
+	glVertexAttribPointer(pp, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(pp);
+	
 
 	// UV
 	if (m_UV.cols() > 0) {
-		if (!buffersAllocated)
-			glGenBuffers(1, &vbo[TEXCOORD_BUFFER]);
+		glGenBuffers(1, &vbo[TEXCOORD_BUFFER]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[TEXCOORD_BUFFER]);
 		glBufferData(GL_ARRAY_BUFFER, 2 * m_V.cols() * sizeof(GLfloat), (const uint8_t *)m_UV.data(), GL_DYNAMIC_DRAW);
-		if (!buffersAllocated) {
-			GLuint uvp = glGetAttribLocation(s->getId(), glTexName.c_str());
-			glVertexAttribPointer(uvp, 2, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(uvp);
-		}
+		GLuint uvp = glGetAttribLocation(s->getId(), glTexName.c_str());
+		glVertexAttribPointer(uvp, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(uvp);
 	}
 
 	// Normals
 	if (m_N.cols() > 0) {
-		if (!buffersAllocated)
-			glGenBuffers(1, &vbo[NORMAL_BUFFER]);
+		glGenBuffers(1, &vbo[NORMAL_BUFFER]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[NORMAL_BUFFER]);
 		glBufferData(GL_ARRAY_BUFFER, 3 * m_V.cols() * sizeof(GLfloat), (const uint8_t *)m_N.data(), GL_DYNAMIC_DRAW);
-		if (!buffersAllocated) {
-			GLuint np = glGetAttribLocation(s->getId(), glNormalName.c_str());
-			glVertexAttribPointer(np, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(np);
-		}
+		GLuint np = glGetAttribLocation(s->getId(), glNormalName.c_str());
+		glVertexAttribPointer(np, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(np);
 	}
 
 	// Indices
-	if (!buffersAllocated)
-		glGenBuffers(1, &vbo[INDEX_BUFFER]);
+	glGenBuffers(1, &vbo[INDEX_BUFFER]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[INDEX_BUFFER]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_F.cols() * sizeof(GLuint), (const uint8_t *)m_F.data(), GL_DYNAMIC_DRAW);
 	
 	// Reset state
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
-	buffersAllocated = true;
 }
 
 void Mesh::setTranslateMatrix (Matrix4f &t) { transMat = t; }

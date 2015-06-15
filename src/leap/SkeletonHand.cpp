@@ -24,12 +24,14 @@ SkeletonHand::SkeletonHand (bool _isRight)
 		for (int j = 0; j < mesh.nrOfJoints; j++) {
 			mesh.joints[i][j].scale(0.01f, 0.01f, 0.01f);
 			mesh.joints[i][j].translate(0.f, 0.f, 1000.f);
-			mesh.jointConnections[i][j].translate(0.f, 0.f, 1000.f);
+			mesh.jointConnections[i][j] = Line(Vector3f(0.f, 0.f, 1000.f), Vector3f(0.f, 0.f, 1000.f));
 		}
 	}
 
 	for (int j = 0; j < mesh.nrOfhandBones; j++)
-		mesh.handBones[j].translate(0.f, 0.f, 1000.f);
+		mesh.handBones[j] = Line(Vector3f(0.f, 0.f, 1000.f), Vector3f(0.f, 0.f, 1000.f));
+	
+
 }
 
 void SkeletonHand::upload (std::shared_ptr<GLShader> &s) {
@@ -66,24 +68,22 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < mesh.nrOfJoints; j++) {
 			if (j == mesh.nrOfJoints - 1)
-				mesh.jointConnections[i][j] = Line(finger[i].jointPositions[j], finger[i].position);
+				mesh.jointConnections[i][j].update(finger[i].jointPositions[j], finger[i].position);
 			else
-				mesh.jointConnections[i][j] = Line(finger[i].jointPositions[j], finger[i].jointPositions[j + 1]);
+				mesh.jointConnections[i][j].update(finger[i].jointPositions[j], finger[i].jointPositions[j + 1]);
 
 			mesh.jointConnections[i][j].upload(shader);
-
 			mesh.jointConnections[i][j].draw(viewMatrix, projectionMatrix);
 		}
 	}
 
-	//// Close proximal and metacarpal
-	mesh.handBones[0] = Line(finger[Finger::Type::TYPE_THUMB].jointPositions[1], finger[Finger::Type::TYPE_INDEX].jointPositions[0]);
-	mesh.handBones[1] = Line(finger[Finger::Type::TYPE_INDEX].jointPositions[0], finger[Finger::Type::TYPE_MIDDLE].jointPositions[0]);
-	mesh.handBones[2] = Line(finger[Finger::Type::TYPE_MIDDLE].jointPositions[0], finger[Finger::Type::TYPE_RING].jointPositions[0]);
-	mesh.handBones[3] = Line(finger[Finger::Type::TYPE_RING].jointPositions[0], finger[Finger::Type::TYPE_PINKY].jointPositions[0]);
-
-	mesh.handBones[4] = Line(finger[Finger::Type::TYPE_PINKY].jointPositions[0], handJointPosition);
-	mesh.handBones[5] = Line(finger[Finger::Type::TYPE_THUMB].jointPositions[0], handJointPosition);
+	// Close proximal and metacarpal
+	mesh.handBones[0].update(finger[Finger::Type::TYPE_THUMB].jointPositions[1], finger[Finger::Type::TYPE_INDEX].jointPositions[0]);
+	mesh.handBones[1].update(finger[Finger::Type::TYPE_INDEX].jointPositions[0], finger[Finger::Type::TYPE_MIDDLE].jointPositions[0]);
+	mesh.handBones[2].update(finger[Finger::Type::TYPE_MIDDLE].jointPositions[0], finger[Finger::Type::TYPE_RING].jointPositions[0]);
+	mesh.handBones[3].update(finger[Finger::Type::TYPE_RING].jointPositions[0], finger[Finger::Type::TYPE_PINKY].jointPositions[0]);
+	mesh.handBones[4].update(finger[Finger::Type::TYPE_PINKY].jointPositions[0], handJointPosition);
+	mesh.handBones[5].update(finger[Finger::Type::TYPE_THUMB].jointPositions[0], handJointPosition);
 
 	for (int i = 0; i < mesh.nrOfhandBones; i++) {
 		mesh.handBones[i].upload(shader);
