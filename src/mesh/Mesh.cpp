@@ -64,6 +64,7 @@ void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 
 void Mesh::upload(std::shared_ptr<GLShader> &s) {
 	shader = s;
+	shader->bind();
 
 	// VAO
 	glGenVertexArrays(1, &vao);

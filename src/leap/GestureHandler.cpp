@@ -124,6 +124,8 @@ void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<
 						Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
 						target = v1;
 						found = true;
+
+						viewer->addAnnotation(target);
 						break;
 					}
 				}

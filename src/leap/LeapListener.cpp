@@ -69,6 +69,7 @@ void LeapListener::onFrame(const Controller &controller) {
 		VRException("Leap hands not set! Call 'leapListener->setHands(hands[0], hands[1])'s");
 
 	const Frame frame = controller.frame();
+	cout << frame.currentFramesPerSecond() << endl;
 
 	// Get Rotation and translation matrix
 	const Matrix4f worldTransform = getTransformationMatrix();

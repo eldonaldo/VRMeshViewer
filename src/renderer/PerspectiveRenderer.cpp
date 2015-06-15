@@ -40,6 +40,11 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setRotationMatrix(r);
 	mesh->setTranslateMatrix(t);
 
+	// Update pins
+	if (pinList.size() >= 0)
+		for (auto &p : pinList)
+			p.translate(p.getPosition().x(), p.getPosition().y(), p.getPosition().z());
+
 	// Bounding sphere
 	if (Settings::getInstance().SHOW_SPHERE) {
 		sphereCenter = mesh->getBoundingBox().getCenter();
@@ -66,6 +71,13 @@ void PerspectiveRenderer::draw() {
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 	}
 
+	// Draw annotations
+	if (pinList.size() >= 0) {
+		shader->setUniform("materialColor", Vector3f(0.8f, 0.f, 0.f));
+		shader->setUniform("alpha", 1.f);
+		for (auto &p : pinList)
+			p.draw(getViewMatrix(), getProjectionMatrix());
+	}
 
 	/**
 	 * I know this is far from optimal but since the bbox is only
