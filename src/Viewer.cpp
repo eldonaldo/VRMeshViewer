@@ -41,8 +41,8 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	if (useRift) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		//window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
@@ -246,7 +246,7 @@ void Viewer::calcAndAppendFPS () {
 	if ((currentTime - t0) > interval) {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
-		cout << fps << endl;
+		
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
 		glfwSetWindowTitle(window, newTitle.c_str());
@@ -372,7 +372,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		// Poll or wait for events
 		glfwPollEvents();
 
-		if (appFPS)
+		if (useRift && appFPS)
 			calcAndAppendFPS();
 	}
 	
