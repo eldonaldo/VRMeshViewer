@@ -32,6 +32,7 @@ int main (int argc, char *argv[]) {
 
 		// Load mesh
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon.obj");
+//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("/Users/Nico/Downloads/KingKongBust_OBJ.OBJ");
 //		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/ironman/ironman.obj");
 //		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/muro/muro.obj");
 //		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/ajax.obj");

@@ -132,10 +132,16 @@ void PerspectiveRenderer::draw() {
 	if (Settings::getInstance().SHOW_HANDS) {
 		shader->setUniform("materialColor", Vector3f(0.8f, 0.8f, 0.8f));
 		shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		if (Settings::getInstance().USE_RIFT)
+			leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		else
+			leftHand->draw(getViewMatrix(), getProjectionMatrix());
 
 		shader->setUniform("alpha", rightHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		rightHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		if (Settings::getInstance().USE_RIFT)
+			rightHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		else
+			rightHand->draw(getViewMatrix(), getProjectionMatrix());
 	}
 }
 

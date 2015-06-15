@@ -19,49 +19,61 @@ LeapListener::LeapListener(bool useRift)
 }
 
 Matrix4f LeapListener::getTransformationMatrix() {
-	// Average of the left and right camera positions
-	ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
+	if (Settings::getInstance().USE_RIFT) {
+		// Average of the left and right camera positions
+		ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
 
-	// Add camera offset to the head position
-	ovrVector3f cameraPose;
-	cameraPose.x = headPose.Position.x + Settings::getInstance().CAMERA_OFFSET.x();
-	cameraPose.y = headPose.Position.y + Settings::getInstance().CAMERA_OFFSET.y();
-	cameraPose.z = headPose.Position.z + Settings::getInstance().CAMERA_OFFSET.z();
+		// Add camera offset to the head position
+		ovrVector3f cameraPose;
+		cameraPose.x = headPose.Position.x + Settings::getInstance().CAMERA_OFFSET.x();
+		cameraPose.y = headPose.Position.y + Settings::getInstance().CAMERA_OFFSET.y();
+		cameraPose.z = headPose.Position.z + Settings::getInstance().CAMERA_OFFSET.z();
 
-	OVR::Matrix4f trans = OVR::Matrix4f::Translation(cameraPose);
-	OVR::Matrix4f rot = OVR::Matrix4f(headPose.Orientation);
+		OVR::Matrix4f trans = OVR::Matrix4f::Translation(cameraPose);
+		OVR::Matrix4f rot = OVR::Matrix4f(headPose.Orientation);
 
-	// Rift to world transformation
-	OVR::Matrix4f riftToWorld = trans * rot;
+		// Rift to world transformation
+		OVR::Matrix4f riftToWorld = trans * rot;
 
-	// Encode the location (flip axis, rotation and translation) on the Rift where the Leap is mounted
-	// x -> -x
-	// y -> -z
-	// z -> -y
-	static const OVR::Matrix4f leapToRift(
-		-1.f, 0.f, 0.f, 0.f,
-		0.f, 0.f, -1.f, 0.f,
-		0.f, -1.f, 0.f, Settings::getInstance().LEAP_CAMERA_SHIFT_Z, // The VRMount is -8cm in front of the Leap
-		0.f, 0.f, 0.f, 1.f
-	);
+		// Encode the location (flip axis, rotation and translation) on the Rift where the Leap is mounted
+		// x -> -x
+		// y -> -z
+		// z -> -y
+		static const OVR::Matrix4f leapToRift(
+			-1.f, 0.f, 0.f, 0.f,
+			0.f, 0.f, -1.f, 0.f,
+			0.f, -1.f, 0.f, Settings::getInstance().LEAP_CAMERA_SHIFT_Z, // The VRMount is -8cm in front of the Leap
+			0.f, 0.f, 0.f, 1.f
+		);
 
-	// mm -> m including zooming of factor Rift baseline / Leap baseline = 64mm / 40mm = 1.6mm / 1000 = 0.0016m
-	float IPD = ovrHmd_GetFloat(hmd, OVR_KEY_IPD, 0.064f);
-	float leapBaseline = 0.040f;
-	float s = (IPD / leapBaseline) / 1000.f;
+		// mm -> m including zooming of factor Rift baseline / Leap baseline = 64mm / 40mm = 1.6mm / 1000 = 0.0016m
+		float IPD = ovrHmd_GetFloat(hmd, OVR_KEY_IPD, 0.064f);
+		float leapBaseline = 0.040f;
+		float s = (IPD / leapBaseline) / 1000.f;
 
-	static const OVR::Matrix4f mmTom(
-		s, 0.f, 0.f, 0.f,
-		0.f, s, 0.f, 0.f,
-		0.f, 0.f, s, 0.f,
-		0.f, 0.f, 0.f, 1.f
-	);
+		static const OVR::Matrix4f mmTom(
+			s, 0.f, 0.f, 0.f,
+			0.f, s, 0.f, 0.f,
+			0.f, 0.f, s, 0.f,
+			0.f, 0.f, 0.f, 1.f
+		);
 
-	// Final transformation matrix that brings positions from Leap space into world-space (in meters)
-	OVR::Matrix4f leapToWorld = riftToWorld * leapToRift * mmTom;
-	Matrix4f T = Eigen::Map<Matrix4f>((float *)leapToWorld.Transposed().M);
+		// Final transformation matrix that brings positions from Leap space into world-space (in meters)
+		OVR::Matrix4f leapToWorld = riftToWorld * leapToRift * mmTom;
+		Matrix4f T = Eigen::Map<Matrix4f>((float *)leapToWorld.Transposed().M);
 
-	return T;
+		return T;
+	} else {
+		float s = 0.001f;
+		static Matrix4f T;
+
+		T << s, 0.f, 0.f, -Settings::getInstance().LEAP_NO_HMD_OFFSET.x(),
+			 0.f, s, 0.f, -Settings::getInstance().LEAP_NO_HMD_OFFSET.y(),
+			 0.f, 0.f, s, -Settings::getInstance().LEAP_NO_HMD_OFFSET.z(),
+			 0.f, 0.f, 0.f, 1.f;
+
+		return T;
+	}
 }
 
 void LeapListener::onFrame(const Controller &controller) {
@@ -69,7 +81,6 @@ void LeapListener::onFrame(const Controller &controller) {
 		VRException("Leap hands not set! Call 'leapListener->setHands(hands[0], hands[1])'s");
 
 	const Frame frame = controller.frame();
-	cout << frame.currentFramesPerSecond() << endl;
 
 	// Get Rotation and translation matrix
 	const Matrix4f worldTransform = getTransformationMatrix();

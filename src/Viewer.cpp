@@ -343,7 +343,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Update arcball
-		if (!Settings::getInstance().USE_RIFT)
+		if (!Settings::getInstance().USE_RIFT && !leapController.isConnected())
 			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Bounding sphere
