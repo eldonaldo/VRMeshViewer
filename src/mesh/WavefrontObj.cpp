@@ -75,7 +75,6 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 				// Update look up table
 				nTable[v].push_back(indices.size() - 1);
 			}
-
 		}
 	}
 
@@ -100,9 +99,8 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 			Vector3f B = positions.at(vertices.at(indices[i + 1]).p - 1);
 			Vector3f C = positions.at(vertices.at(indices[i + 2]).p - 1);
 
-			faceNormals[i] = (((B - A).cross(C - A)).normalized());
-			faceNormals[i+1] = (((B - A).cross(C - A)).normalized());
-			faceNormals[i+2] = (((B - A).cross(C - A)).normalized());
+			Vector3f n = (((B - A).cross(C - A)).normalized());
+			faceNormals[i + 0] = faceNormals[i + 1] = faceNormals[i + 2] = n;
 		}
 
 		// Compute per vertex normals
