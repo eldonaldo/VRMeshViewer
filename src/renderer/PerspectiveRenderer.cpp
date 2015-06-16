@@ -80,8 +80,9 @@ void PerspectiveRenderer::draw() {
 	if (!pinList.empty()) {
 		shader->setUniform("materialColor", Vector3f(0.8f, 0.f, 0.f));
 		shader->setUniform("alpha", 1.f);
-		for (auto &p : pinList)
-			p->draw(getViewMatrix(), getProjectionMatrix());
+		for (auto &p : pinList) {
+			p->draw(getViewMatrix(), getProjectionMatrix(), mesh->getNormalMatrix());
+		}
 	}
 
 	/**

@@ -14,7 +14,7 @@ VR_NAMESPACE_BEGIN
 class Pin : public WavefrontOBJ {
 public:
 	
-	Pin(Vector3f &pos);
+	Pin(Vector3f &pos, Vector3f &n);
 	virtual ~Pin() = default;
 
 	/**
@@ -23,13 +23,14 @@ public:
 	Vector3f &getPosition();
 	void setColor(Vector3f &c);
 
-	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
+	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix, const Matrix3f &modelNormalMatrix);
 	virtual Matrix4f getModelMatrix();
+
 protected:
 
 	Vector3f color;
-	Vector3f position; ///< Pin position in world coordinates
-	
+	Vector3f position; ///< Pin position in local coordinates
+	Vector3f normal; ///< Normal coordinates of the mesh position
 };
 
 VR_NAMESPACE_END

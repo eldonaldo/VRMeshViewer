@@ -124,6 +124,7 @@ void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<
 						// Notify the viewer
 						viewer->uploadAnnotation = true;
 						viewer->annotationTarget = vLocal.head<3>();
+						viewer->annotationNormal = mesh->getVertexNormals().col(i);
 						break;
 					}
 				}

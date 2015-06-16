@@ -36,7 +36,7 @@ public:
     uint32_t getVertexCount() const { return (uint32_t) m_V.cols(); }
 
     /// Return an axis-aligned bounding box of the entire mesh
-    virtual BoundingBox3f &getBoundingBox() { return m_bbox; }
+    BoundingBox3f &getBoundingBox() { return m_bbox; }
 
     /// Return a pointer to the vertex positions
     const MatrixXf &getVertexPositions() const { return m_V; }
@@ -83,7 +83,7 @@ public:
 	/**
 	 * @return Transpose inverse model matrix
 	 */
-	Matrix3f getNormalMatrix();
+	virtual Matrix3f getNormalMatrix();
 
 	/// Upload the mesh (positions, normals, indices and uv) to the shader
 	virtual void upload(std::shared_ptr<GLShader> &s);

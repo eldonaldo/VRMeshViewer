@@ -372,7 +372,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		
 		// Add annotation
 		if (uploadAnnotation) {
-			addAnnotation(annotationTarget);
+			addAnnotation(annotationTarget, annotationNormal);
 			uploadAnnotation = false;
 		}
 	}
@@ -381,8 +381,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	renderer->cleanUp();
 }
 
-void Viewer::addAnnotation(Vector3f &pos) {
-	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos);
+void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
+	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n);
 	pinList.push_back(pin);
 	renderer->uploadAnnotation(pin);
 }
