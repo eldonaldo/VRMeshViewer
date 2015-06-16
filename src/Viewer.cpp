@@ -234,6 +234,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	// Create gesture handler
 	gestureHandler = std::make_shared<GestureHandler>();
 	gestureHandler->setViewer(this);
+
+	// Seed rnd generator
+	srand(glfwGetTime());
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -385,6 +388,9 @@ void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
 	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n);
 	pinList.push_back(pin);
 	renderer->uploadAnnotation(pin);
+	
+	Vector3f randomColor(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
+	pin->setColor(randomColor);
 }
 
 std::string Viewer::info () {

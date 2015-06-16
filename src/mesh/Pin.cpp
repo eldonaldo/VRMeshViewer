@@ -29,7 +29,7 @@ void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix, con
 	Vector3f prevColor = Settings::getInstance().MATERIAL_COLOR;
 	shader->bind();
 	shader->setUniform("materialColor", color);
-	shader->setUniform("modelMatrix", m);
+	shader->setUniform("modelMatrix", mm);
 	shader->setUniform("normalMatrix", getNormalMatrix());
 	shader->setUniform("mvp", mvp);
 
