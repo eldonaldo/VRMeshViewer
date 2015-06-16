@@ -116,14 +116,14 @@ void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<
 				std::shared_ptr<Mesh> mesh = viewer->getMesh();
 				MatrixXf V = mesh->getVertexPositions();
 				for (int i = 0; i < V.cols(); i++) {
-					Vector4f v(V.col(i).x(), V.col(i).y(), V.col(i).z(), 1.f);
-					Vector3f v1 = (mesh->getModelMatrix() * v).head<3>();
-					if ((v1 - h->finger[Finger::Type::TYPE_INDEX].position).norm() <= 0.005f) {
+					Vector4f vLocal(V.col(i).x(), V.col(i).y(), V.col(i).z(), 1.f);
+					Vector3f vWorld = (mesh->getModelMatrix() * vLocal).head<3>();
+					if ((vWorld - h->finger[Finger::Type::TYPE_INDEX].position).norm() <= 0.005f) {
 						found = true;
 						
 						// Notify the viewer
 						viewer->uploadAnnotation = true;
-						viewer->annotationTarget = v1;
+						viewer->annotationTarget = vLocal.head<3>();
 						break;
 					}
 				}

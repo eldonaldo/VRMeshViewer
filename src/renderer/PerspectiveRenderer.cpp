@@ -34,16 +34,20 @@ void PerspectiveRenderer::preProcess () {
 	shader->setUniform("light.intensity", lightIntensity);
 }
 
-void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
+void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Mesh model matrix
 	mesh->setScaleMatrix(s);
 	mesh->setRotationMatrix(r);
 	mesh->setTranslateMatrix(t);
 
 	// Update pins
-	if (!pinList.empty())
-		for (auto &p : pinList)
-			p->translate(p->getPosition().x(), p->getPosition().y(), p->getPosition().z());
+	if (!pinList.empty()) {
+		for (auto &p : pinList) {
+			p->setScaleMatrix(s);
+			p->setRotationMatrix(r);
+			p->setTranslateMatrix(t);
+		}
+	}
 
 	// Bounding sphere
 	if (Settings::getInstance().SHOW_SPHERE) {
@@ -52,6 +56,7 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
 		sphere.scale(Matrix4f::Identity(), sphereRadius, sphereRadius, sphereRadius);
+		sphere.setRotationMatrix(r);
 	}
 
 	// Create virtual point light

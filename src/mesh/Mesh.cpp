@@ -33,8 +33,8 @@ void Mesh::releaseBuffers () {
 
 Matrix4f Mesh::getModelMatrix() {
 	return transMat * rotateMat * scaleMat;
-
 }
+
 
 Matrix3f Mesh::getNormalMatrix() {
 	// Calculate normal matrix for normal transformation
@@ -48,7 +48,7 @@ void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	Matrix4f mm = getModelMatrix();
 	Matrix4f mvp = projectionMatrix * viewMatrix * mm;
 
-	// Transform bounding box ... ok to do not on the GPU because its a transformation of only two points ...
+	// Transform bounding box (only two points)
 	m_bbox.transformAxisAligned(mm);
 
 	shader->bind();

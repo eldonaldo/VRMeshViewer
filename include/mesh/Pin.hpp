@@ -22,6 +22,8 @@ public:
 	*/
 	Vector3f &getPosition();
 
+	virtual Matrix4f getModelMatrix();
+
 protected:
 
 	Vector3f position; ///< Pin position in world coordinates

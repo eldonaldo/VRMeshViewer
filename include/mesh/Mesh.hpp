@@ -78,7 +78,7 @@ public:
 	/**
 	 * @return Model Matrix
 	 */
-	Matrix4f getModelMatrix();
+	virtual Matrix4f getModelMatrix();
 
 	/**
 	 * @return Transpose inverse model matrix
