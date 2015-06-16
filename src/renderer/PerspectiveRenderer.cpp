@@ -34,11 +34,20 @@ void PerspectiveRenderer::preProcess () {
 	shader->setUniform("light.intensity", lightIntensity);
 }
 
-void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
+void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Mesh model matrix
 	mesh->setScaleMatrix(s);
 	mesh->setRotationMatrix(r);
 	mesh->setTranslateMatrix(t);
+
+	// Update pins
+	if (!pinList.empty()) {
+		for (auto &p : pinList) {
+			p->setScaleMatrix(s);
+			p->setRotationMatrix(r);
+			p->setTranslateMatrix(t);
+		}
+	}
 
 	// Bounding sphere
 	if (Settings::getInstance().SHOW_SPHERE) {
@@ -47,6 +56,7 @@ void PerspectiveRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
 		sphere.scale(Matrix4f::Identity(), sphereRadius, sphereRadius, sphereRadius);
+		sphere.setRotationMatrix(r);
 	}
 
 	// Create virtual point light
@@ -66,6 +76,10 @@ void PerspectiveRenderer::draw() {
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 	}
 
+	// Draw annotations
+	if (!pinList.empty())
+		for (auto &p : pinList)
+			p->draw(getViewMatrix(), getProjectionMatrix(), mesh->getNormalMatrix());
 
 	/**
 	 * I know this is far from optimal but since the bbox is only
@@ -102,7 +116,7 @@ void PerspectiveRenderer::draw() {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
-	// Draw wireframe overlay for debugging
+	// Draw wireframe overlay
 	if (Settings::getInstance().MESH_DRAW_WIREFRAME) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
@@ -119,10 +133,16 @@ void PerspectiveRenderer::draw() {
 	if (Settings::getInstance().SHOW_HANDS) {
 		shader->setUniform("materialColor", Vector3f(0.8f, 0.8f, 0.8f));
 		shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		if (Settings::getInstance().USE_RIFT)
+			leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		else
+			leftHand->draw(getViewMatrix(), getProjectionMatrix());
 
 		shader->setUniform("alpha", rightHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		rightHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		if (Settings::getInstance().USE_RIFT)
+			rightHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+		else
+			rightHand->draw(getViewMatrix(), getProjectionMatrix());
 	}
 }
 

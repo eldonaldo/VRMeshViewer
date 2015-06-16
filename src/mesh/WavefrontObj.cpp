@@ -17,7 +17,7 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 	VertexMap vertexMap;
 
 	// Acceleration data structure to calculate per vertex normal
-	std::map<unsigned int, std::vector<unsigned int>> nTable;
+	std::unordered_map<OBJVertex, std::vector<unsigned int>, OBJVertexHash> nTable;
 
 	std::string line_str;
 	while (std::getline(is, line_str)) {
@@ -73,9 +73,8 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 				}
 
 				// Update look up table
-				nTable[v.p - 1].push_back(indices.size() - 1);
+				nTable[v].push_back(indices.size() - 1);
 			}
-
 		}
 	}
 
@@ -92,31 +91,30 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 			m_N.col(i) = normals.at(vertices[i].n-1);
 	} else {
 		// Interpolate normals
-
-		// Calculate per vertex normals
 		std::vector<Normal3f> faceNormals(indices.size());
 
 		// First we compute the per face normals
-		for (unsigned int i = 0; i < indices.size() / 3; i++) {
-			Vector3f A = positions.at(vertices.at(indices[i] + 0).p - 1);
-			Vector3f B = positions.at(vertices.at(indices[i] + 1).p - 1);
-			Vector3f C = positions.at(vertices.at(indices[i] + 2).p - 1);
-			faceNormals[i] = (((B - A).cross(C - A)).normalized());
-			//std::cout << faceNormals[i] << std::endl;
+		for (unsigned int i = 0; i < indices.size(); i = i + 3) {
+			Vector3f A = positions.at(vertices.at(indices[i + 0]).p - 1);
+			Vector3f B = positions.at(vertices.at(indices[i + 1]).p - 1);
+			Vector3f C = positions.at(vertices.at(indices[i + 2]).p - 1);
+
+			Vector3f n = (((B - A).cross(C - A)).normalized());
+			faceNormals[i + 0] = faceNormals[i + 1] = faceNormals[i + 2] = n;
 		}
 
 		// Compute per vertex normals
-		m_N.resize(3, positions.size());
+		m_N.resize(3, vertices.size());
 		for (unsigned int i = 0; i < vertices.size(); i++) {
-			Vector3f n(0.0, 0.0, 0.0);
+			Normal3f n(0.0, 0.0, 0.0);
 
 			// Search adjacent faces for that vertex
-			for (unsigned int j : nTable[vertices[i].p - 1])
+			for (unsigned int j : nTable[vertices[i]])
 				n += faceNormals[j];
 
+			// We normalize later
 			m_N.col(i) = n.normalized();
 		}
-
 	}
 
 	if (!texcoords.empty()) {

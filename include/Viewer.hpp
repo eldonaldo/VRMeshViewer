@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "mesh/Mesh.hpp"
 #include "mesh/Cube.hpp"
+#include "mesh/Pin.hpp"
 #include "renderer/Renderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 #include "GLUtil.hpp"
@@ -96,6 +97,11 @@ public:
 	*/
 	std::shared_ptr<Mesh> getMesh ();
 
+	/**
+	* @brief Add an annotation
+	*/
+	void addAnnotation(Vector3f &pos, Vector3f &n);
+
 protected:
 
 	/**
@@ -109,6 +115,9 @@ public:
 	int width, height; ///< Window width and height
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
+	Vector3f annotationTarget; ///< Annotation target
+	Vector3f annotationNormal; ///< Annotation normal
+	bool uploadAnnotation; ///< flag whether to upload a annotation or not
 
 protected:
 
@@ -134,6 +143,7 @@ protected:
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
 	Leap::Frame frame; ///< Leap Frame
+	std::vector<std::shared_ptr<Pin>> pinList; ///< List of annotations
 };
 
 VR_NAMESPACE_END

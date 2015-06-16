@@ -107,6 +107,7 @@ add_executable(VRMeshViewer
 	include/mesh/Cube.hpp
 	include/mesh/Sphere.hpp
 	include/mesh/Line.hpp
+	include/mesh/Pin.hpp
 	include/Settings.hpp
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
@@ -124,6 +125,7 @@ add_executable(VRMeshViewer
 	src/mesh/Cube.cpp
 	src/mesh/Sphere.cpp
 	src/mesh/Line.cpp
+	src/mesh/Pin.cpp
 	src/Settings.cpp
 	src/leap/SkeletonHand.cpp
 	src/leap/GestureHandler.cpp

@@ -78,12 +78,12 @@ public:
 	/**
 	 * @return Model Matrix
 	 */
-	Matrix4f getModelMatrix();
+	virtual Matrix4f getModelMatrix();
 
 	/**
 	 * @return Transpose inverse model matrix
 	 */
-	Matrix3f getNormalMatrix();
+	virtual Matrix3f getNormalMatrix();
 
 	/// Upload the mesh (positions, normals, indices and uv) to the shader
 	virtual void upload(std::shared_ptr<GLShader> &s);
@@ -92,31 +92,31 @@ public:
 	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 
 	/// Sets translation matrix
-	void setTranslateMatrix (Matrix4f &t);
+	virtual void setTranslateMatrix (Matrix4f &t);
 
 	/// Sets scale matrix
-	void setScaleMatrix (Matrix4f &t);
+	virtual void setScaleMatrix(Matrix4f &t);
 
 	/// Sets rotation matrix
-	void setRotationMatrix (Matrix4f &t);
+	virtual void setRotationMatrix(Matrix4f &t);
 
 	/// Translate x, y, z
-	void translate (float x, float y, float z);
+	virtual void translate(float x, float y, float z);
 
 	/// Scale equally
-	void scale (float s);
+	virtual void scale(float s);
 
 	/// Scale x, y, z
-	void scale (float x, float y, float z);
+	virtual void scale(float x, float y, float z);
 	/// Scale x, y, z
 
-	void scale(Matrix4f mat, float x, float y, float z);
+	virtual void scale(Matrix4f mat, float x, float y, float z);
 
 	/// Rotation around roll, pitch and yaw in radiants
-	void rotate (float roll, float pitch, float yaw);
+	virtual void rotate(float roll, float pitch, float yaw);
 
 	/// Rotation around roll, pitch and yaw in radiants
-	void rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy);
+	virtual void rotate(float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy);
 
 protected:
     std::string m_name;                  ///< Identifying name

@@ -234,6 +234,9 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	// Create gesture handler
 	gestureHandler = std::make_shared<GestureHandler>();
 	gestureHandler->setViewer(this);
+
+	// Seed rnd generator
+	srand(glfwGetTime());
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -349,7 +352,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		}
 
 		// Update arcball
-		if (!Settings::getInstance().USE_RIFT)
+		if (!Settings::getInstance().USE_RIFT && !leapController.isConnected())
 			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 
 		// Bounding sphere
@@ -372,12 +375,28 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		// Poll or wait for events
 		glfwPollEvents();
 
+		// Calc fps
 		if (useRift && appFPS)
 			calcAndAppendFPS();
+		
+		// Add annotation
+		if (uploadAnnotation) {
+			addAnnotation(annotationTarget, annotationNormal);
+			uploadAnnotation = false;
+		}
 	}
 	
 	// Renderer cleapup
 	renderer->cleanUp();
+}
+
+void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
+	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n);
+	pinList.push_back(pin);
+	renderer->uploadAnnotation(pin);
+	
+	Vector3f randomColor(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
+	pin->setColor(randomColor);
 }
 
 std::string Viewer::info () {

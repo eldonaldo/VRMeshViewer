@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include "GLUtil.hpp"
 #include "mesh/Mesh.hpp"
+#include "mesh/Pin.hpp"
 #include "Leap.h"
 #include "leap/SkeletonHand.hpp"
 
@@ -52,10 +53,7 @@ public:
 	}
 
 	/**
-	 * @brief Allows the renderer to do some processing
-	 * 		  before the render loop is entered.
-	 *
-	 * The default implementation does nothing.
+	 * @brief Allows the renderer to do some processing before the render loop is entered.
 	 */
 	virtual void preProcess () {}
 
@@ -203,6 +201,14 @@ public:
 		frame = f;
 	}
 
+	/*
+	* Upload a pin to the graphics card
+	*/
+	void uploadAnnotation(std::shared_ptr<Pin> &p) {
+		p->upload(shader);
+		pinList.push_back(p);
+	}
+
 protected:
 
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
@@ -218,6 +224,7 @@ protected:
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
 	Leap::Frame frame; ///< Leap motion frame
+	std::vector<std::shared_ptr<Pin>> pinList; ///< List of pins
 
 private:
 

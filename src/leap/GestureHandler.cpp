@@ -100,6 +100,49 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		}
 	}
 }
+
+void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]) {
+	auto &h = hands[hand];
+	static bool found = false;
+
+	switch (state) {
+		case GESTURE_STATES::START: {
+			found = false;
+			break;
+		}
+
+		case GESTURE_STATES::UPDATE: {
+			if (!found) {
+				std::shared_ptr<Mesh> mesh = viewer->getMesh();
+				MatrixXf V = mesh->getVertexPositions();
+				for (int i = 0; i < V.cols(); i++) {
+					Vector4f vLocal(V.col(i).x(), V.col(i).y(), V.col(i).z(), 1.f);
+					Vector3f vWorld = (mesh->getModelMatrix() * vLocal).head<3>();
+					if ((vWorld - h->finger[Finger::Type::TYPE_INDEX].position).norm() <= 0.005f) {
+						found = true;
+						
+						// Notify the viewer
+						viewer->uploadAnnotation = true;
+						viewer->annotationTarget = vLocal.head<3>();
+						viewer->annotationNormal = mesh->getVertexNormals().col(i);
+						break;
+					}
+				}
+			}
+
+			break;
+		}
+
+		case GESTURE_STATES::STOP:
+		case GESTURE_STATES::INVALID:
+		default: {
+			found = false;
+			break;
+		}
+	}
+
+}
+
 void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	auto &right = hands[0], &left = hands[1];
 	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());

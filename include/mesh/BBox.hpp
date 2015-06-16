@@ -43,11 +43,11 @@ template <typename _PointType> struct TBoundingBox {
 
     /// Create a collapsed bounding box from a single point
     TBoundingBox(const PointType &p)
-        : min(p), max(p) { }
+		: min(p), max(p), initial_min(p), initial_max(p) {}
 
     /// Create a bounding box from two positions
     TBoundingBox(const PointType &min, const PointType &max)
-        : min(min), max(max) {
+		: min(min), max(max), initial_min(min), initial_max(max) {
     }
 
     /// Test for equality against another bounding box
@@ -252,6 +252,7 @@ template <typename _PointType> struct TBoundingBox {
     void clip(const TBoundingBox &bbox) {
         min = min.cwiseMax(bbox.min);
         max = max.cwiseMin(bbox.max);
+		initial_min = min, initial_max = max;
     }
 
     /**
@@ -264,18 +265,22 @@ template <typename _PointType> struct TBoundingBox {
     void reset() {
         min.setConstant( std::numeric_limits<Scalar>::infinity());
         max.setConstant(-std::numeric_limits<Scalar>::infinity());
+		initial_min.setConstant(std::numeric_limits<Scalar>::infinity()); 
+		initial_max.setConstant(-std::numeric_limits<Scalar>::infinity());
     }
 
     /// Expand the bounding box to contain another point
     void expandBy(const PointType &p) {
         min = min.cwiseMin(p);
         max = max.cwiseMax(p);
+		initial_min = min, initial_max = max;
     }
 
     /// Expand the bounding box to contain another bounding box
     void expandBy(const TBoundingBox &bbox) {
         min = min.cwiseMin(bbox.min);
         max = max.cwiseMax(bbox.max);
+		initial_min = min, initial_max = max;
     }
 
     /// Merge two bounding boxes
@@ -309,16 +314,12 @@ template <typename _PointType> struct TBoundingBox {
     /// Transform bounding box
     template <typename T>
     void transform (const Eigen::Matrix<T, PointType::Dimension, PointType::Dimension> &m) {
-    	static PointType initial_min = min, initial_max = max;
-
     	min = m * initial_min;
     	max = m * initial_max;
     }
 
     /// Transform bounding box sucht that it is still axis aligned
 	void transformAxisAligned (const Eigen::Matrix<float, 4, 4> &m) {
-		static PointType initial_min = min, initial_max = max;
-
 		const Eigen::Matrix<float, 3, 3> m1 = m.block<3, 3>(0, 0);
 		PointType xa = m1.col(0) * initial_max[0];
 		PointType xb = m1.col(0) * initial_min[0];
@@ -343,6 +344,8 @@ template <typename _PointType> struct TBoundingBox {
 
     PointType min; ///< Component-wise minimum
     PointType max; ///< Component-wise maximum
+	PointType initial_min; ///< Component-wise initial minimum
+	PointType initial_max; ///< Component-wise initial maximum
 };
 
 
