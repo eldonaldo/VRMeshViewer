@@ -366,8 +366,15 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		// Poll or wait for events
 		glfwPollEvents();
 
+		// Calc fps
 		if (appFPS)
 			calcAndAppendFPS();
+		
+		// Add annotation
+		if (uploadAnnotation) {
+			addAnnotation(annotationTarget);
+			uploadAnnotation = false;
+		}
 	}
 	
 	// Renderer cleapup

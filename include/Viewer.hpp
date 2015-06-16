@@ -115,6 +115,8 @@ public:
 	int width, height; ///< Window width and height
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
+	Vector3f annotationTarget; ///< Annotation targe5t
+	bool uploadAnnotation; ///< flag whether to upload a annotation or not
 
 protected:
 
