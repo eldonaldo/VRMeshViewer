@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common.hpp"
+#include "mesh/WavefrontObj.hpp"
 #include <sstream>
-#include "WavefrontObj.hpp"
 
 VR_NAMESPACE_BEGIN
 
