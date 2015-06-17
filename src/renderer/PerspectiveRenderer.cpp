@@ -107,7 +107,7 @@ void PerspectiveRenderer::draw() {
 	if (Settings::getInstance().SHOW_SPHERE && Settings::getInstance().ENABLE_SPHERE) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
-		shader->setUniform("materialColor", Vector3f(0.3, 0.3f, 0.3f));
+		shader->setUniform("materialColor", Vector3f(0.3f, 0.3f, 0.3f));
 		shader->setUniform("alpha", 0.3f);
 
 		sphere.draw(getViewMatrix(), getProjectionMatrix());

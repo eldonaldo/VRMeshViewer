@@ -10,37 +10,25 @@ GestureHandler::GestureHandler()
 }
 
 void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand> (&hands)[2]) {
-	bool extended = hands[hand]->finger[Finger::Type::TYPE_MIDDLE].extended && 
-					hands[hand]->finger[Finger::Type::TYPE_RING].extended && 
-					hands[hand]->finger[Finger::Type::TYPE_PINKY].extended;
-
-	float distance = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position - hands[hand]->finger[Finger::Type::TYPE_THUMB].position).norm();
-	float threshold = 0.035f;
-	static Vector3f diff(0.f, 0.f, 0.f);
+	float sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+	Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
+	Vector3f p = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position + hands[hand]->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
+	bool insideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
 
 	switch (state) {
 		case GESTURE_STATES::START: {
-			diff = mesh->getBoundingBox().getCenter() - hands[hand]->finger[Finger::Type::TYPE_INDEX].position;
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			// Compute translation only if middle up to pinky are extended and thumb and index are near to each other (approx. 3cm)
-			if (extended && distance <= threshold) {
-				if (!Settings::getInstance().GESTURES_RELATIVE_TRANSLATE)
-					// Translate absolute
-					viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), hands[hand]->finger[Finger::Type::TYPE_INDEX].position);
-				else
-					// Translate relative
-					viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), hands[hand]->finger[Finger::Type::TYPE_INDEX].position + diff);
-			}
-
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
 			break;
 		}
 
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}
 	}

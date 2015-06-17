@@ -27,7 +27,7 @@ public:
 	/**
 	 * @brief Default constructor
 	 */
-	Viewer(const std::string &title, int width, int height, bool fullscreen = false) throw ();
+	Viewer(const std::string &title, int width, int height, bool fullscreen = false);
 
 	/**
 	 * @brief Default constructor
@@ -48,7 +48,24 @@ public:
 	 * Renderer::update() is that the states get updated and Renderer::draw() is responsible
 	 * of drawing the data. Of course a renderer must be set in advance.
 	 */
-	virtual void display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw ();
+	virtual void display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r);
+
+	/**
+	* @brief Add an annotation
+	*/
+	void addAnnotation(Vector3f &pos, Vector3f &n);
+
+	/**
+	* @brief Saves the annotations to a file
+	*/
+	void saveAnnotations();
+
+	/**
+	* @brief Retrieve some OpenGL infos
+	*
+	* @return Supported OpenGL Versions
+	*/
+	std::string info();
 
 	/**
 	* @brief Returns the arcball
@@ -81,11 +98,11 @@ public:
 	void setLastPos(Vector2i &v);
 
 	/**
-	 * @brief Retrieve some OpenGL infos
-	 *
-	 * @return Supported OpenGL Versions
-	 */
-	std::string info ();
+	* @brief Returns the mesh
+	*/
+	std::shared_ptr<Mesh> getMesh ();
+
+protected:
 
 	/**
 	 * @brief Places the object in the world coordindate system and scales it for the immersion effect
@@ -93,21 +110,14 @@ public:
 	virtual void placeObject (std::shared_ptr<Mesh> &m);
 
 	/**
-	* @brief Returns the mesh
-	*/
-	std::shared_ptr<Mesh> getMesh ();
-
-	/**
-	* @brief Add an annotation
-	*/
-	void addAnnotation(Vector3f &pos, Vector3f &n);
-
-protected:
-
-	/**
 	 * @brief Displays the FPS count in the title of the window and returns the calculated FPS
 	 */
 	virtual void calcAndAppendFPS ();
+
+	/**
+	* @brief Serializes the annotation vector
+	*/
+	std::string serializeAnnotations();
 
 public:
 

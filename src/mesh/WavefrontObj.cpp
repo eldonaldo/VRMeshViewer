@@ -17,7 +17,7 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 	VertexMap vertexMap;
 
 	// Acceleration data structure to calculate per vertex normal
-	std::unordered_map<OBJVertex, std::vector<unsigned int>, OBJVertexHash> nTable;
+	std::unordered_map<OBJVertex, std::vector<size_t>, OBJVertexHash> nTable;
 
 	std::string line_str;
 	while (std::getline(is, line_str)) {
@@ -109,7 +109,7 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 			Normal3f n(0.0, 0.0, 0.0);
 
 			// Search adjacent faces for that vertex
-			for (unsigned int j : nTable[vertices[i]])
+			for (size_t j : nTable[vertices[i]])
 				n += faceNormals[j];
 
 			// We normalize later

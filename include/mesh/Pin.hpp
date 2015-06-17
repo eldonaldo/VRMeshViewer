@@ -25,6 +25,7 @@ public:
 
 	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 	virtual Matrix4f getModelMatrix();
+	std::string serialize();
 
 protected:
 

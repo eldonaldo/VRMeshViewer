@@ -9,10 +9,10 @@ Viewer *__cbref;
 	static bool glewInitialized = false;
 #endif
 
-Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen) throw ()
+Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(nullptr), uploadAnnotation(false){
+	, hmd(nullptr), uploadAnnotation(false) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -184,6 +184,14 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 				 __cbref->getTranslateMatrix() = Matrix4f::Identity();
 				break;
 			}
+
+			// Save annotations to a file
+			case GLFW_KEY_A: {
+				if (action == GLFW_PRESS)
+					__cbref->saveAnnotations();
+
+				break;
+			}
 		}
 	});
 
@@ -296,7 +304,7 @@ void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 	leapListener->setHands(hands[0], hands[1]);
 }
 
-void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) throw () {
+void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	renderer = std::move(r);
 	mesh = m;
 
@@ -385,6 +393,36 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 	
 	// Renderer cleapup
 	renderer->cleanUp();
+}
+
+std::string Viewer::serializeAnnotations() {
+	std::string	output;
+	for (auto &p : pinList)
+		output += p->serialize();
+	return output;
+}
+
+void Viewer::saveAnnotations () {
+	if (!pinList.empty()) {
+		std::ofstream file;
+		std::size_t pos = mesh->getName().find_last_of("/\\");
+		std::string path = mesh->getName().substr(0, pos) + "-annotation";
+		std::string filename = mesh->getName().substr(pos + 1);
+		std::size_t pos1 = filename.find_last_of('.');
+		filename = filename.substr(0, pos1);
+
+		int i = 1;
+		std::string savePath = path + PATH_SEPARATOR + filename + "-" + toString(i) + ".txt";
+		while (fileExists(savePath)) {
+			i++;
+			savePath = path + PATH_SEPARATOR + filename + "-" + toString(i) + ".txt";
+		}
+
+		file.open(savePath);
+		cout << serializeAnnotations() << endl;
+		file << "asd";
+		file.close();
+	}
 }
 
 void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {

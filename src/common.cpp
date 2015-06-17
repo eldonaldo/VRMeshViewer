@@ -119,4 +119,15 @@ void ppv(Vector3f v) {
 	cout << "[" << v.x() << ", " << v.y() << ", " << v.z() << "]" << endl;
 }
 
+bool fileExists(const std::string &name) {
+	std::ifstream f(name);
+	if (f.good()) {
+		f.close();
+		return true;
+	} else {
+		f.close();
+		return false;
+	}
+}
+
 VR_NAMESPACE_END

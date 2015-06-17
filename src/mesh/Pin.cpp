@@ -41,6 +41,15 @@ void Pin::calculateLocalRotation(Matrix3f &nm) {
 	localRotation.block<3, 3>(0, 0) = q.toRotationMatrix();
 }
 
+std::string Pin::serialize() {
+	std::string output = "{\n";
+	output += std::to_string(position.x()) + ", " + std::to_string(position.y()) + ", " + std::to_string(position.z()) + "\n";
+	output += std::to_string(normal.x()) + ", " + std::to_string(normal.y()) + ", " + std::to_string(normal.z()) + "\n";
+	output += std::to_string(color.x()) + ", " + std::to_string(color.y()) + ", " + std::to_string(color.z()) + "\n";
+	output += "}\n";
+	return output;
+}
+
 Vector3f& Pin::getPosition() {
 	return position;
 }
@@ -50,7 +59,7 @@ void Pin::setColor(Vector3f &c) {
 }
 
 Matrix4f Pin::getModelMatrix() {
-	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * VR_NS::scale(Matrix4f::Identity(), 0.002f, 0.002f, 0.002f);
+	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * VR_NS::scale(Matrix4f::Identity(), 0.0015f, 0.0015f, 0.0015f);
 }
 
 Pin::Pin(Vector3f &pos, Vector3f &n, Matrix3f &nm) : position(pos), normal(n), color(0.8f, 0.f, 0.f) {

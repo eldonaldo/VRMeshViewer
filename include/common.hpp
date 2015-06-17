@@ -33,8 +33,9 @@
 #include "Eigen/Core"
 #include <stdint.h>
 #include <iostream>
+#include <fstream>
 #include <vector>
-#define PATH_SEPARATOR "/"
+#define PATH_SEPARATOR '/'
 #if defined(PLATFORM_APPLE)
 	// Prevent OpenGL Compiler warnings
 	# define __gl_h_
@@ -42,8 +43,9 @@
 	#define GLFW_INCLUDE_GLCOREARB
 #elif defined(PLATFORM_WINDOWS)
 	#undef PATH_SEPARATOR
-	#define PATH_SEPARATOR "\\"
+	#define PATH_SEPARATOR '\\'
 	#pragma warning(disable : 4244)
+	#pragma warning(disable : 4247)
 	#define _GLFW_USE_DWM_SWAP_INTERVAL 0
 	#define NOMINMAX
 	#include <windows.h>
@@ -204,5 +206,8 @@ extern float clamp(float x);
 
 /// Pretty print vector
 extern void ppv(Vector3f v);
+
+/// Checks if the file exists
+extern bool fileExists(const std::string &name);
 
 VR_NAMESPACE_END

@@ -231,6 +231,7 @@ void LeapListener::gesturesStateMachines() {
 	Vector3f midRight = (rightHand->palm.position + rightHand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	Vector3f p1 = midLeft - sphereCenter;
 	Vector3f p2 = midRight - sphereCenter;
+	
 	bool p1Inside = powf((p1.x()), 2.f) + powf((p1.y()), 2.f) + powf((p1.z()), 2.f) <= powf((sphereRadius), 2.f);
 	bool p2Inside = powf((p2.x()), 2.f) + powf((p2.y()), 2.f) + powf((p2.z()), 2.f) <= powf((sphereRadius), 2.f);
 	bool insideSphere = p1Inside && p2Inside;
@@ -258,12 +259,29 @@ void LeapListener::gesturesStateMachines() {
 	for (int i = 0; i < 2; i++) {
 		auto &hand = skeletonHands[i];
 
+		// Compute sphere and index finger ext
+		Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
+		float sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+		Vector3f midPoint = (hand->palm.position + hand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
+		Vector3f pinchMidPoint = (hand->finger[Finger::Type::TYPE_INDEX].position + hand->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
+		Vector3f &f = hand->finger[Finger::Type::TYPE_INDEX].position;
+		Vector3f p = midPoint - sphereCenter;
+		
+		bool pinchInsideSphere = powf((pinchMidPoint.x()), 2.f) + powf((pinchMidPoint.y()), 2.f) + powf((pinchMidPoint.z()), 2.f) <= powf((sphereRadius), 2.f);
+		bool handInsideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
+		bool indexFingerInsideSphere = powf((f.x()), 2.f) + powf((f.y()), 2.f) + powf((f.z()), 2.f) <= powf((sphereRadius), 2.f);
+		bool onlyIndexExtended = hand->visible &&
+			hand->finger[Finger::Type::TYPE_INDEX].extended &&
+			!hand->finger[Finger::Type::TYPE_MIDDLE].extended &&
+			!hand->finger[Finger::Type::TYPE_RING].extended &&
+			!hand->finger[Finger::Type::TYPE_PINKY].extended;
+
 		/**
 		 * Pinch state machine
 		 */
 		float pinchThreshold = Settings::getInstance().GESTURES_PINCH_THRESHOLD;
 
-		if (hand->visible && hand->pinchStrength >= pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
+		if (hand->visible && pinchInsideSphere && hand->pinchStrength >= pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
 			// Start
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::START;
 			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
@@ -271,7 +289,7 @@ void LeapListener::gesturesStateMachines() {
 			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::STOP;
 			gestureZoom = GESTURE_STATES::STOP;
 		}
-		else if (hand->visible && hand->pinchStrength >= pinchThreshold && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
+		else if (hand->visible && pinchInsideSphere && hand->pinchStrength >= pinchThreshold && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
 			// Update
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::UPDATE;
 			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
@@ -304,20 +322,6 @@ void LeapListener::gesturesStateMachines() {
 			gestures[i][GESTURES::GRAB] = GESTURE_STATES::STOP;
 			gestureHandler->grab(gestures[i][GESTURES::GRAB], (HANDS)i, skeletonHands);
 		}
-
-		// Compute sphere and index finger ext
-		Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
-		float sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
-		Vector3f midPoint = (hand->palm.position + hand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
-		Vector3f &f = hand->finger[Finger::Type::TYPE_INDEX].position;
-		Vector3f p = midPoint - sphereCenter;
-		bool handInsideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
-		bool indexFingerInsideSphere = powf((f.x()), 2.f) + powf((f.y()), 2.f) + powf((f.z()), 2.f) <= powf((sphereRadius), 2.f);
-		bool onlyIndexExtended = hand->visible &&
-			hand->finger[Finger::Type::TYPE_INDEX].extended &&
-			!hand->finger[Finger::Type::TYPE_MIDDLE].extended &&
-			!hand->finger[Finger::Type::TYPE_RING].extended &&
-			!hand->finger[Finger::Type::TYPE_PINKY].extended;
 
 		/**
 		* Annotation state machine
