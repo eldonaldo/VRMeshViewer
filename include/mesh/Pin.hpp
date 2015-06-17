@@ -23,7 +23,7 @@ public:
 	Vector3f &getPosition();
 	void setColor(Vector3f &c);
 
-	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix, const Matrix3f &modelNormalMatrix);
+	virtual void draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix);
 	virtual Matrix4f getModelMatrix();
 
 protected:

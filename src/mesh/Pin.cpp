@@ -2,7 +2,7 @@
 
 VR_NAMESPACE_BEGIN
 
-void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix, const Matrix3f &modelNormalMatrix) {
+void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	Matrix4f mm = getModelMatrix();
 
 	// Update the model matrix of the pin
