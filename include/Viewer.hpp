@@ -27,7 +27,7 @@ public:
 	/**
 	 * @brief Default constructor
 	 */
-	Viewer (const std::string &title, int width, int height, bool useRift = false, bool debug = false) throw ();
+	Viewer(const std::string &title, int width, int height, bool fullscreen = false) throw ();
 
 	/**
 	 * @brief Default constructor
@@ -129,7 +129,6 @@ protected:
 	unsigned int frameCount = 0; ///< Frame count
 	double fps = 0.0; ///< FPS count
 	bool appFPS = true; ///< If true, then the current FPS count is appended to the window title
-	bool useRift; ///< HMD mode
 	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
 	std::shared_ptr<Mesh> mesh; ///< Pointer to mesh
 	Arcball arcball; ///< Arcball
@@ -137,7 +136,6 @@ protected:
 	Matrix4f rotationMatrix; ///< Rotation matrix
 	Matrix4f translateMatrix; ///< Translation matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
-	bool debug; ///< Debug mode
 	Leap::Controller leapController; ///< Leap controller
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands

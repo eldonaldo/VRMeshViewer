@@ -14,10 +14,8 @@ int main (int argc, char *argv[]) {
 	float &fov = Settings::getInstance().FOV, &zNear = Settings::getInstance().Z_NEAR, &zFar = Settings::getInstance().Z_FAR;
 
 	try {
-		bool useRift = Settings::getInstance().USE_RIFT;
-
 		// This sets up the OpenGL context and needs the be first call
-		Viewer viewer("Virtual Reality Mesh Viewer", width, height, useRift, false);
+		Viewer viewer("Virtual Reality Mesh Viewer", width, height, false);
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();
@@ -25,7 +23,7 @@ int main (int argc, char *argv[]) {
 
 		// Create an appropriate renderer
 		std::unique_ptr<Renderer> renderer;
-		if (useRift)
+		if (Settings::getInstance().USE_RIFT)
 			renderer = std::unique_ptr<Renderer>(new RiftRenderer(shader, fov, width, height, zNear, zFar));
 		else
 			renderer = std::unique_ptr<Renderer>(new PerspectiveRenderer(shader, fov, width, height, zNear, zFar));
@@ -38,7 +36,7 @@ int main (int argc, char *argv[]) {
 //		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/kingkong.obj");
 
 		// Create Leap listener
-		std::unique_ptr<LeapListener> leap(new LeapListener(useRift));
+		std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
 		viewer.attachLeap(leap);
 
 		// Run

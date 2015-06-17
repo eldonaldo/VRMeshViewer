@@ -78,8 +78,23 @@ void PerspectiveRenderer::draw() {
 
 	// Draw annotations
 	if (!pinList.empty())
-		for (auto &p : pinList)
+		for (auto &p : pinList) {
 			p->draw(getViewMatrix(), getProjectionMatrix(), mesh->getNormalMatrix());
+
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			shader->setUniform("simpleColor", true);
+			shader->setUniform("materialColor", Vector3f(0.f, 0.f, 1.f));
+			shader->setUniform("alpha", 1.f);
+
+			BoundingBox3f mbbox = p->getBoundingBox();
+			bbox = Cube(mbbox.min, mbbox.max);
+			bbox.upload(shader);
+			bbox.draw(getViewMatrix(), getProjectionMatrix());
+
+			shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
+			shader->setUniform("simpleColor", false);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
 
 	/**
 	 * I know this is far from optimal but since the bbox is only

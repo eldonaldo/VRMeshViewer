@@ -9,10 +9,10 @@ Viewer *__cbref;
 	static bool glewInitialized = false;
 #endif
 
-Viewer::Viewer (const std::string &title, int width, int height, bool useRift, bool debug) throw ()
-	: title(title), width(width), height(height), useRift(useRift), interval(1.f), lastPos(0, 0)
+Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen) throw ()
+	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, debug(debug), hmd(nullptr) {
+	, hmd(nullptr), uploadAnnotation(false){
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -36,13 +36,12 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_SAMPLES, 4);
 	
-	if (useRift) {
+	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		//window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
 	}
@@ -77,8 +76,6 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glEnable(GL_MULTISAMPLE);
-	//glDepthFunc(GL_LEQUAL);
 
 #if defined(PLATFORM_APPLE)
     /* Poll for events once before starting a potentially
@@ -228,7 +225,7 @@ Viewer::Viewer (const std::string &title, int width, int height, bool useRift, b
 	hands[1] = std::make_shared<SkeletonHand>(false); // Left
 
 	// Enable HMD mode and pass through
-	if (useRift)
+	if (Settings::getInstance().USE_RIFT)
 		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
 
 	// Create gesture handler
@@ -376,7 +373,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 		glfwPollEvents();
 
 		// Calc fps
-		if (useRift && appFPS)
+		if (Settings::getInstance().USE_RIFT && appFPS)
 			calcAndAppendFPS();
 		
 		// Add annotation
@@ -391,12 +388,14 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) thr
 }
 
 void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
-	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n);
-	pinList.push_back(pin);
-	renderer->uploadAnnotation(pin);
-	
-	Vector3f randomColor(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
-	pin->setColor(randomColor);
+	if (mesh != nullptr) {
+		std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, mesh->getNormalMatrix());
+		pinList.push_back(pin);
+		renderer->uploadAnnotation(pin);
+
+		Vector3f randomColor(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
+		pin->setColor(randomColor);
+	}
 }
 
 std::string Viewer::info () {

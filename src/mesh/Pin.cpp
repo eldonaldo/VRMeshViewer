@@ -4,32 +4,18 @@ VR_NAMESPACE_BEGIN
 
 void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix, const Matrix3f &modelNormalMatrix) {
 	Matrix4f mm = getModelMatrix();
-	
-	// Transform bounding box (only two points)
-	m_bbox.transformAxisAligned(mm);
-
-	// Make the pin stand perpendicular on the surface of the model
-	Vector4f v(position.x(), position.y(), position.z(), 1.f);
-	Vector3f normalWorld = modelNormalMatrix * normal;
-	Vector3f positionWorld = (mm * v).head<3>();
-	Vector3f direction = (m_bbox.getCenter() - positionWorld);
-	Vector3f axis = direction.cross(normalWorld).normalized();
-	float angle = std::acos((direction.dot(normalWorld)) / (direction.norm() * normalWorld.norm()));
-
-	// Compute rotation
-	Quaternionf q;
-	q = Eigen::AngleAxisf(angle, axis);
-	Matrix4f result = Matrix4f::Identity();
-	result.block<3, 3>(0, 0) = q.toRotationMatrix();
 
 	// Update the model matrix of the pin
-	Matrix4f m = mm * result;
+	Matrix4f m = mm * localRotation;
 	Matrix4f mvp = projectionMatrix * viewMatrix * m;
+	
+	// Transform bounding box (only two points)
+	m_bbox.transformAxisAligned(m);
 
 	Vector3f prevColor = Settings::getInstance().MATERIAL_COLOR;
 	shader->bind();
 	shader->setUniform("materialColor", color);
-	shader->setUniform("modelMatrix", mm);
+	shader->setUniform("modelMatrix", m);
 	shader->setUniform("normalMatrix", getNormalMatrix());
 	shader->setUniform("mvp", mvp);
 
@@ -37,6 +23,22 @@ void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix, con
 	glDrawElements(GL_TRIANGLES, getTriangleCount() * 3, GL_UNSIGNED_INT, NULL);
 	glBindVertexArray(0);
 	shader->setUniform("materialColor", prevColor);
+}
+
+void Pin::calculateLocalRotation(Matrix3f &nm) {
+	// Make the pin stand perpendicular on the surface of the model
+	Vector4f homogeneousPosition(position.x(), position.y(), position.z(), 1.f);
+	Vector3f normalWorld = nm * normal;
+	Vector3f positionWorld = (getModelMatrix() * homogeneousPosition).head<3>();
+	Vector3f direction = (m_bbox.getCenter() - positionWorld);
+	Vector3f axis = direction.cross(normalWorld).normalized();
+	float angle = std::acos((direction.dot(normalWorld)) / (direction.norm() * normalWorld.norm()));
+
+	// Compute rotation
+	Quaternionf q;
+	q = Eigen::AngleAxisf(angle, axis);
+	localRotation = Matrix4f::Identity();
+	localRotation.block<3, 3>(0, 0) = q.toRotationMatrix();
 }
 
 Vector3f& Pin::getPosition() {
@@ -51,7 +53,7 @@ Matrix4f Pin::getModelMatrix() {
 	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * VR_NS::scale(Matrix4f::Identity(), 0.002f, 0.002f, 0.002f);
 }
 
-Pin::Pin(Vector3f &pos, Vector3f &n) : position(pos), normal(n), color(0.8f, 0.f, 0.f) {
+Pin::Pin(Vector3f &pos, Vector3f &n, Matrix3f &nm) : position(pos), normal(n), color(0.8f, 0.f, 0.f) {
 	std::string obj(
 		std::string("v 0.302049 2.23145 0\n") +
 		"v 0 10.2373 0\n" +
@@ -1216,5 +1218,7 @@ Pin::Pin(Vector3f &pos, Vector3f &n) : position(pos), normal(n), color(0.8f, 0.f
 
 	std::istringstream is(obj);
 	loadFromString(is);
+
+	calculateLocalRotation(nm);
 }
 VR_NAMESPACE_END
