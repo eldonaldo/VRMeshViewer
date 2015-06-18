@@ -6,7 +6,7 @@ Line::Line() : Line(Vector3f(0.f, 1.f, 0.f), Vector3f(0.f, -1.f, 0.f)) {
 
 }
 
-Line::Line(Vector3f &a, Vector3f &b) : Mesh() {
+Line::Line(Vector3f a, Vector3f b) : Mesh() {
 	m_V.resize(3, 2);
 	m_V.col(0) = a;
 	m_V.col(1) = b;

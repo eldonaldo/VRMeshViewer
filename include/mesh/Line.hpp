@@ -13,7 +13,7 @@ class Line : public Mesh {
 public:
 	
 	Line();
-	Line(Vector3f &a, Vector3f &b);
+	Line(Vector3f a, Vector3f b);
 	virtual ~Line() = default;
 	
 	void update (Vector3f &a, Vector3f &b);
