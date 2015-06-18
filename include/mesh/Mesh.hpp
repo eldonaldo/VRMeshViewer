@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "mesh/BBox.hpp"
+#include "mesh/kdtree.hpp"
 #include "Eigen/Geometry"
 #include "GLUtil.hpp"
 

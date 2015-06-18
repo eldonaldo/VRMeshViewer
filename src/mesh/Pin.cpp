@@ -52,10 +52,6 @@ std::string Pin::serialize() {
 	return output;
 }
 
-bool Pin::operator == (Pin &other) {
-	return position == other.getPosition();
-}
-
 Vector3f& Pin::getPosition() {
 	return position;
 }

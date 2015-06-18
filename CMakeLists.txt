@@ -108,10 +108,10 @@ add_executable(VRMeshViewer
 	include/mesh/Sphere.hpp
 	include/mesh/Line.hpp
 	include/mesh/Pin.hpp
+	include/mesh/kdtree.hpp
 	include/Settings.hpp
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
-	include/kdtree.hpp
 	
 	# Source code files
 	src/main.cpp

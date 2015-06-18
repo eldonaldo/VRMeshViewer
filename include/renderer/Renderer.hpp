@@ -30,7 +30,7 @@ public:
 	 */
 	Renderer (std::shared_ptr<GLShader> &s)
 		: shader(s), FBWidth(0), FBHeight(0), window(nullptr), viewMatrix(Matrix4f::Identity())
-		, projectionMatrix(Matrix4f::Identity()), hmd(nullptr), showHands(true) {
+		, projectionMatrix(Matrix4f::Identity()), hmd(nullptr), showHands(true), sphereRadius(0.f) {
 
 	};
 

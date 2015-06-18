@@ -12,7 +12,7 @@ Viewer *__cbref;
 Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false) {
+	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -36,7 +36,9 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	
+	if (!Settings::getInstance().USE_RIFT)
+		glfwWindowHint(GLFW_SAMPLES, 4);
+
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
@@ -70,12 +72,15 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glfwSwapBuffers(window);
 
-	// Enable depth testing and multi sampling
+	// Enable or disable OpenGL features
 	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!Settings::getInstance().USE_RIFT)
+		glEnable(GL_MULTISAMPLE);
 
 #if defined(PLATFORM_APPLE)
     /* Poll for events once before starting a potentially
@@ -197,8 +202,31 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 	/* Mouse click callback */
 	glfwSetMouseButtonCallback(window, [] (GLFWwindow *window, int button, int action, int mods) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT)
+		if (!Settings::getInstance().USE_RIFT && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && action == GLFW_PRESS) {
+			// Query viewport
+			GLint viewport[4];
+			glGetIntegerv(GL_VIEWPORT, viewport);
+			Vector2i viewPortSize(viewport[2], viewport[3]);
+
+			// Query cursor position and depth value at this position
+			double x, y; GLfloat z;
+			glfwGetCursorPos(window, &x, &y);
+			glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
+			Vector3f pos(x, viewport[3] - y, z);
+
+			// Unproject scene
+			Matrix4f VM = __cbref->getRenderer()->getViewMatrix() * __cbref->getMesh()->getModelMatrix();
+			Vector3f worldPosition = unproject(pos, VM, __cbref->getRenderer()->getProjectionMatrix(), viewPortSize);
+
+			// Add an annotation
+			Vector3f n(0.f, 1.f, 0.f);
+			__cbref->addAnnotation(worldPosition, n);
+
+//			cout << z << endl;
+//			ppv(worldPosition);
+		} else if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			__cbref->arcball.button(__cbref->lastPos, action == GLFW_PRESS);
+		}
 	});
 
 	/* Mouse movement callback */
@@ -209,7 +237,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		float scaleFactor = 0.15f;
+		float scaleFactor = 0.05f;
 		if (y >= 0)
 			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
 		else
@@ -540,6 +568,10 @@ std::shared_ptr<Mesh> &Viewer::getMesh() {
 
 std::vector<std::shared_ptr<Pin>> &Viewer::getAnnotations() {
 	return pinList;
+}
+
+std::unique_ptr<Renderer> &Viewer::getRenderer () {
+	return renderer;
 }
 
 Viewer::~Viewer () {

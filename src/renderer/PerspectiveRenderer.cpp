@@ -75,7 +75,6 @@ void PerspectiveRenderer::draw() {
 	if (Settings::getInstance().MESH_DRAW)
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 	
-
 	// Draw annotations
 	if (pinList != nullptr && !pinList->empty())
 		for (auto &p : *pinList) {
@@ -95,7 +94,6 @@ void PerspectiveRenderer::draw() {
 			//shader->setUniform("simpleColor", false);
 			//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
-
 
 	/**
 	 * I know this is far from optimal but since the bbox is only

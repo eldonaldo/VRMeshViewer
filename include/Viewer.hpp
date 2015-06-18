@@ -117,6 +117,11 @@ public:
 	*/
 	std::vector<std::shared_ptr<Pin>> &getAnnotations();
 
+	/**
+	 * @brief Returns a pointer to the renderer
+	 */
+	std::unique_ptr<Renderer> &getRenderer ();
+
 protected:
 
 	/**
@@ -151,6 +156,7 @@ public:
 
 protected:
 
+	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
 	ovrHmd hmd; ///< Head mounted device
 	GLFWwindow *window; ///< GLFW window pointer
 	const std::string title; ///< Window title
@@ -159,7 +165,6 @@ protected:
 	unsigned int frameCount = 0; ///< Frame count
 	double fps = 0.0; ///< FPS count
 	bool appFPS = true; ///< If true, then the current FPS count is appended to the window title
-	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
 	std::shared_ptr<Mesh> mesh; ///< Pointer to mesh
 	Arcball arcball; ///< Arcball
 	Matrix4f scaleMatrix; ///< Scale matrix
