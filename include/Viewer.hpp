@@ -11,6 +11,7 @@
 #include "leap/SkeletonHand.hpp"
 #include "leap/GestureHandler.hpp"
 #include "Eigen/Geometry"
+#include "network/UDPSocket.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -122,6 +123,11 @@ public:
 	 */
 	std::unique_ptr<Renderer> &getRenderer ();
 
+	/**
+	 * @brief Attaches a UDP socket
+	 */
+	void attachSocket (std::shared_ptr<UDPSocket> &s);
+
 protected:
 
 	/**
@@ -179,6 +185,7 @@ protected:
 	std::vector<std::shared_ptr<Pin>> pinList; ///< List of annotations
 	bool loadAnnotationsFlag; ///< Load annotations on start up
 	std::string annotationsLoadPath; ///< File to load from
+	std::shared_ptr<UDPSocket> netSocket; ///< UDP Socket
 };
 
 VR_NAMESPACE_END

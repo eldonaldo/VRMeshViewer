@@ -4,8 +4,16 @@
 #include "renderer/PerspectiveRenderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 #include "leap/LeapListener.hpp"
+#include "network/UDPSocket.hpp"
 
 using namespace VR_NS;
+
+std::shared_ptr<UDPSocket> initNetworking () {
+	asio::io_service io_service;
+	std::shared_ptr<UDPSocket> socket = std::make_shared<UDPSocket>(io_service, 7012);
+	io_service.run();
+	return socket;
+}
 
 int main (int argc, char *argv[]) {
 
@@ -38,6 +46,10 @@ int main (int argc, char *argv[]) {
 		// Create Leap listener
 		std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
 		viewer.attachLeap(leap);
+
+		// Networking
+		auto socket = initNetworking();
+		viewer.attachSocket(socket);
 
 		// Run
 		//viewer.loadAnnotations("resources/models/dragon/dragon-annotations-7.txt");

@@ -85,6 +85,7 @@ include_directories(
 	ext/ovr/LibOVR/include/Extras
 	ext/leap/include
 	ext/leap/util
+	ext/asio/asio/include
 	include
 	${CMAKE_BINARY_DIR}
 )
@@ -112,6 +113,7 @@ add_executable(VRMeshViewer
 	include/Settings.hpp
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
+	include/network/UDPSocket.hpp
 	
 	# Source code files
 	src/main.cpp
@@ -130,6 +132,7 @@ add_executable(VRMeshViewer
 	src/Settings.cpp
 	src/leap/SkeletonHand.cpp
 	src/leap/GestureHandler.cpp
+	src/network/UDPSocket.cpp
 )
 
 # Make sure to build in the right order

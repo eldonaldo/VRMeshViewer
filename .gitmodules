@@ -13,3 +13,6 @@
 [submodule "ext/ovr"]
 	path = ext/ovr
 	url=https://github.com/nicoprevitali/OculusSDK
+[submodule "ext/asio"]
+	path = ext/asio
+	url = https://github.com/chriskohlhoff/asio/

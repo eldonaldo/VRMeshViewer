@@ -427,6 +427,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	renderer->cleanUp();
 }
 
+void Viewer::attachSocket(std::shared_ptr<UDPSocket> &s) {
+	netSocket = s;
+}
+
 std::string Viewer::serializeAnnotations() {
 	std::string	output;
 	for (auto &p : pinList)

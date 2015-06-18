@@ -68,6 +68,8 @@
 #include "OVR_CAPI_GL.h"
 #include "OVR_Math.h"
 #include "tinyformat.h"
+#define ASIO_STANDALONE
+#include "asio.hpp"
 
 namespace VR_NS {}
 using namespace vrmv;
