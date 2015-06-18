@@ -56,9 +56,19 @@ public:
 	void addAnnotation(Vector3f &pos, Vector3f &n);
 
 	/**
+	* @brief Add an annotation with color
+	*/
+	void addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c);
+
+	/**
 	* @brief Saves the annotations to a file
 	*/
 	void saveAnnotations();
+
+	/**
+	* @brief Loads annotations from a file previous saved with saveAnnotations()
+	*/
+	void loadAnnotations(const std::string &s);
 
 	/**
 	* @brief Retrieve some OpenGL infos
@@ -119,6 +129,11 @@ protected:
 	*/
 	std::string serializeAnnotations();
 
+	/**
+	* @brief Loads annotations from a file. Called issued by method loadAnnotations()
+	*/
+	void loadAnnotationsOnLoop();
+
 public:
 
 	int FBWidth, FBHeight; ///< Framebuffer size
@@ -152,6 +167,8 @@ protected:
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
 	Leap::Frame frame; ///< Leap Frame
 	std::vector<std::shared_ptr<Pin>> pinList; ///< List of annotations
+	bool loadAnnotationsFlag; ///< Load annotations on start up
+	std::string annotationsLoadPath; ///< File to load from
 };
 
 VR_NAMESPACE_END

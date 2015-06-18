@@ -12,7 +12,7 @@ Viewer *__cbref;
 Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(nullptr), uploadAnnotation(false) {
+	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -340,6 +340,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 			leapController.addListener(*leapListener);
 	}
 
+	// Load annotations if desired
+	if (loadAnnotationsFlag)
+		loadAnnotationsOnLoop(); 
+
 	// Print some info
 	std::cout << info() << std::endl;
 
@@ -402,6 +406,48 @@ std::string Viewer::serializeAnnotations() {
 	return output;
 }
 
+void Viewer::loadAnnotations(const std::string &s) {
+	loadAnnotationsFlag = true;
+	annotationsLoadPath = s;
+}
+
+void Viewer::loadAnnotationsOnLoop() {
+	if (!fileExists(annotationsLoadPath))
+		throw VRException("File \"%s\" does not exists!", annotationsLoadPath);
+
+	std::ifstream is(annotationsLoadPath);
+	if (is.fail())
+		throw VRException("Unable to open file \"%s\"!", annotationsLoadPath);
+	
+	pinList.clear();
+	std::string line_str;
+	while (std::getline(is, line_str)) {
+		std::istringstream line(line_str);
+		std::string prefix;
+		line >> prefix;
+
+		if (prefix == "pin") {
+			Vector3f position, normal, color;
+			while (std::getline(is, line_str)) {
+				std::istringstream pinLine(line_str);
+				std::string pinPrefix;
+				pinLine >> pinPrefix;
+
+				if (pinPrefix == "position")
+					pinLine >> position.x() >> position.y() >> position.z();
+				else if (pinPrefix == "normal")
+					pinLine >> normal.x() >> normal.y() >> normal.z();
+				else if (pinPrefix == "color")
+					pinLine >> color.x() >> color.y() >> color.z();
+				else
+					break;
+			}
+
+			addAnnotation(position, normal, color);
+		}
+	}
+}
+
 void Viewer::saveAnnotations () {
 	if (!pinList.empty()) {
 		std::ofstream file;
@@ -426,15 +472,20 @@ void Viewer::saveAnnotations () {
 	}
 }
 
-void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
-	if (mesh != nullptr) {
-		std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, mesh->getNormalMatrix());
-		pinList.push_back(pin);
-		renderer->uploadAnnotation(pin);
+void Viewer::addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c) {
+	if (mesh == nullptr)
+		throw VRException("No mesh to add annotations");
 
-		Vector3f randomColor(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
-		pin->setColor(randomColor);
-	}
+	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, mesh->getNormalMatrix());
+	pin->setColor(c);
+
+	pinList.push_back(pin);
+	renderer->uploadAnnotation(pin);
+}
+
+void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
+	Vector3f randomColor(((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)), ((float)rand() / (RAND_MAX)));
+	addAnnotation(pos, n, randomColor);
 }
 
 std::string Viewer::info () {
