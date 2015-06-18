@@ -110,7 +110,12 @@ public:
 	/**
 	* @brief Returns the mesh
 	*/
-	std::shared_ptr<Mesh> getMesh ();
+	std::shared_ptr<Mesh> &getMesh ();
+
+	/**
+	* @brief Returns the vector of annotations
+	*/
+	std::vector<std::shared_ptr<Pin>> &getAnnotations();
 
 protected:
 

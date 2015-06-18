@@ -56,6 +56,7 @@
     #define GL_GLEXT_PROTOTYPES
 #endif
 #include <memory>
+#include <algorithm>
 #include <math.h>
 #include "Settings.hpp"
 #include "GLFW/glfw3.h"

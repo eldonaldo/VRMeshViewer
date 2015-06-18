@@ -27,6 +27,8 @@ public:
 	virtual Matrix4f getModelMatrix();
 	std::string serialize();
 
+	bool Pin::operator==(Pin &other);
+
 protected:
 
 	void calculateLocalRotation(Matrix3f &nm);

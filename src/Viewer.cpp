@@ -481,7 +481,7 @@ void Viewer::addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c) {
 	pin->setColor(c);
 
 	pinList.push_back(pin);
-	renderer->uploadAnnotation(pin);
+	renderer->uploadAnnotation(pin, pinList);
 }
 
 void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
@@ -534,8 +534,12 @@ void Viewer::setLastPos(Vector2i &v) {
 	lastPos = v;
 }
 
-std::shared_ptr<Mesh> Viewer::getMesh() {
+std::shared_ptr<Mesh> &Viewer::getMesh() {
 	return mesh;
+}
+
+std::vector<std::shared_ptr<Pin>> &Viewer::getAnnotations() {
+	return pinList;
 }
 
 Viewer::~Viewer () {

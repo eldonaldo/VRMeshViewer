@@ -41,8 +41,8 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setTranslateMatrix(t);
 
 	// Update pins
-	if (!pinList.empty()) {
-		for (auto &p : pinList) {
+	if (!pinList->empty()) {
+		for (auto &p : *pinList) {
 			p->setScaleMatrix(s);
 			p->setRotationMatrix(r);
 			p->setTranslateMatrix(t);
@@ -77,9 +77,25 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Draw annotations
-	if (!pinList.empty())
-		for (auto &p : pinList)
+	if (!pinList->empty())
+		for (auto &p : *pinList) {
 			p->draw(getViewMatrix(), getProjectionMatrix());
+
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			//shader->setUniform("simpleColor", true);
+			//shader->setUniform("materialColor", Vector3f(1.f, 0.f, 0.f));
+			//shader->setUniform("alpha", 1.f);
+
+			//BoundingBox3f mbbox = p->getBoundingBox();
+			//bbox = Cube(mbbox.min, mbbox.max);
+			//bbox.upload(shader);
+			//bbox.draw(getViewMatrix(), getProjectionMatrix());
+
+			//shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
+			//shader->setUniform("simpleColor", false);
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
 
 	/**
 	 * I know this is far from optimal but since the bbox is only

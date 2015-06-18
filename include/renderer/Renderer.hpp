@@ -202,11 +202,11 @@ public:
 	}
 
 	/*
-	* Upload a pin to the graphics card
+	* @brief Upload a pin to the graphics card
 	*/
-	void uploadAnnotation(std::shared_ptr<Pin> &p) {
+	void uploadAnnotation(std::shared_ptr<Pin> &p, std::vector<std::shared_ptr<Pin>> &pl) {
 		p->upload(shader);
-		pinList.push_back(p);
+		pinList = &pl;
 	}
 
 protected:
@@ -224,7 +224,7 @@ protected:
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
 	Leap::Frame frame; ///< Leap motion frame
-	std::vector<std::shared_ptr<Pin>> pinList; ///< List of pins
+	std::vector<std::shared_ptr<Pin>> *pinList; ///< List of pins
 
 private:
 

@@ -10,10 +10,8 @@ GestureHandler::GestureHandler()
 }
 
 void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand> (&hands)[2]) {
-	float sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
-	Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
-	Vector3f p = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position + hands[hand]->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
-	bool insideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
+	auto &annotations = viewer->getAnnotations();
+	Vector3f avgPinchPos = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position + hands[hand]->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
 
 	switch (state) {
 		case GESTURE_STATES::START: {
@@ -22,6 +20,14 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 
 		case GESTURE_STATES::UPDATE: {
 			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+			for (auto iter = annotations.begin(); iter != annotations.end(); iter++) {
+				BoundingBox3f bbox = (*iter)->getBoundingBox();
+				if (bbox.contains(avgPinchPos)) {
+					(*iter)->releaseBuffers();
+					annotations.erase(iter);
+					break;
+				}
+			}
 			break;
 		}
 
@@ -72,7 +78,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			// Construct rotation matrix
 			Matrix4f result = Matrix4f::Identity();
 			result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
-			viewer->getRotationMatrix() = result;
+			//viewer->getRotationMatrix() = result;
 
  			break;
 		}
