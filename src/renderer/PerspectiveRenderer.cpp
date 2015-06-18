@@ -41,7 +41,7 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	mesh->setTranslateMatrix(t);
 
 	// Update pins
-	if (!pinList->empty()) {
+	if (pinList != nullptr && !pinList->empty()) {
 		for (auto &p : *pinList) {
 			p->setScaleMatrix(s);
 			p->setRotationMatrix(r);
@@ -68,16 +68,16 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 void PerspectiveRenderer::draw() {
 	shader->bind();
+	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
+	shader->setUniform("alpha", 1.f);
 
 	// Draw the mesh
-	if (Settings::getInstance().MESH_DRAW) {
-		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
-		shader->setUniform("alpha", 1.f);
+	if (Settings::getInstance().MESH_DRAW)
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
-	}
+	
 
 	// Draw annotations
-	if (!pinList->empty())
+	if (pinList != nullptr && !pinList->empty())
 		for (auto &p : *pinList) {
 			p->draw(getViewMatrix(), getProjectionMatrix());
 

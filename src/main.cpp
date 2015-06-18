@@ -40,7 +40,7 @@ int main (int argc, char *argv[]) {
 		viewer.attachLeap(leap);
 
 		// Run
-		viewer.loadAnnotations("resources/models/dragon/dragon-annotations-1.txt");
+		//viewer.loadAnnotations("resources/models/dragon/dragon-annotations-7.txt");
 		viewer.display(mesh, renderer);
 	} catch (std::runtime_error &e) {
 		std::cout << "Runtime error: "<< e.what() << std::endl;

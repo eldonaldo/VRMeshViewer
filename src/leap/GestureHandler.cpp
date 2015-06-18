@@ -19,7 +19,6 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
 			for (auto iter = annotations.begin(); iter != annotations.end(); iter++) {
 				BoundingBox3f bbox = (*iter)->getBoundingBox();
 				if (bbox.contains(avgPinchPos)) {
@@ -34,7 +33,6 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}
 	}
@@ -78,7 +76,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			// Construct rotation matrix
 			Matrix4f result = Matrix4f::Identity();
 			result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
-			//viewer->getRotationMatrix() = result;
+			viewer->getRotationMatrix() = result;
 
  			break;
 		}

@@ -191,9 +191,10 @@ void LeapListener::onDirectFrame(const Frame &frame) {
 			currentHand = leftHand;
 			if (hands[0].isLeft()) {
 				currentHand = rightHand;
-				currentHand->visible = false;
 				handIndex = HANDS::RIGHT;
 			}
+			
+			currentHand->visible = false;
 
 			for (auto &g : gestures[handIndex])
 				g.second = GESTURE_STATES::STOP;
@@ -276,10 +277,14 @@ void LeapListener::gesturesStateMachines() {
 			!hand->finger[Finger::Type::TYPE_RING].extended &&
 			!hand->finger[Finger::Type::TYPE_PINKY].extended;
 
+		int otherHand = (i + 1) % 2;
+
+
 		/**
 		 * Pinch state machine
 		 */
 		float pinchThreshold = Settings::getInstance().GESTURES_PINCH_THRESHOLD;
+		//cout << (!pinchInsideSphere || !hand->visible || hand->pinchStrength < pinchThreshold) << "," << gestureStateName(gestures[i][GESTURES::PINCH]) << endl;
 
 		if (hand->visible && pinchInsideSphere && hand->pinchStrength >= pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
 			// Start
@@ -297,12 +302,12 @@ void LeapListener::gesturesStateMachines() {
 			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::STOP;
 			gestureZoom = GESTURE_STATES::STOP;
 		}
-		else if ((!hand->visible || hand->pinchStrength < pinchThreshold) && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
+		else if ((!pinchInsideSphere || !hand->visible || hand->pinchStrength < pinchThreshold) && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
 			// Stop
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
 			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
 		}
-
+		
 		/**
 		* Grab state machine
 		*/
@@ -347,22 +352,21 @@ void LeapListener::gesturesStateMachines() {
 		*/
 		unsigned int extendedCount = 0;
 		for (int j = 0; j < 5; j++) {
-			if ((hand->visible && (hand->finger[j].extended || (!hand->finger[j].extended && hand->grabStrength <= 0.6f))))
+			if ((hand->visible && (hand->finger[j].extended/* || (!hand->finger[j].extended && hand->grabStrength <= 0.6f)*/)))
 				extendedCount++;
 		}
 
-		int otherHand = (i + 1) % 2;
-		if (!onlyIndexExtended && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP && hand->visible && handInsideSphere && extendedCount == 5 && gestures[i][GESTURES::ROTATION] == GESTURE_STATES::STOP) {
+		if (gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP && hand->visible && handInsideSphere && extendedCount == 5 && gestures[i][GESTURES::ROTATION] == GESTURE_STATES::STOP) {
 			// Start
 			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::START;
 			gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
 		}
-		else if (!onlyIndexExtended && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP && hand->visible && handInsideSphere && extendedCount == 5 && (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)) {
+		else if (gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP && hand->visible && handInsideSphere && extendedCount == 5 && (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)) {
 			// Update
 			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::UPDATE;
 			gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
 		}
-		else if (!onlyIndexExtended && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && (gestureZoom != GESTURE_STATES::STOP || !hand->visible || (handInsideSphere && extendedCount < 5) || (extendedCount == 5 && !handInsideSphere))) {
+		else if (gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && (gestureZoom != GESTURE_STATES::STOP || !hand->visible || (handInsideSphere && extendedCount < 5) || (extendedCount == 5 && !handInsideSphere))) {
 			// Stop
 			gestures[i][GESTURES::ROTATION] = GESTURE_STATES::STOP;
 			gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
@@ -405,6 +409,9 @@ void LeapListener::onDeviceChange (const Leap::Controller &controller) {
 void LeapListener::setHands (std::shared_ptr<SkeletonHand> &l, std::shared_ptr<SkeletonHand> &r) {
 	skeletonHands[0] = rightHand = r;
 	skeletonHands[1] = leftHand = l;
+
+	leftHand->isRight = false;
+	rightHand->isRight = true;
 }
 
 void LeapListener::setHmd(ovrHmd h) {

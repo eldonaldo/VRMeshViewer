@@ -224,7 +224,7 @@ protected:
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
 	Leap::Frame frame; ///< Leap motion frame
-	std::vector<std::shared_ptr<Pin>> *pinList; ///< List of pins
+	std::vector<std::shared_ptr<Pin>> *pinList = nullptr; ///< List of pins
 
 private:
 

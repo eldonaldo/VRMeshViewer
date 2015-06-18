@@ -340,7 +340,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 			leapController.addListener(*leapListener);
 	}
 
-	// Load annotations if desired
+	// Load annotations if desired 
 	if (loadAnnotationsFlag)
 		loadAnnotationsOnLoop(); 
 

@@ -28,6 +28,8 @@ void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 void Pin::calculateLocalRotation(Matrix3f &nm) {
 	// Make the pin stand perpendicular on the surface of the model
 	Vector4f homogeneousPosition(position.x(), position.y(), position.z(), 1.f);
+	normal = normal.cwiseAbs();
+
 	Vector3f normalWorld = nm * normal;
 	Vector3f positionWorld = (getModelMatrix() * homogeneousPosition).head<3>();
 	Vector3f direction = (m_bbox.getCenter() - positionWorld);
