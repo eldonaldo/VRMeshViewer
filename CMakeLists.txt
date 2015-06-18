@@ -111,6 +111,7 @@ add_executable(VRMeshViewer
 	include/Settings.hpp
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
+	include/kdtree.hpp
 	
 	# Source code files
 	src/main.cpp
