@@ -42,11 +42,11 @@ void Pin::calculateLocalRotation(Matrix3f &nm) {
 }
 
 std::string Pin::serialize() {
-	std::string output = "{\n";
-	output += std::to_string(position.x()) + ", " + std::to_string(position.y()) + ", " + std::to_string(position.z()) + "\n";
-	output += std::to_string(normal.x()) + ", " + std::to_string(normal.y()) + ", " + std::to_string(normal.z()) + "\n";
-	output += std::to_string(color.x()) + ", " + std::to_string(color.y()) + ", " + std::to_string(color.z()) + "\n";
-	output += "}\n";
+	std::string output = "pin\n";
+	output += "position " + std::to_string(position.x()) + " " + std::to_string(position.y()) + " " + std::to_string(position.z()) + "\n";
+	output += "normal " + std::to_string(normal.x()) + " " + std::to_string(normal.y()) + " " + std::to_string(normal.z()) + "\n";
+	output += "color " + std::to_string(color.x()) + " " + std::to_string(color.y()) + " " + std::to_string(color.z()) + "\n";
+	output += "\n";
 	return output;
 }
 

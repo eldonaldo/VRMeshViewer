@@ -406,22 +406,23 @@ void Viewer::saveAnnotations () {
 	if (!pinList.empty()) {
 		std::ofstream file;
 		std::size_t pos = mesh->getName().find_last_of("/\\");
-		std::string path = mesh->getName().substr(0, pos) + "-annotation";
+		std::string path = mesh->getName().substr(0, pos);
 		std::string filename = mesh->getName().substr(pos + 1);
 		std::size_t pos1 = filename.find_last_of('.');
-		filename = filename.substr(0, pos1);
+		filename = filename.substr(0, pos1) + "-annotations";
 
 		int i = 1;
-		std::string savePath = path + PATH_SEPARATOR + filename + "-" + toString(i) + ".txt";
+		std::string savePath = path + "/" + filename + "-" + toString(i) + ".txt";
 		while (fileExists(savePath)) {
 			i++;
-			savePath = path + PATH_SEPARATOR + filename + "-" + toString(i) + ".txt";
+			savePath = path + "/" + filename + "-" + toString(i) + ".txt";
 		}
 
 		file.open(savePath);
-		cout << serializeAnnotations() << endl;
-		file << "asd";
+		file << serializeAnnotations();
 		file.close();
+
+		cout << "Saved to: " << savePath << endl;
 	}
 }
 
