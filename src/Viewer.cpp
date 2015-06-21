@@ -434,8 +434,11 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 void Viewer::processNetworking () {
 	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
 		netSocket->send(serializeTransformationState(), Settings::getInstance().NETWORK_IP, Settings::getInstance().NETWORK_PORT);
+	else if (Settings::getInstance().NETWORK_LISTEN)
+		netSocket->receive();
 
-	sequenceNr++;
+	// Increase sequence nr
+	sequenceNr = (sequenceNr + 1) % std::numeric_limits<long>::max();
 }
 
 std::string Viewer::serializeTransformationState () {

@@ -10,18 +10,14 @@ UDPSocket::UDPSocket (asio::io_service& io_service, short listen_port)
 }
 
 void UDPSocket::receive () {
+	Settings::getInstance().NETWORK_LISTEN = false;
 	socket.async_receive_from(asio::buffer(data, max_length), endpoint, [this] (std::error_code ec, std::size_t bytes_recvd) {
 		if (!ec && bytes_recvd > 0) {
 			current_length = bytes_recvd;
 			std::cout << "Received: '" << std::string(data, data + current_length) << "'\n";
 		}
 
-		/**
-		 * We issue a connection initialization for a new async operation.
-		 * That way the io_service object does not return after the operation
-		 * has completed.
-		 */
-		receive();
+		Settings::getInstance().NETWORK_LISTEN = true;
 	});
 }
 

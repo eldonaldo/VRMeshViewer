@@ -37,7 +37,7 @@ Settings::Settings () :
 	SHOW_SPHERE					(false),
 	ENABLE_SPHERE				(true),
 
-	// LEAP, 1.f = 1 Unit = 1 milimeter
+	// LEAP, 1.f = 1 Unit = 1 millimeter
 	// PASSTHROUGH
 	LEAP_USE_PASSTHROUGH		(true),
 	LEAP_NO_HMD_OFFSET			(0.f, 0.20f, 0.f),
@@ -53,6 +53,7 @@ Settings::Settings () :
 
 	// NETWORKING
 	NETWORK_ENABLED				(false),
+	NETWORK_LISTEN				(true),
 	NETWORK_MODE				(0),
 	NETWORK_PORT				(8888),
 	NETWORK_IP					("127.0.0.1")

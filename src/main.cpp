@@ -85,11 +85,12 @@ int main (int argc, char *argv[]) {
 			listenPort = Settings::getInstance().NETWORK_PORT - 1;
 		UDPSocket socket(io_service, listenPort);
 
+		// Setup networking
 		if (Settings::getInstance().NETWORK_ENABLED) {
 
 			// Print info
 			std::cout << "Network[\n" <<
-			"  Mode: " << Settings::getInstance().NETWORK_MODE << ",\n" <<
+			"  Mode: " << (Settings::getInstance().NETWORK_MODE == 0 ? "Server" : "Client") << ",\n" <<
 			"  Endpoint: " << Settings::getInstance().NETWORK_IP << ":" << Settings::getInstance().NETWORK_PORT << "\n" <<
 			"]" << std::endl;
 

@@ -78,6 +78,7 @@ public:
 	bool GESTURES_RELATIVE_TRANSLATE;
 
 	bool NETWORK_ENABLED;
+	bool NETWORK_LISTEN;
 	short NETWORK_PORT;
 	int NETWORK_MODE;
 	std::string NETWORK_IP;
