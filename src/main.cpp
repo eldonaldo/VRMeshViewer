@@ -5,23 +5,45 @@
 #include "renderer/RiftRenderer.hpp"
 #include "leap/LeapListener.hpp"
 #include "network/UDPSocket.hpp"
+#include <thread>
 
 using namespace VR_NS;
 
-std::shared_ptr<UDPSocket> initNetworking () {
-	asio::io_service io_service;
-	std::shared_ptr<UDPSocket> socket = std::make_shared<UDPSocket>(io_service, 7012);
-	io_service.run();
-	return socket;
+bool parseArgs (int argc, char *argv[]) {
+	if (argc < 2)
+		return false;
+
+	Settings::getInstance().MODEL = std::string(argv[1]);
+
+	if (argc > 2)
+		Settings::getInstance().ANNOTATIONS = std::string(argv[2]);
+
+	// Networking args
+	Settings::getInstance().NETWORK_ENABLED = false;
+	if (argc == 6) {
+		Settings::getInstance().NETWORK_MODE = std::string(argv[3]);
+		Settings::getInstance().NETWORK_IP = std::string(argv[4]);
+		Settings::getInstance().NETWORK_PORT = std::atoi(argv[5]);
+		Settings::getInstance().NETWORK_ENABLED = true;
+	}
+
+	return true;
 }
 
 int main (int argc, char *argv[]) {
+
+	// Args
+	if (!parseArgs(argc, argv)) {
+		std::cout << "Usage: VRMeshViewer <model.obj> [<None|annotations.txt>] [<Client|Server> <IP-Address> <UDP-Port>]" << std::endl;
+		return -1;
+	}
 
 	// Settings
 	int &width = Settings::getInstance().WINDOW_WIDTH, &height = Settings::getInstance().WINDOW_HEIGHT;
 	float &fov = Settings::getInstance().FOV, &zNear = Settings::getInstance().Z_NEAR, &zFar = Settings::getInstance().Z_FAR;
 
 	try {
+
 		// This sets up the OpenGL context and needs the be first call
 		Viewer viewer("Virtual Reality Mesh Viewer", width, height, false);
 
@@ -37,24 +59,51 @@ int main (int argc, char *argv[]) {
 			renderer = std::unique_ptr<Renderer>(new PerspectiveRenderer(shader, fov, width, height, zNear, zFar));
 
 		// Load mesh
-		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/dragon/dragon.obj");
-//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/ironman/ironman.obj");
-//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/muro/muro.obj");
-//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/ajax.obj");
-//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>("resources/models/kingkong.obj");
+//		Settings::getInstance().MODEL = "resources/models/dragon/dragon.obj";
+//		Settings::getInstance().MODEL = "resources/models/ironman/ironman.obj";
+//		Settings::getInstance().MODEL = "resources/models/muro/muro.obj";
+		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>(Settings::getInstance().MODEL);
 
 		// Create Leap listener
 		std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
 		viewer.attachLeap(leap);
 
 		// Networking
-		auto socket = initNetworking();
-		viewer.attachSocket(socket);
+		std::unique_ptr<std::thread> netThread;
+		asio::io_service io_service;
+		asio::io_service::work work(io_service);
+		UDPSocket socket(io_service, Settings::getInstance().NETWORK_PORT);
 
-		// Run
-		//viewer.loadAnnotations("resources/models/dragon/dragon-annotations-7.txt");
+		if (Settings::getInstance().NETWORK_ENABLED) {
+
+			// Print info
+			std::cout << "Network[\n" <<
+			"  Mode: " << Settings::getInstance().NETWORK_MODE << ",\n" <<
+			"  Endpoint: " << Settings::getInstance().NETWORK_IP << ":" << Settings::getInstance().NETWORK_PORT << "\n" <<
+			"]" << std::endl;
+
+			// Run the network listener in a separate thread
+			netThread = std::unique_ptr<std::thread>(new std::thread([&] {
+				io_service.run();
+			}));
+
+			viewer.attachSocket(socket);
+		}
+
+		// Load annotations, if any, and run
+		if (Settings::getInstance().ANNOTATIONS != "None")
+			viewer.loadAnnotations(Settings::getInstance().ANNOTATIONS);
+
 		viewer.display(mesh, renderer);
-	} catch (std::runtime_error &e) {
+
+		// Stop networking and join to main thread
+		if (Settings::getInstance().NETWORK_ENABLED) {
+			io_service.stop();
+			netThread->join();
+			std::cout << "Network shutdown" << std::endl;
+		}
+
+	} catch (std::exception &e) {
 		std::cout << "Runtime error: "<< e.what() << std::endl;
 		std::cin.get();
 		return -1;

@@ -126,7 +126,7 @@ public:
 	/**
 	 * @brief Attaches a UDP socket
 	 */
-	void attachSocket (std::shared_ptr<UDPSocket> &s);
+	void attachSocket (UDPSocket &s);
 
 protected:
 
@@ -149,6 +149,16 @@ protected:
 	* @brief Loads annotations from a file. Called issued by method loadAnnotations()
 	*/
 	void loadAnnotationsOnLoop();
+
+	/**
+	 * @brief Serializes the translate, scale and rotation matrices
+	 */
+	std::string serializeTransformationState ();
+
+	/**
+	 * @brief Matrix to string
+	 */
+	std::string matrix4fToString (Matrix4f &m);
 
 public:
 
@@ -185,7 +195,8 @@ protected:
 	std::vector<std::shared_ptr<Pin>> pinList; ///< List of annotations
 	bool loadAnnotationsFlag; ///< Load annotations on start up
 	std::string annotationsLoadPath; ///< File to load from
-	std::shared_ptr<UDPSocket> netSocket; ///< UDP Socket
+	UDPSocket *netSocket; ///< UDP Socket
+	unsigned long sequenceNr; ///< UDP Packet sequence nr
 };
 
 VR_NAMESPACE_END

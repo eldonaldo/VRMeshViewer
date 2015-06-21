@@ -5,6 +5,10 @@ VR_NAMESPACE_BEGIN
 // Set global settings here
 Settings::Settings () :
 
+	// GLOBAL
+	MODEL						(""),
+	ANNOTATIONS					("None"),
+
 	// WINDOW
 	WINDOW_WIDTH				(1200),
 	WINDOW_HEIGHT				(900),
@@ -45,7 +49,13 @@ Settings::Settings () :
 	// GESTURES
 	GESTURES_PINCH_THRESHOLD	(1.f),
 	GESTURES_GRAB_THRESHOLD		(1.f),
-	GESTURES_RELATIVE_TRANSLATE	(true)
+	GESTURES_RELATIVE_TRANSLATE	(true),
+
+	// NETWORKING
+	NETWORK_ENABLED				(false),
+	NETWORK_MODE				("client"),
+	NETWORK_PORT				(8888),
+	NETWORK_IP					("127.0.0.1")
 {}
 
 VR_NAMESPACE_END

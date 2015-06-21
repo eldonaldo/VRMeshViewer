@@ -375,8 +375,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	// Print some info
 	std::cout << info() << std::endl;
 
-	netSocket->receive();
-
 	// Render loop
 	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window)) {
@@ -423,14 +421,33 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 			addAnnotation(annotationTarget, annotationNormal);
 			uploadAnnotation = false;
 		}
+
+		cout << serializeTransformationState();
 	}
 	
 	// Renderer cleapup
 	renderer->cleanUp();
 }
 
-void Viewer::attachSocket(std::shared_ptr<UDPSocket> &s) {
-	netSocket = s;
+std::string Viewer::serializeTransformationState () {
+	// Matrices are stored row major
+	std::string state;
+	state += "id " + std::to_string(sequenceNr) + "\n";
+	state += "translate " + matrix4fToString(translateMatrix) + "\n";
+	return state;
+}
+
+std::string Viewer::matrix4fToString (Matrix4f &m) {
+	std::string mat;
+	for (int r = 0; r < m.rows(); r++)
+		for (int c = 0; c < m.cols(); c++)
+			mat += std::to_string(m(r, c)) + (c == m.cols() - 1 && r == m.rows() - 1 ? "" : " ");
+
+	return mat;
+}
+
+void Viewer::attachSocket(UDPSocket &s) {
+	netSocket = &s;
 }
 
 std::string Viewer::serializeAnnotations() {

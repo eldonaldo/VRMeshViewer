@@ -42,6 +42,8 @@ public:
 	/**
 	 * Global settings as members
 	 */
+	std::string MODEL;
+	std::string ANNOTATIONS;
 	int WINDOW_WIDTH;
 	int WINDOW_HEIGHT;
 	float FOV;
@@ -74,6 +76,11 @@ public:
 	float GESTURES_PINCH_THRESHOLD;
 	float GESTURES_GRAB_THRESHOLD;
 	bool GESTURES_RELATIVE_TRANSLATE;
+
+	bool NETWORK_ENABLED;
+	short NETWORK_PORT;
+	std::string NETWORK_MODE;
+	std::string NETWORK_IP;
 };
 
 VR_NAMESPACE_END
