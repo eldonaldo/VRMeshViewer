@@ -36,7 +36,7 @@ int main (int argc, char *argv[]) {
 
 	// Args
 	if (!parseArgs(argc, argv)) {
-		std::cout << "Usage: VRMeshViewer <model.obj> [<None|annotations.txt>] [<Client|Server> <IP-Address> <UDP-Port>]" << std::endl;
+		std::cout << "Usage: VRMeshViewer <model.obj> [<none|annotations.txt>] [<client|server> <IP-Address> <UDP-Port>]" << std::endl;
 		return -1;
 	}
 
@@ -82,7 +82,7 @@ int main (int argc, char *argv[]) {
 		 */
 		short listenPort = Settings::getInstance().NETWORK_PORT;
 		if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
-			listenPort = Settings::getInstance().NETWORK_PORT - 1;
+			listenPort = Settings::getInstance().NETWORK_PORT - 10;
 		UDPSocket socket(io_service, listenPort);
 
 		// Setup networking

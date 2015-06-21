@@ -1,4 +1,4 @@
-#include <network/UDPSocket.hpp>
+#include "network/UDPSocket.hpp"
 
 VR_NAMESPACE_BEGIN
 
@@ -14,7 +14,7 @@ void UDPSocket::receive () {
 	socket.async_receive_from(asio::buffer(data, max_length), endpoint, [this] (std::error_code ec, std::size_t bytes_recvd) {
 		if (!ec && bytes_recvd > 0) {
 			current_length = bytes_recvd;
-			std::cout << "Received: '" << std::string(data, data + current_length) << "'\n";
+//			std::cout << "Received: '" << std::string(data, data + current_length) << "'\n";
 		}
 
 		Settings::getInstance().NETWORK_LISTEN = true;
@@ -26,9 +26,9 @@ void UDPSocket::send (const std::string &msg, const std::string &ip_address, sho
 
 	endpoint = udp::endpoint(asio::ip::address::from_string(ip_address), port);
 	socket.async_send_to(asio::buffer(data, length), endpoint, [this] (std::error_code ec, std::size_t bytes_sent) {
-		if (!ec && bytes_sent > 0) {
-			std::cout << "Sent: '" << bytes_sent << "'\n";
-		}
+//		if (!ec && bytes_sent > 0) {
+//			std::cout << "Sent: '" << bytes_sent << "'\n";
+//		}
 	});
 }
 

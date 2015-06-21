@@ -219,7 +219,7 @@ extern void ppv(Vector3f v);
 /// Checks if the file exists
 extern bool fileExists(const std::string &name);
 
-/// Matrix to string
+/// Matrix4f to string
 extern std::string matrix4fToString (Matrix4f &m);
 
 /// String to Matrix4f

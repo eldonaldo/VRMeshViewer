@@ -35,7 +35,6 @@ Matrix4f Mesh::getModelMatrix() {
 	return transMat * rotateMat * scaleMat;
 }
 
-
 Matrix3f Mesh::getNormalMatrix() {
 	// Calculate normal matrix for normal transformation
 	Matrix4f modelMatrix = getModelMatrix();

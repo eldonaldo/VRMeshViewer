@@ -249,6 +249,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 		glViewport(0, 0, width, height);
 		glfwGetFramebufferSize(window, &(__cbref->FBWidth), &(__cbref->FBHeight));
 		__cbref->width = width; __cbref->height = height;
+		__cbref->getArcball().setSize(Vector2i(width, height));
 		if (__cbref->renderer)
 			__cbref->renderer->updateFBSize(__cbref->FBWidth, __cbref->FBHeight);
 	});
@@ -389,8 +390,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		}
 
 		// Update arcball
-		if (!Settings::getInstance().USE_RIFT && !leapController.isConnected())
+		if ((!Settings::getInstance().USE_RIFT && !leapController.isConnected() && !Settings::getInstance().NETWORK_ENABLED) ||
+			(Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)) {
 			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+		}
 
 		// Bounding sphere
 		renderer->setSphereCenter(sphereCenter);
@@ -437,15 +440,45 @@ void Viewer::processNetworking () {
 	else if (Settings::getInstance().NETWORK_LISTEN)
 		netSocket->receive();
 
+	// Parse package and adjust model/view matrix if in client mode
+	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT) {
+		std::istringstream ss(netSocket->getBufferContent());
+		std::string line;
+
+		while (std::getline(ss, line)) {
+			std::istringstream lss(line);
+			std::string prefix;
+			lss >> prefix;
+			std::string content = line.substr(line.find_first_of(' ') + 1);
+
+			if (prefix == "id") {
+
+			} else if (prefix == "translate") {
+				translateMatrix = stringToMatrix4f(content);
+			} else if (prefix == "scale") {
+				scaleMatrix = stringToMatrix4f(content);
+			} else if (prefix == "rotate") {
+				rotationMatrix = stringToMatrix4f(content);
+			} else if (prefix == "view") {
+				renderer->setViewMatrix(stringToMatrix4f(content));
+			}
+		}
+	}
+
 	// Increase sequence nr
 	sequenceNr = (sequenceNr + 1) % std::numeric_limits<long>::max();
 }
 
 std::string Viewer::serializeTransformationState () {
+	Matrix4f vm = renderer->getViewMatrix();
+
 	// Matrices are stored row major
 	std::string state;
 	state += "id " + std::to_string(sequenceNr) + "\n";
 	state += "translate " + matrix4fToString(translateMatrix) + "\n";
+	state += "scale " + matrix4fToString(scaleMatrix) + "\n";
+	state += "rotate " + matrix4fToString(rotationMatrix) + "\n";
+	state += "view " + matrix4fToString(vm);
 	return state;
 }
 
