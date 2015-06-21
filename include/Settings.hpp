@@ -82,6 +82,7 @@ public:
 	short NETWORK_PORT;
 	int NETWORK_MODE;
 	std::string NETWORK_IP;
+	long NETWORK_SEND_RATE;
 };
 
 VR_NAMESPACE_END

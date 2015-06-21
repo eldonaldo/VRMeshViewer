@@ -51,12 +51,13 @@ Settings::Settings () :
 	GESTURES_GRAB_THRESHOLD		(1.f),
 	GESTURES_RELATIVE_TRANSLATE	(true),
 
-	// NETWORKING
+	// NETWORKING, 1 Unit = 1 millimeter
 	NETWORK_ENABLED				(false),
 	NETWORK_LISTEN				(true),
 	NETWORK_MODE				(0),
 	NETWORK_PORT				(8888),
-	NETWORK_IP					("127.0.0.1")
+	NETWORK_IP					("127.0.0.1"),
+	NETWORK_SEND_RATE			(10)
 {}
 
 VR_NAMESPACE_END

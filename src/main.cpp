@@ -103,7 +103,7 @@ int main (int argc, char *argv[]) {
 		}
 
 		// Load annotations, if any, and run
-		if (Settings::getInstance().ANNOTATIONS != "None")
+		if (Settings::getInstance().ANNOTATIONS != "none")
 			viewer.loadAnnotations(Settings::getInstance().ANNOTATIONS);
 
 		viewer.display(mesh, renderer);

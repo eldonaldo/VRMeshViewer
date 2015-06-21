@@ -237,6 +237,9 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
+		if (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
+			return;
+
 		float scaleFactor = 0.05f;
 		if (y >= 0)
 			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
@@ -376,6 +379,9 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	// Print some info
 	std::cout << info() << std::endl;
 
+	// Send rate calculation
+	long lastTime = glfwGetTime() * 1000;
+
 	// Render loop
 	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window)) {
@@ -426,8 +432,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		}
 
 		// Networking
-		if (Settings::getInstance().NETWORK_ENABLED)
+		if (Settings::getInstance().NETWORK_ENABLED && (long(glfwGetTime() * 1000) - lastTime) >= Settings::getInstance().NETWORK_SEND_RATE) {
 			processNetworking();
+			lastTime = long(glfwGetTime() * 1000);
+		}
 	}
 	
 	// Renderer cleapup
@@ -451,17 +459,14 @@ void Viewer::processNetworking () {
 			lss >> prefix;
 			std::string content = line.substr(line.find_first_of(' ') + 1);
 
-			if (prefix == "id") {
-
-			} else if (prefix == "translate") {
+			if (prefix == "translate")
 				translateMatrix = stringToMatrix4f(content);
-			} else if (prefix == "scale") {
+			else if (prefix == "scale")
 				scaleMatrix = stringToMatrix4f(content);
-			} else if (prefix == "rotate") {
+			else if (prefix == "rotate")
 				rotationMatrix = stringToMatrix4f(content);
-			} else if (prefix == "view") {
+			else if (prefix == "view")
 				renderer->setViewMatrix(stringToMatrix4f(content));
-			}
 		}
 	}
 
