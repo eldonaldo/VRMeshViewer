@@ -12,7 +12,7 @@ Viewer *__cbref;
 Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f) {
+	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr) {
 
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
@@ -422,11 +422,20 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 			uploadAnnotation = false;
 		}
 
-		cout << serializeTransformationState();
+		// Networking
+		if (Settings::getInstance().NETWORK_ENABLED)
+			processNetworking();
 	}
 	
 	// Renderer cleapup
 	renderer->cleanUp();
+}
+
+void Viewer::processNetworking () {
+	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
+		netSocket->send(serializeTransformationState(), Settings::getInstance().NETWORK_IP, Settings::getInstance().NETWORK_PORT);
+
+	sequenceNr++;
 }
 
 std::string Viewer::serializeTransformationState () {
@@ -435,15 +444,6 @@ std::string Viewer::serializeTransformationState () {
 	state += "id " + std::to_string(sequenceNr) + "\n";
 	state += "translate " + matrix4fToString(translateMatrix) + "\n";
 	return state;
-}
-
-std::string Viewer::matrix4fToString (Matrix4f &m) {
-	std::string mat;
-	for (int r = 0; r < m.rows(); r++)
-		for (int c = 0; c < m.cols(); c++)
-			mat += std::to_string(m(r, c)) + (c == m.cols() - 1 && r == m.rows() - 1 ? "" : " ");
-
-	return mat;
 }
 
 void Viewer::attachSocket(UDPSocket &s) {

@@ -156,9 +156,9 @@ protected:
 	std::string serializeTransformationState ();
 
 	/**
-	 * @brief Matrix to string
+	 * @brief Process networking operations
 	 */
-	std::string matrix4fToString (Matrix4f &m);
+	void processNetworking ();
 
 public:
 

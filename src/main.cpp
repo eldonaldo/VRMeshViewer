@@ -21,7 +21,9 @@ bool parseArgs (int argc, char *argv[]) {
 	// Networking args
 	Settings::getInstance().NETWORK_ENABLED = false;
 	if (argc == 6) {
-		Settings::getInstance().NETWORK_MODE = std::string(argv[3]);
+		Settings::getInstance().NETWORK_MODE = NETWORK_MODES::CLIENT;
+		if (std::string(argv[3]) == "server")
+			Settings::getInstance().NETWORK_MODE = NETWORK_MODES::SERVER;
 		Settings::getInstance().NETWORK_IP = std::string(argv[4]);
 		Settings::getInstance().NETWORK_PORT = std::atoi(argv[5]);
 		Settings::getInstance().NETWORK_ENABLED = true;
@@ -72,7 +74,16 @@ int main (int argc, char *argv[]) {
 		std::unique_ptr<std::thread> netThread;
 		asio::io_service io_service;
 		asio::io_service::work work(io_service);
-		UDPSocket socket(io_service, Settings::getInstance().NETWORK_PORT);
+
+		/**
+		 * If we're the server we need to choose another port.
+		 * This is for debugging purposes only to run the application twice
+		 * on the same machine and connect them together.
+		 */
+		short listenPort = Settings::getInstance().NETWORK_PORT;
+		if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
+			listenPort = Settings::getInstance().NETWORK_PORT - 1;
+		UDPSocket socket(io_service, listenPort);
 
 		if (Settings::getInstance().NETWORK_ENABLED) {
 

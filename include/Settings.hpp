@@ -79,7 +79,7 @@ public:
 
 	bool NETWORK_ENABLED;
 	short NETWORK_PORT;
-	std::string NETWORK_MODE;
+	int NETWORK_MODE;
 	std::string NETWORK_IP;
 };
 

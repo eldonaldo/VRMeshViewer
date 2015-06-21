@@ -130,4 +130,27 @@ bool fileExists(const std::string &name) {
 	}
 }
 
+Matrix4f stringToMatrix4f (std::string &s) {
+	std::istringstream ss(s);
+	float value;
+	Matrix4f matrix;
+	for (int r = 0; r < 4; r++) {
+		for (int c = 0; c < 4; c++) {
+			ss >> value;
+			matrix(r, c) = value;
+		}
+	}
+
+	return matrix;
+}
+
+std::string matrix4fToString (Matrix4f &m) {
+	std::string mat;
+	for (int r = 0; r < m.rows(); r++)
+		for (int c = 0; c < m.cols(); c++)
+			mat += std::to_string(m(r, c)) + (c == m.cols() - 1 && r == m.rows() - 1 ? "" : " ");
+
+	return mat;
+}
+
 VR_NAMESPACE_END

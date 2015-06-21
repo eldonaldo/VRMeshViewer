@@ -53,7 +53,7 @@ Settings::Settings () :
 
 	// NETWORKING
 	NETWORK_ENABLED				(false),
-	NETWORK_MODE				("client"),
+	NETWORK_MODE				(0),
 	NETWORK_PORT				(8888),
 	NETWORK_IP					("127.0.0.1")
 {}

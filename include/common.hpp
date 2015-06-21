@@ -125,10 +125,16 @@ enum GESTURES {
 
 /// Gesture states
 enum GESTURE_STATES {
-	INVALID,
-	START,
-	UPDATE,
-	STOP
+	INVALID, //!< INVALID
+	START, //!< START
+	UPDATE, //!< UPDATE
+	STOP //!< STOP
+};
+
+/// Networking modes
+enum NETWORK_MODES {
+	SERVER, //!< SERVER
+	CLIENT //!< CLIENT
 };
 
 /// Stores an RGBA color value
@@ -212,5 +218,11 @@ extern void ppv(Vector3f v);
 
 /// Checks if the file exists
 extern bool fileExists(const std::string &name);
+
+/// Matrix to string
+extern std::string matrix4fToString (Matrix4f &m);
+
+/// String to Matrix4f
+extern Matrix4f stringToMatrix4f (std::string &s);
 
 VR_NAMESPACE_END
