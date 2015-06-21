@@ -9,7 +9,44 @@ RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float 
 	// Leap passthrough shader
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 		leapShader = std::make_shared<GLShader>();
-		leapShader->initFromFiles("leap-shader", "resources/shader/passthrough-vertex-shader.glsl", "resources/shader/passthrough-fragment-shader.glsl");
+		leapShader->init(
+			"leap-shader",
+
+			// Vertex shader
+			std::string("#version 330") + "\n" +
+
+			"uniform mat4 mvp;" + "\n" +
+
+			"in vec3 position;" + "\n" +
+			"in vec2 texCoord;" + "\n" +
+
+			"out vec2 uv;" + "\n" +
+
+			"void main () {" + "\n" +
+			"	uv = texCoord;" + "\n" +
+			"	gl_Position = mvp * vec4(position, 1.0);" + "\n" +
+			"}" + "\n",
+
+			// Fragment shader
+			std::string("#version 330") + "\n" +
+
+			"uniform sampler2D rawTexture;" + "\n" +
+			"uniform sampler2D distortionTexture;" + "\n" +
+
+			"in vec2 uv;" + "\n" +
+
+			"out vec4 color;" + "\n" +
+
+			"void main () {" + "\n" +
+			"	vec4 index = texture(distortionTexture, uv);" + "\n" +
+
+			"	// Only use xy within [0, 1]" + "\n" +
+			"	if (index.r > 0.0 && index.r < 1.0 && index.g > 0.0 && index.g < 1.0)" + "\n" +
+			"    	color = vec4(texture(rawTexture, index.rg).rrr, 1);" + "\n" +
+			"	else" + "\n" +
+			"    	color = vec4(0, 0, 0, 1);" + "\n" +
+			"}" + "\n"
+		);
 	}
 }
 
