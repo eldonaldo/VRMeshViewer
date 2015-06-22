@@ -32,6 +32,11 @@ public:
 	 */
 	std::string getBufferContent ();
 
+	/**
+	* @brief Wether the buffer holds new data or not
+	*/
+	bool hasNewData();
+
 protected:
 
 	/**
@@ -51,6 +56,7 @@ private:
 	enum { max_length = 1024 }; ///< Max buffer length
 	std::size_t current_length; ///< Length of the data the buffer currently holding
 	char data[max_length]; ///< Buffer
+	bool bufferChanged; ///< Flag if the buffer holds new data
 };
 
 VR_NAMESPACE_END

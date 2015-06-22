@@ -5,7 +5,7 @@ VR_NAMESPACE_BEGIN
 using asio::ip::udp;
 
 UDPSocket::UDPSocket (asio::io_service& io_service, short listen_port)
-	: socket(io_service, udp::endpoint(udp::v4(), listen_port)), current_length(0) {
+	: socket(io_service, udp::endpoint(udp::v4(), listen_port)), current_length(0), bufferChanged(true) {
 
 }
 
@@ -14,6 +14,7 @@ void UDPSocket::receive () {
 	socket.async_receive_from(asio::buffer(data, max_length), endpoint, [this] (std::error_code ec, std::size_t bytes_recvd) {
 		if (!ec && bytes_recvd > 0) {
 			current_length = bytes_recvd;
+			bufferChanged = true;
 		}
 
 		Settings::getInstance().NETWORK_LISTEN = true;
@@ -31,7 +32,12 @@ void UDPSocket::send (const std::string &msg, const std::string &ip_address, sho
 	});
 }
 
+bool UDPSocket::hasNewData () {
+	return bufferChanged;
+}
+
 std::string UDPSocket::getBufferContent () {
+	bufferChanged = false;
 	return std::string(data, data + current_length);
 }
 

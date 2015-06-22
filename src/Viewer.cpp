@@ -410,8 +410,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		}
 
 		// Update arcball
-		if ((!Settings::getInstance().USE_RIFT && !Settings::getInstance().USE_LEAP) ||
-			(!Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)) {
+		if ((Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER) ||
+			(!Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && !Settings::getInstance().USE_LEAP)) {
 			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 		}
 
@@ -463,7 +463,7 @@ void Viewer::processNetworking () {
 		netSocket->receive();
 
 	// Parse package and adjust model/view matrix if in client mode
-	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT) {
+	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT && netSocket->hasNewData()) {
 		std::istringstream ss(netSocket->getBufferContent());
 		std::string line;
 
@@ -500,7 +500,7 @@ std::string Viewer::serializeTransformationState () {
 	state += "rotate " + matrix4fToString(rotationMatrix) + "\n";
 	state += "view " + matrix4fToString(vm);
 
-	cout << serializeAnnotations () << endl;
+	//cout << serializeAnnotations () << endl;
 	return state;
 }
 
