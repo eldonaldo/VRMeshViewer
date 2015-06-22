@@ -35,6 +35,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#define WIN32_LEAN_AND_MEAN
 #define PATH_SEPARATOR '/'
 #if defined(PLATFORM_APPLE)
 	// Prevent OpenGL Compiler warnings
@@ -55,6 +56,8 @@
 #else
     #define GL_GLEXT_PROTOTYPES
 #endif
+#define ASIO_STANDALONE
+#include "asio.hpp"
 #include <memory>
 #include <algorithm>
 #include <math.h>
@@ -68,8 +71,6 @@
 #include "OVR_CAPI_GL.h"
 #include "OVR_Math.h"
 #include "tinyformat.h"
-#define ASIO_STANDALONE
-#include "asio.hpp"
 
 namespace VR_NS {}
 using namespace vrmv;

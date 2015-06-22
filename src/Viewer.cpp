@@ -379,7 +379,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	// Print some info
 	std::cout << info() << std::endl;
 
-	// Send rate calculation
+	// Last send time in milliseconds
 	long lastTime = glfwGetTime() * 1000;
 
 	// Render loop
@@ -396,8 +396,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		}
 
 		// Update arcball
-		if ((!Settings::getInstance().USE_RIFT && !leapController.isConnected() && !Settings::getInstance().NETWORK_ENABLED) ||
-			(Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)) {
+		if ((!Settings::getInstance().USE_RIFT && !leapController.isConnected()) ||
+			(!Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)) {
 			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 		}
 

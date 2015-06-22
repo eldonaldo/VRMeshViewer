@@ -9,26 +9,26 @@
 
 using namespace VR_NS;
 
-void initShader (std::shared_ptr<GLShader> &shader);
-
 bool parseArgs (int argc, char *argv[]) {
 	if (argc < 2)
 		return false;
 
-	Settings::getInstance().MODEL = std::string(argv[1]);
+	Settings::getInstance().USE_RIFT = (std::string(argv[1]) == "3d" ? true : false);
+	Settings::getInstance().MODEL = std::string(argv[2]);
 
-	if (argc > 2)
-		Settings::getInstance().ANNOTATIONS = std::string(argv[2]);
+	if (argc > 3)
+		Settings::getInstance().ANNOTATIONS = std::string(argv[3]);
 
 	// Networking args
 	Settings::getInstance().NETWORK_ENABLED = false;
-	if (argc == 6) {
-		Settings::getInstance().NETWORK_MODE = NETWORK_MODES::CLIENT;
-		if (std::string(argv[3]) == "server")
-			Settings::getInstance().NETWORK_MODE = NETWORK_MODES::SERVER;
-		Settings::getInstance().NETWORK_IP = std::string(argv[4]);
-		Settings::getInstance().NETWORK_PORT = std::atoi(argv[5]);
+	if (argc >= 6) {
 		Settings::getInstance().NETWORK_ENABLED = true;
+		Settings::getInstance().NETWORK_MODE = NETWORK_MODES::CLIENT;
+		Settings::getInstance().NETWORK_PORT = std::atoi(argv[5]);
+		if (std::string(argv[4]) == "server") {
+			Settings::getInstance().NETWORK_MODE = NETWORK_MODES::SERVER;
+			Settings::getInstance().NETWORK_IP = std::string(argv[6]);
+		}
 	}
 
 	return true;
@@ -38,7 +38,7 @@ int main (int argc, char *argv[]) {
 
 	// Args
 	if (!parseArgs(argc, argv)) {
-		std::cout << "Usage: VRMeshViewer <model.obj> [<none|annotations.txt>] [<client|server> <ip-address> <UDP-port>]" << std::endl;
+		std::cout << "Usage: VRMeshViewer <3d|2d> <model.obj> [<none|annotations.txt>] [<client|server> <UDP-port> <ip-address>]" << std::endl;
 		return -1;
 	}
 
@@ -53,7 +53,7 @@ int main (int argc, char *argv[]) {
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();
-		initShader(shader);
+		shader->initFromFiles("std-shader", "resources/shader/std-vertex-shader.glsl", "resources/shader/std-fragment-shader.glsl");
 
 		// Create an appropriate renderer
 		std::unique_ptr<Renderer> renderer;
@@ -84,7 +84,7 @@ int main (int argc, char *argv[]) {
 		 */
 		short listenPort = Settings::getInstance().NETWORK_PORT;
 		if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
-			listenPort = Settings::getInstance().NETWORK_PORT - 10;
+			listenPort = Settings::getInstance().NETWORK_PORT - 1;
 		UDPSocket socket(io_service, listenPort);
 
 		// Setup networking
@@ -123,75 +123,4 @@ int main (int argc, char *argv[]) {
 	}
 
 	return 0;
-}
-
-void initShader (std::shared_ptr<GLShader> &shader) {
-	shader->init(
-		// Name
-		"std-shader",
-
-		// Vertex shader
-		std::string("#version 330") + "\n" +
-
-		"uniform mat4 mvp;" + "\n" +
-
-		"in vec3 position;" + "\n" +
-		"in vec3 normal;" + "\n" +
-
-		"out vec3 vertexNormal;" + "\n" +
-		"out vec3 vertexPosition;" + "\n" +
-
-		"void main () {" + "\n" +
-		"	// Pass through" + "\n" +
-		"	vertexNormal = normal;" + "\n" +
-		"	vertexPosition = position;" + "\n" +
-
-		"	gl_Position = mvp * vec4(position, 1.0);" + "\n" +
-		"}" + "\n",
-
-		// Fragment shader
-		std::string("#version 330") + "\n" +
-
-		"// Point light representation" + "\n" +
-		"struct Light {" + "\n" +
-		"	vec3 position;" + "\n" +
-		"	vec3 intensity;" + "\n" +
-		"};" + "\n" +
-
-		"uniform Light light;" + "\n" +
-		"uniform vec3 materialColor;" + "\n" +
-		"uniform mat4 modelMatrix;" + "\n" +
-		"uniform mat3 normalMatrix;" + "\n" +
-		"uniform float alpha;" + "\n" +
-		"uniform bool simpleColor = false;" + "\n" +
-
-		"in vec3 vertexNormal;" + "\n" +
-		"in vec3 vertexPosition;" + "\n" +
-
-		"out vec4 color;" + "\n" +
-
-		"void main () {" + "\n" +
-		"	// Without wireframe overlay" + "\n" +
-		"	if (!simpleColor) {" + "\n" +
-		"		// Transform normal" + "\n" +
-		"		vec3 normal = normalize(normalMatrix * vertexNormal);" + "\n" +
-
-		"		// Position of fragment in world coodinates" + "\n" +
-		"		vec3 position = vec3(modelMatrix * vec4(vertexPosition, 1.0));" + "\n" +
-
-		"		// Calculate the vector from surface to the light" + "\n" +
-		"		vec3 surfaceToLight = light.position - position;" + "\n" +
-
-		"		// Calculate the cosine of the angle of incidence = brightness" + "\n" +
-		"		float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));" + "\n" +
-		"		brightness = clamp(brightness, 0.0, 1.0);" + "\n" +
-
-		"		// Calculate final color of the pixel" + "\n" +
-		"		color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +
-		"	} else {" + "\n" +
-		"		// Draw all in simple colors" + "\n" +
-		"		color = vec4(materialColor, alpha);" + "\n" +
-		"	}" + "\n" +
-		"}" + "\n"
-	);
 }
