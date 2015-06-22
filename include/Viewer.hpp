@@ -169,6 +169,7 @@ public:
 	Vector3f annotationTarget; ///< Annotation target
 	Vector3f annotationNormal; ///< Annotation normal
 	bool uploadAnnotation; ///< flag whether to upload a annotation or not
+	Leap::Controller leapController; ///< Leap controller
 
 protected:
 
@@ -187,7 +188,6 @@ protected:
 	Matrix4f rotationMatrix; ///< Rotation matrix
 	Matrix4f translateMatrix; ///< Translation matrix
 	Vector2i lastPos; ///< Last click position used for the arcball
-	Leap::Controller leapController; ///< Leap controller
 	std::unique_ptr<LeapListener> leapListener; ///< Leap listener instance
 	std::shared_ptr<SkeletonHand> hands[2]; ///< Leap hands
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler

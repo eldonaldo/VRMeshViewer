@@ -66,6 +66,7 @@ public:
 	bool SHOW_SPHERE;
 	bool ENABLE_SPHERE;
 
+	bool USE_LEAP;
 	bool LEAP_USE_PASSTHROUGH;
 	float LEAP_ALPHA_SCALE;
 	float LEAP_CAMERA_SHIFT_X;

@@ -77,23 +77,8 @@ void PerspectiveRenderer::draw() {
 	
 	// Draw annotations
 	if (pinList != nullptr && !pinList->empty())
-		for (auto &p : *pinList) {
+		for (auto &p : *pinList)
 			p->draw(getViewMatrix(), getProjectionMatrix());
-
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-			//shader->setUniform("simpleColor", true);
-			//shader->setUniform("materialColor", Vector3f(1.f, 0.f, 0.f));
-			//shader->setUniform("alpha", 1.f);
-
-			//BoundingBox3f mbbox = p->getBoundingBox();
-			//bbox = Cube(mbbox.min, mbbox.max);
-			//bbox.upload(shader);
-			//bbox.draw(getViewMatrix(), getProjectionMatrix());
-
-			//shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
-			//shader->setUniform("simpleColor", false);
-			//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		}
 
 	/**
 	 * I know this is far from optimal but since the bbox is only
@@ -118,7 +103,7 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Bounding sphere
-	if (Settings::getInstance().SHOW_SPHERE && Settings::getInstance().ENABLE_SPHERE) {
+	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_SPHERE && Settings::getInstance().ENABLE_SPHERE) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(0.3f, 0.3f, 0.3f));
@@ -144,7 +129,7 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Draw hands
-	if (Settings::getInstance().SHOW_HANDS) {
+	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_HANDS) {
 		shader->setUniform("materialColor", Vector3f(0.8f, 0.8f, 0.8f));
 		shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
 		if (Settings::getInstance().USE_RIFT)

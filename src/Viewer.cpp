@@ -197,6 +197,17 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 				break;
 			}
+
+			// Enable/disable leap for 2d use
+			case GLFW_KEY_L: {
+				static bool disable = true;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().USE_LEAP = disable && __cbref->leapController.isConnected();
+					disable = !disable;
+				}
+
+				break;
+			}
 		}
 	});
 
@@ -396,7 +407,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		}
 
 		// Update arcball
-		if ((!Settings::getInstance().USE_RIFT && !leapController.isConnected()) ||
+		if ((!Settings::getInstance().USE_RIFT && !Settings::getInstance().USE_LEAP) ||
 			(!Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)) {
 			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
 		}
@@ -453,20 +464,21 @@ void Viewer::processNetworking () {
 		std::istringstream ss(netSocket->getBufferContent());
 		std::string line;
 
+		// Parse packet
 		while (std::getline(ss, line)) {
 			std::istringstream lss(line);
 			std::string prefix;
 			lss >> prefix;
 			std::string content = line.substr(line.find_first_of(' ') + 1);
 
-			if (prefix == "translate")
-				translateMatrix = stringToMatrix4f(content);
-			else if (prefix == "scale")
+			if (prefix == "scale")
 				scaleMatrix = stringToMatrix4f(content);
 			else if (prefix == "rotate")
 				rotationMatrix = stringToMatrix4f(content);
 			else if (prefix == "view")
 				renderer->setViewMatrix(stringToMatrix4f(content));
+			/*else if (prefix == "translate")
+				translateMatrix = stringToMatrix4f(content);*/
 		}
 	}
 
@@ -484,6 +496,8 @@ std::string Viewer::serializeTransformationState () {
 	state += "scale " + matrix4fToString(scaleMatrix) + "\n";
 	state += "rotate " + matrix4fToString(rotationMatrix) + "\n";
 	state += "view " + matrix4fToString(vm);
+
+	cout << serializeAnnotations () << endl;
 	return state;
 }
 
