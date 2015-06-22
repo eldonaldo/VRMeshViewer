@@ -7,6 +7,8 @@ using asio::ip::udp;
 UDPSocket::UDPSocket (asio::io_service& io_service, short listen_port)
 	: socket(io_service, udp::endpoint(udp::v4(), listen_port)), current_length(0), bufferChanged(true) {
 
+	max_length = Settings::getInstance().NETWORK_BUFFER_SIZE;
+	data = new char[max_length];
 }
 
 void UDPSocket::receive () {

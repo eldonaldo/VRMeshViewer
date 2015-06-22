@@ -492,7 +492,6 @@ void Viewer::processNetworking () {
 			else if (prefix == "annotations") {
 				content = payload.substr(payload.find_first_of('{') + 1);
 				content = content.substr(0, content.find_last_of('}'));
-				cout << content << endl;
 				loadAnnotationsFromString(content);
 			}
 		}
@@ -512,11 +511,13 @@ std::string Viewer::serializeTransformationState () {
 	state += "scale " + matrix4fToString(scaleMatrix) + "\n";
 	state += "rotate " + matrix4fToString(rotationMatrix) + "\n";
 	state += "view " + matrix4fToString(vm) + "\n";
+	
 	if (!pinList.empty()) {
 		state += "annotations {\n";
 		state += serializeAnnotations();
 		state += "}";
 	}
+
 	return state;
 }
 

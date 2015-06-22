@@ -84,6 +84,7 @@ public:
 	int NETWORK_MODE;
 	std::string NETWORK_IP;
 	long NETWORK_SEND_RATE;
+	int NETWORK_BUFFER_SIZE;
 };
 
 VR_NAMESPACE_END
