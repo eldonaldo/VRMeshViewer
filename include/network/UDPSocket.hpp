@@ -53,9 +53,9 @@ private:
 
 	asio::ip::udp::socket socket; ///< UDP socket
 	asio::ip::udp::endpoint endpoint; ///< UDP endpoint
-	enum { max_length = 1024 }; ///< Max buffer length
+	int max_length; ///< Max buffer length
 	std::size_t current_length; ///< Length of the data the buffer currently holding
-	char data[max_length]; ///< Buffer
+	char *data; ///< Buffer
 	bool bufferChanged; ///< Flag if the buffer holds new data
 };
 

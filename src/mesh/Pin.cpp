@@ -52,16 +52,16 @@ std::string Pin::serialize() {
 	return output;
 }
 
+Matrix4f Pin::getModelMatrix() {
+	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * VR_NS::scale(Matrix4f::Identity(), 0.0015f, 0.0015f, 0.0015f);
+}
+
 Vector3f& Pin::getPosition() {
 	return position;
 }
 
 void Pin::setColor(Vector3f &c) {
 	color = c;
-}
-
-Matrix4f Pin::getModelMatrix() {
-	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * VR_NS::scale(Matrix4f::Identity(), 0.0015f, 0.0015f, 0.0015f);
 }
 
 Pin::Pin(Vector3f &pos, Vector3f &n, Matrix3f &nm) : position(pos), normal(n), color(0.8f, 0.f, 0.f) {
