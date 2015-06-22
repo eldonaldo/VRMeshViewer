@@ -238,6 +238,9 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
 		float scaleFactor = 0.05f;
+#if defined(PLATFORM_WINDOWS)
+		scaleFactor = 0.45f;
+#endif
 		if (y >= 0)
 			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
 		else
@@ -413,7 +416,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		glfwPollEvents();
 
 		// Calc fps
-		if (Settings::getInstance().USE_RIFT && appFPS)
+		if (!Settings::getInstance().USE_RIFT && appFPS)
 			calcAndAppendFPS();
 		
 		// Add annotation
