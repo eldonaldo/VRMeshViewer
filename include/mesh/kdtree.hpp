@@ -207,8 +207,8 @@ public:
         }
 
         cout << "Building a " << Dimension << "-dimensional kd-tree over "
-             << m_nodes.size() << " data points ("
-             << memString(m_nodes.size() * sizeof(NodeType)).c_str() << ") .. ";
+             << m_nodes.size() << " data points";
+             //<< memString(m_nodes.size() * sizeof(NodeType)).c_str() << ") .. ";
         cout.flush();
 
         if (recomputeBoundingBox) {

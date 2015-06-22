@@ -94,6 +94,8 @@ VR_NAMESPACE_BEGIN
 template <typename Scalar, int Dimension> struct TVector;
 template <typename Scalar, int Dimension> struct TPoint;
 template <typename Point> struct TBoundingBox;
+template <typename PointType, typename DataRecord> struct GenericKDTreeNode;
+template <typename NodeType> class PointKDTree;
 
 class GestureHandler;
 class LeapListener;
@@ -108,6 +110,7 @@ typedef TPoint<float, 3> Point3f;
 typedef TPoint<float, 2> Point2f;
 typedef TBoundingBox<Point3f> BoundingBox3f;
 typedef Eigen::Quaternion<float> Quaternionf;
+typedef PointKDTree<GenericKDTreeNode<Point3f, float>> KDTree;
 
 /// Hands
 enum HANDS {

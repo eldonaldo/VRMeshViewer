@@ -62,6 +62,9 @@ public:
     /// Return the name of this mesh
     const std::string &getName() const { return m_name; }
 
+    /// Return the kd-tree
+    const KDTree &getKDTree () const { return kdtree; }
+
     /// Return a human-readable summary of this instance
 	std::string toString() const {
 		return tfm::format(
@@ -141,6 +144,7 @@ protected:
 	std::string glNormalName;
 	std::string glTexName;
 	std::shared_ptr<GLShader> shader;
+	KDTree kdtree;
 };
 
 VR_NAMESPACE_END
