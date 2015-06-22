@@ -207,7 +207,7 @@ void LeapListener::onDirectFrame(const Frame &frame) {
 	}
 
 	// Process own built gesture state machines
-	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
+	if (!Settings::getInstance().NETWORK_ENABLED || (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER))
 		gesturesStateMachines();
 }
 

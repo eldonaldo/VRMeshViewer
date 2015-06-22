@@ -454,6 +454,12 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	
 	// Renderer cleapup
 	renderer->cleanUp();
+	
+	// Remove leap listeners if any
+	if (leapListener != nullptr && Settings::getInstance().LEAP_USE_LISTENER) {
+		leapController.removeListener(*leapListener);
+		leapListener.release();
+	}
 }
 
 void Viewer::processNetworking () {
@@ -464,7 +470,8 @@ void Viewer::processNetworking () {
 
 	// Parse package and adjust model/view matrix if in client mode
 	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT && netSocket->hasNewData()) {
-		std::istringstream ss(netSocket->getBufferContent());
+		std::string payload = netSocket->getBufferContent();
+		std::istringstream ss(payload);
 		std::string line;
 
 		// Parse packet
@@ -482,6 +489,12 @@ void Viewer::processNetworking () {
 				renderer->setViewMatrix(stringToMatrix4f(content));
 			/*else if (prefix == "translate")
 				translateMatrix = stringToMatrix4f(content);*/
+			else if (prefix == "annotations") {
+				content = payload.substr(payload.find_first_of('{') + 1);
+				content = content.substr(0, content.find_last_of('}'));
+				cout << content << endl;
+				loadAnnotationsFromString(content);
+			}
 		}
 	}
 
@@ -498,9 +511,12 @@ std::string Viewer::serializeTransformationState () {
 	state += "translate " + matrix4fToString(translateMatrix) + "\n";
 	state += "scale " + matrix4fToString(scaleMatrix) + "\n";
 	state += "rotate " + matrix4fToString(rotationMatrix) + "\n";
-	state += "view " + matrix4fToString(vm);
-
-	//cout << serializeAnnotations () << endl;
+	state += "view " + matrix4fToString(vm) + "\n";
+	if (!pinList.empty()) {
+		state += "annotations {\n";
+		state += serializeAnnotations();
+		state += "}";
+	}
 	return state;
 }
 
@@ -520,15 +536,9 @@ void Viewer::loadAnnotations(const std::string &s) {
 	annotationsLoadPath = s;
 }
 
-void Viewer::loadAnnotationsOnLoop() {
-	if (!fileExists(annotationsLoadPath))
-		throw VRException("File \"%s\" does not exists!", annotationsLoadPath);
-
-	std::ifstream is(annotationsLoadPath);
-	if (is.fail())
-		throw VRException("Unable to open file \"%s\"!", annotationsLoadPath);
-	
+void Viewer::loadAnnotationsFromString(std::string &s) {
 	pinList.clear();
+	std::istringstream is(s);
 	std::string line_str;
 	while (std::getline(is, line_str)) {
 		std::istringstream line(line_str);
@@ -555,6 +565,20 @@ void Viewer::loadAnnotationsOnLoop() {
 			addAnnotation(position, normal, color);
 		}
 	}
+}
+
+void Viewer::loadAnnotationsOnLoop() {
+	if (!fileExists(annotationsLoadPath))
+		throw VRException("File \"%s\" does not exists!", annotationsLoadPath);
+
+	std::ifstream is(annotationsLoadPath);
+	if (is.fail())
+		throw VRException("Unable to open file \"%s\"!", annotationsLoadPath);
+	
+	std::stringstream buffer;
+	buffer << is.rdbuf();
+	std::string annotations = buffer.str();
+	loadAnnotationsFromString(annotations);
 }
 
 void Viewer::saveAnnotations () {

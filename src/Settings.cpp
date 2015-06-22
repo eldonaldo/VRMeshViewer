@@ -58,7 +58,7 @@ Settings::Settings () :
 	NETWORK_MODE				(0),
 	NETWORK_PORT				(8888),
 	NETWORK_IP					("127.0.0.1"),
-	NETWORK_SEND_RATE			(30)
+	NETWORK_SEND_RATE			(50)
 {}
 
 VR_NAMESPACE_END

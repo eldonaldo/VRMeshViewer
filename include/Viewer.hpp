@@ -151,6 +151,11 @@ protected:
 	void loadAnnotationsOnLoop();
 
 	/**
+	* @brief Loads annotations from a string
+	*/
+	void loadAnnotationsFromString(std::string &s);
+
+	/**
 	 * @brief Serializes the translate, scale and rotation matrices
 	 */
 	std::string serializeTransformationState ();

@@ -111,7 +111,7 @@ int main (int argc, char *argv[]) {
 			viewer.loadAnnotations(Settings::getInstance().ANNOTATIONS);
 
 		viewer.display(mesh, renderer);
-
+		
 		// Stop networking and join to main thread
 		if (Settings::getInstance().NETWORK_ENABLED) {
 			io_service.stop();

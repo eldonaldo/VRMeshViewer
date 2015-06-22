@@ -16,7 +16,7 @@ void UDPSocket::receive () {
 			current_length = bytes_recvd;
 			bufferChanged = true;
 		}
-
+		
 		Settings::getInstance().NETWORK_LISTEN = true;
 	});
 }
