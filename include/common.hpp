@@ -33,6 +33,7 @@
 #include "Eigen/Core"
 #include <stdint.h>
 #include <iostream>
+#include <string>
 #include <fstream>
 #include <vector>
 #define WIN32_LEAN_AND_MEAN
@@ -224,9 +225,23 @@ extern void ppv(Vector3f v);
 extern bool fileExists(const std::string &name);
 
 /// Matrix4f to string
-extern std::string matrix4fToString (Matrix4f &m);
+extern std::string matrix4fToString(const Matrix4f &m);
 
 /// String to Matrix4f
 extern Matrix4f stringToMatrix4f (std::string &s);
+
+/// Compare floating-point values for equality
+template<class T>
+typename std::enable_if<!std::numeric_limits<T>::is_integer, bool>::type
+almostEqual(T x, T y, int ulp) {
+	// the machine epsilon has to be scaled to the magnitude of the values used
+	// and multiplied by the desired precision in ULPs (units in the last place)
+	return std::abs(x - y) < std::numeric_limits<T>::epsilon() * std::abs(x + y) * ulp
+		// unless the result is subnormal
+		|| std::abs(x - y) < std::numeric_limits<T>::min();
+};
+
+/// Compare Eigen::Vector3f objects for equality
+extern bool vector3fAlmostEqual(const Vector3f &a, const Vector3f &b);
 
 VR_NAMESPACE_END

@@ -144,13 +144,17 @@ Matrix4f stringToMatrix4f (std::string &s) {
 	return matrix;
 }
 
-std::string matrix4fToString (Matrix4f &m) {
+std::string matrix4fToString(const Matrix4f &m) {
 	std::string mat;
 	for (int r = 0; r < m.rows(); r++)
 		for (int c = 0; c < m.cols(); c++)
 			mat += std::to_string(m(r, c)) + (c == m.cols() - 1 && r == m.rows() - 1 ? "" : " ");
 
 	return mat;
+}
+
+bool vector3fAlmostEqual(const Vector3f &a, const Vector3f &b) {
+	return almostEqual(a.x(), b.x(), 2) && almostEqual(a.y(), b.y(), 2) && almostEqual(a.z(), b.z(), 2);
 }
 
 VR_NAMESPACE_END

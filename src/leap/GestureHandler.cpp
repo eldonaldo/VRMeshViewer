@@ -22,8 +22,6 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
-
 			if (!found) {
 				// Check if we hit any existing pin. If yes, remove it
 				for (auto iter = annotations.begin(); iter != annotations.end(); iter++) {
@@ -68,7 +66,6 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			found = false;
 			break;
 		}

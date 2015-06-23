@@ -22,7 +22,7 @@ public:
 	/**
 	* @brief Return pin position
 	*/
-	Vector3f &getPosition();
+	const Vector3f &getPosition() const;
 
 	/**
 	* @brief Set pin color
@@ -43,6 +43,20 @@ public:
 	* @brief Serialize pin state
 	*/
 	std::string serialize();
+
+	/**
+	* @brief Overloaded equality operator
+	*/
+	bool operator==(const Pin &rhs) const {
+		return vector3fAlmostEqual(position, rhs.getPosition());
+	}
+
+	/**
+	* @brief Overloaded inequality operator
+	*/
+	bool operator!=(const Pin &rhs) const {
+		return !operator==(rhs);
+	}
 
 protected:
 

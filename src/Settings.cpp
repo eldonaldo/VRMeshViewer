@@ -53,7 +53,7 @@ Settings::Settings () :
 	GESTURES_RELATIVE_TRANSLATE	(true),
 	ANNOTATION_SEACH_RADIUS		(0.005f),
 
-	// NETWORKING, 1 Unit = 1 millimeter
+	// NETWORKING, 1 length unit = 1 millimeter, 1 size unit = 1 byte
 	NETWORK_ENABLED				(false),
 	NETWORK_LISTEN				(true),
 	NETWORK_MODE				(0),

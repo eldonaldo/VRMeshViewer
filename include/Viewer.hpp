@@ -156,6 +156,11 @@ protected:
 	void loadAnnotationsFromString(std::string &s);
 
 	/**
+	* @brief Checks if the pin is already contained in the pin list
+	*/
+	bool pinListContains(const Pin &p) const;
+
+	/**
 	 * @brief Serializes the translate, scale and rotation matrices
 	 */
 	std::string serializeTransformationState ();

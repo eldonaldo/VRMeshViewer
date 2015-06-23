@@ -549,7 +549,7 @@ void Viewer::loadAnnotations(const std::string &s) {
 }
 
 void Viewer::loadAnnotationsFromString(std::string &s) {
-	pinList.clear();
+	//pinList.clear();
 	std::istringstream is(s);
 	std::string line_str;
 	while (std::getline(is, line_str)) {
@@ -577,6 +577,14 @@ void Viewer::loadAnnotationsFromString(std::string &s) {
 			addAnnotation(position, normal, color);
 		}
 	}
+}
+
+bool Viewer::pinListContains(const Pin &p) const {
+	for (auto &pin : pinList) 
+		if (*pin == p)
+			return true;
+	
+	return false;
 }
 
 void Viewer::loadAnnotationsOnLoop() {
@@ -625,8 +633,10 @@ void Viewer::addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c) {
 	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, nm);
 	pin->setColor(c);
 
-	pinList.push_back(pin);
-	renderer->uploadAnnotation(pin, pinList);
+	//if (!pinListContains(*pin)) {
+		pinList.push_back(pin);
+		renderer->uploadAnnotation(pin, pinList);
+	//}
 }
 
 void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {

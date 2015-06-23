@@ -56,7 +56,7 @@ Matrix4f Pin::getModelMatrix() {
 	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * VR_NS::scale(Matrix4f::Identity(), 0.0015f, 0.0015f, 0.0015f);
 }
 
-Vector3f& Pin::getPosition() {
+const Vector3f& Pin::getPosition() const {
 	return position;
 }
 
