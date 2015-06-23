@@ -10,29 +10,66 @@ GestureHandler::GestureHandler()
 }
 
 void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand> (&hands)[2]) {
-	auto &annotations = viewer->getAnnotations();
+	auto &h = hands[hand];
+	static bool found = false;
 	Vector3f avgPinchPos = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position + hands[hand]->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
+	auto &annotations = viewer->getAnnotations();
 
 	switch (state) {
 		case GESTURE_STATES::START: {
+			found = false;
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			for (auto iter = annotations.begin(); iter != annotations.end(); iter++) {
-				BoundingBox3f bbox = (*iter)->getBoundingBox();
-				if (bbox.contains(avgPinchPos)) {
-					(*iter)->releaseBuffers();
-					annotations.erase(iter);
-					break;
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+
+			if (!found) {
+				// Check if we hit any existing pin. If yes, remove it
+				for (auto iter = annotations.begin(); iter != annotations.end(); iter++) {
+					BoundingBox3f bbox = (*iter)->getBoundingBox();
+					if (bbox.contains(avgPinchPos)) {
+						(*iter)->releaseBuffers();
+						annotations.erase(iter);
+						found = true;
+						break;
+					}
+				}
+
+				// Use the kdtree to search for the nearest point to the tip position to place a pin
+				// Convert world coordinates to local coordinates
+				Matrix4f worldToLocal = mesh->getModelMatrix().inverse();
+				Vector3f localTipPosition = (worldToLocal * Vector4f(avgPinchPos.x(), avgPinchPos.y(), avgPinchPos.z(), 1.f)).head(3);
+
+				KDTree kdtree = mesh->getKDTree();
+
+				// Perform search
+				std::vector<uint32_t> results;
+				kdtree.search(localTipPosition, Settings::getInstance().ANNOTATION_SEACH_RADIUS, results);
+
+				// If there is a hit upload a pin
+				if (!results.empty()) {
+
+					// We take the first hit
+					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[results[0]];
+
+					// Notify the viewer
+					viewer->uploadAnnotation = true;
+					viewer->annotationTarget = kdtreeNode.getPosition();
+					viewer->annotationNormal = kdtreeNode.getData();
+
+					found = true;
 				}
 			}
+
 			break;
 		}
 
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
+			Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			found = false;
 			break;
 		}
 	}
@@ -91,59 +128,6 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			break;
 		}
 	}
-}
-
-void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]) {
-	auto &h = hands[hand];
-	static bool found = false;
-
-	switch (state) {
-		case GESTURE_STATES::START: {
-			found = false;
-			break;
-		}
-
-		case GESTURE_STATES::UPDATE: {
-			// Use the kdtree to search for the nearest point to the tip position
-			if (!found) {
-
-				// Convert world coordinates to local coordinates
-				Matrix4f worldToLocal = mesh->getModelMatrix().inverse();
-				Vector3f &t = h->finger[Finger::Type::TYPE_INDEX].position;
-				Vector3f localTipPosition = (worldToLocal * Vector4f(t.x(), t.y(), t.z(), 1.f)).head(3);
-
-				KDTree kdtree = mesh->getKDTree();
-
-				// Perform search
-				std::vector<uint32_t> results;
-				kdtree.search(localTipPosition, Settings::getInstance().ANNOTATION_SEACH_RADIUS, results);
-
-				// If there is a hit upload a pin
-				if (!results.empty()) {
-
-					// We take the first hit
-					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[results[0]];
-
-					// Notify the viewer
-					viewer->uploadAnnotation = true;
-					viewer->annotationTarget = kdtreeNode.getPosition();
-					viewer->annotationNormal = kdtreeNode.getData();
-
-					found = true;
-				}
-			}
-
-			break;
-		}
-
-		case GESTURE_STATES::STOP:
-		case GESTURE_STATES::INVALID:
-		default: {
-			found = false;
-			break;
-		}
-	}
-
 }
 
 void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {

@@ -12,7 +12,6 @@ LeapListener::LeapListener(bool useRift)
 	for (int i = 0; i < 2; i++) {
 		gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
 		gestures[i][GESTURES::ROTATION] = GESTURE_STATES::STOP;
-		gestures[i][GESTURES::ANNOTATION] = GESTURE_STATES::STOP;
 	}
 
 	gestureZoom = GESTURE_STATES::STOP;
@@ -271,13 +270,6 @@ void LeapListener::gesturesStateMachines() {
 		
 		bool pinchInsideSphere = powf((pinchMidPoint.x()), 2.f) + powf((pinchMidPoint.y()), 2.f) + powf((pinchMidPoint.z()), 2.f) <= powf((sphereRadius), 2.f);
 		bool handInsideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
-		bool indexFingerInsideSphere = powf((f.x()), 2.f) + powf((f.y()), 2.f) + powf((f.z()), 2.f) <= powf((sphereRadius), 2.f);
-		bool onlyIndexExtended = hand->visible &&
-			hand->finger[Finger::Type::TYPE_INDEX].extended &&
-			!hand->finger[Finger::Type::TYPE_MIDDLE].extended &&
-			!hand->finger[Finger::Type::TYPE_RING].extended &&
-			!hand->finger[Finger::Type::TYPE_PINKY].extended;
-
 		int otherHand = (i + 1) % 2;
 
 
@@ -285,7 +277,6 @@ void LeapListener::gesturesStateMachines() {
 		 * Pinch state machine
 		 */
 		float pinchThreshold = Settings::getInstance().GESTURES_PINCH_THRESHOLD;
-		//cout << (!pinchInsideSphere || !hand->visible || hand->pinchStrength < pinchThreshold) << "," << gestureStateName(gestures[i][GESTURES::PINCH]) << endl;
 
 		if (hand->visible && pinchInsideSphere && hand->pinchStrength >= pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
 			// Start
@@ -327,25 +318,6 @@ void LeapListener::gesturesStateMachines() {
 			// Stop
 			gestures[i][GESTURES::GRAB] = GESTURE_STATES::STOP;
 			gestureHandler->grab(gestures[i][GESTURES::GRAB], (HANDS)i, skeletonHands);
-		}
-
-		/**
-		* Annotation state machine
-		*/
-		if (indexFingerInsideSphere && onlyIndexExtended && gestures[i][GESTURES::ANNOTATION] == GESTURE_STATES::STOP) {
-			// Start
-			gestures[i][GESTURES::ANNOTATION] = GESTURE_STATES::START;
-			gestureHandler->annotate(gestures[i][GESTURES::ANNOTATION], (HANDS)i, skeletonHands);
-		}
-		else if (indexFingerInsideSphere && onlyIndexExtended && (gestures[i][GESTURES::ANNOTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ANNOTATION] == GESTURE_STATES::UPDATE)) {
-			// Update
-			gestures[i][GESTURES::ANNOTATION] = GESTURE_STATES::UPDATE;
-			gestureHandler->annotate(gestures[i][GESTURES::ANNOTATION], (HANDS)i, skeletonHands);
-		}
-		else if ((!hand->visible || !indexFingerInsideSphere || !onlyIndexExtended) && (gestures[i][GESTURES::ANNOTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ANNOTATION] == GESTURE_STATES::UPDATE)) {
-			// Stop
-			gestures[i][GESTURES::ANNOTATION] = GESTURE_STATES::STOP;
-			gestureHandler->annotate(gestures[i][GESTURES::ANNOTATION], (HANDS)i, skeletonHands);
 		}
 
 		/**

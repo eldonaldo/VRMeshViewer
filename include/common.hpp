@@ -124,8 +124,7 @@ enum GESTURES {
 	PINCH, //!< PINCH
 	GRAB, //!< GRAB
 	ZOOM, //!< ZOOM
-	ROTATION, //!< ROTATION
-	ANNOTATION //!< ANNOTATION
+	ROTATION //!< ROTATION
 };
 
 /// Gesture states

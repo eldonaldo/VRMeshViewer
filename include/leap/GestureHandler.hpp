@@ -40,11 +40,6 @@ public:
 	virtual void rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]);
 
 	/**
-	* @brief Annotation gesture
-	*/
-	virtual void annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]);
-
-	/**
 	* @brief Sets the pointer to the Viewer
 	*/
 	void setViewer (Viewer *v);
