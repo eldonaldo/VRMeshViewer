@@ -63,7 +63,7 @@ public:
     const std::string &getName() const { return m_name; }
 
     /// Return the kd-tree
-    const KDTree &getKDTree () const { return kdtree; }
+    KDTree &getKDTree () { return kdtree; }
 
     /// Return a human-readable summary of this instance
 	std::string toString() const {

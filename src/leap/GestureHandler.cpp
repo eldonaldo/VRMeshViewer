@@ -104,24 +104,8 @@ void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<
 		}
 
 		case GESTURE_STATES::UPDATE: {
+			// Use the kdtree to search for the nearest point to the tip position
 			if (!found) {
-//				std::shared_ptr<Mesh> mesh = viewer->getMesh();
-//				MatrixXf V = mesh->getVertexPositions();
-//				for (int i = 0; i < V.cols(); i++) {
-//					Vector4f vLocal(V.col(i).x(), V.col(i).y(), V.col(i).z(), 1.f);
-//					Vector3f vWorld = (mesh->getModelMatrix() * vLocal).head<3>();
-//					if ((vWorld - h->finger[Finger::Type::TYPE_INDEX].position).norm() <= 0.005f) {
-//						found = true;
-//
-//						// Notify the viewer
-//						viewer->uploadAnnotation = true;
-//						viewer->annotationTarget = vLocal.head<3>();
-//						viewer->annotationNormal = mesh->getVertexNormals().col(i);
-//						break;
-//					}
-//				}
-
-				// Use the kdtree to search for the nearest point to the tip position
 
 				// Convert world coordinates to local coordinates
 				Matrix4f worldToLocal = mesh->getModelMatrix().inverse();
@@ -130,26 +114,22 @@ void GestureHandler::annotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<
 
 				KDTree kdtree = mesh->getKDTree();
 
-				// Calculate search radius
-				BoundingBox3f bbox = mesh->getBoundingBox();
-				Vector3f maxLocal = (worldToLocal * Vector4f(bbox.max.x(), bbox.max.y(), bbox.max.z(), 1.f)).head(3);
-				Vector3f minLocal = (worldToLocal * Vector4f(bbox.min.x(), bbox.min.y(), bbox.min.z(), 1.f)).head(3);
-				float searchRadius = (maxLocal - minLocal).norm();
-
+				// Perform search
 				std::vector<uint32_t> results;
-				kdtree.search(localTipPosition, searchRadius, results);
+				kdtree.search(localTipPosition, Settings::getInstance().ANNOTATION_SEACH_RADIUS, results);
 
 				// If there is a hit upload a pin
 				if (!results.empty()) {
 
 					// We take the first hit
-					GenericKDTreeNode<Point3f, float> kdtreeNode = kdtree[results[0]];
-					Vector3f position = kdtreeNode.getPosition();
+					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[results[0]];
 
 					// Notify the viewer
 					viewer->uploadAnnotation = true;
-					viewer->annotationTarget = position;
-					viewer->annotationNormal = Normal3f(0.f, 1.f, 0.f);
+					viewer->annotationTarget = kdtreeNode.getPosition();
+					viewer->annotationNormal = kdtreeNode.getData();
+
+					found = true;
 				}
 			}
 

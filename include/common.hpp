@@ -47,6 +47,7 @@
 	#define PATH_SEPARATOR '\\'
 	#pragma warning(disable : 4244)
 	#pragma warning(disable : 4247)
+	#pragma warning(disable : 4800)
 	#define _GLFW_USE_DWM_SWAP_INTERVAL 0
 	#define NOMINMAX
 	#include <windows.h>
@@ -110,7 +111,7 @@ typedef TPoint<float, 3> Point3f;
 typedef TPoint<float, 2> Point2f;
 typedef TBoundingBox<Point3f> BoundingBox3f;
 typedef Eigen::Quaternion<float> Quaternionf;
-typedef PointKDTree<GenericKDTreeNode<Point3f, float>> KDTree;
+typedef PointKDTree<GenericKDTreeNode<Point3f, Point3f>> KDTree;
 
 /// Hands
 enum HANDS {

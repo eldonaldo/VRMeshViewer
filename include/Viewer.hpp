@@ -131,9 +131,9 @@ public:
 protected:
 
 	/**
-	 * @brief Places the object in the world coordindate system and scales it for the immersion effect
+	 * @brief Places the object in the world coordindate system and scales it for the immersion effect and builds the kd-tree
 	 */
-	virtual void placeObject (std::shared_ptr<Mesh> &m);
+	virtual void placeObjectAndBuildKDTree (std::shared_ptr<Mesh> &m);
 
 	/**
 	 * @brief Displays the FPS count in the title of the window and returns the calculated FPS

@@ -313,7 +313,7 @@ void Viewer::calcAndAppendFPS () {
 	}
 }
 
-void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
+void Viewer::placeObjectAndBuildKDTree (std::shared_ptr<Mesh> &m) {
 	BoundingBox3f &bbox = m->getBoundingBox();
 
 	// Calculate current bounding box diagonal length
@@ -331,11 +331,19 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	MatrixXf newPos(3, vertices.cols());
 	Matrix4f transformMat = S * T;
 
+	KDTree &kdtree = m->getKDTree();
+
+	kdtree.clear();
+	kdtree.reserve(sizeof(Vector3f) * vertices.cols());
 	bbox.reset();
+
 	for (int i = 0; i < vertices.cols(); i++) {
 		Vector3f v = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
 		newPos.col(i) = v;
 		bbox.expandBy(v);
+
+		GenericKDTreeNode<Point3f, Point3f> kdPoint(v, m->getVertexNormals().col(i));
+		kdtree.push_back(kdPoint);
 	}
 
 	m->setVertexPositions(newPos);
@@ -343,6 +351,9 @@ void Viewer::placeObject (std::shared_ptr<Mesh> &m) {
 	// Bounding sphere
 	sphereCenter = mesh->getBoundingBox().getCenter();
 	sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+
+	// Build kd-tree
+	kdtree.build();
 }
 
 void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
@@ -367,7 +378,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	renderer->setHmd(hmd); 
 
 	// Place object in world for immersion
-	placeObject(mesh);
+	placeObjectAndBuildKDTree(mesh);
 
 	// Renderer pre processing
 	gestureHandler->setMesh(mesh);

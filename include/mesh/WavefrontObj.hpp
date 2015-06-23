@@ -15,8 +15,8 @@ class WavefrontOBJ : public Mesh {
 public:
 
     WavefrontOBJ();
-    WavefrontOBJ(const std::string &file);
-    void loadFromString(std::istream &is);
+	WavefrontOBJ(const std::string &file);
+	void loadFromString(std::istream &is);
 
 protected:
 

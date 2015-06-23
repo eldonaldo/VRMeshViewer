@@ -33,8 +33,6 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 			line >> p.x() >> p.y() >> p.z();
 			//p = trafo * p;
 			m_bbox.expandBy(p);
-			GenericKDTreeNode<Point3f, float> kdPoint(p, 0.f);
-			kdtree.push_back(kdPoint);
 			positions.push_back(p);
 		} else if (prefix == "vt") {
 			Point2f tc;
@@ -124,9 +122,6 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 		for (uint32_t i=0; i<vertices.size(); ++i)
 			m_UV.col(i) = texcoords.at(vertices[i].uv-1);
 	}
-
-	// Build kd-tree
-	kdtree.build();
 }
 
 WavefrontOBJ::WavefrontOBJ(const std::string &file) {
@@ -135,7 +130,7 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
     if (is.fail())
         throw VRException("Unable to open OBJ file \"%s\"!", file);
 
-    loadFromString(is);
+	loadFromString(is);
 }
 
 
