@@ -237,9 +237,10 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			Matrix4f VM = __cbref->getRenderer()->getViewMatrix() * __cbref->getMesh()->getModelMatrix();
 			Vector3f worldPosition = unproject(pos, VM, __cbref->getRenderer()->getProjectionMatrix(), viewPortSize);
 
-			// Add an annotation
+			// Add/Delete an annotation
 			Vector3f n(0.f, 1.f, 0.f);
-			__cbref->addAnnotation(worldPosition, n);
+			if (!__cbref->deletePinIfHit(worldPosition))
+				__cbref->addAnnotation(worldPosition, n);
 
 //			cout << z << endl;
 //			ppv(worldPosition);
@@ -434,10 +435,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	// Render loop
 	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(window)) {
-		// Bind "the" framebuffer
+		// Bind the default framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// Poll or wait for events
+		// Poll for events to process
 		glfwPollEvents();
 
 		// Get a new leap frame if no listener is used
