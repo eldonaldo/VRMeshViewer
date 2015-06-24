@@ -38,11 +38,11 @@
 #include <vector>
 #define WIN32_LEAN_AND_MEAN
 #define PATH_SEPARATOR '/'
+#define GLFW_INCLUDE_GLCOREARB
 #if defined(PLATFORM_APPLE)
 	// Prevent OpenGL Compiler warnings
 	# define __gl_h_
 	# define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
-	#define GLFW_INCLUDE_GLCOREARB
 #elif defined(PLATFORM_WINDOWS)
 	#undef PATH_SEPARATOR
 	#define PATH_SEPARATOR '\\'

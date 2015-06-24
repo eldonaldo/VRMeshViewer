@@ -3,8 +3,15 @@
 cmake_minimum_required (VERSION 2.8.3)
 project("VRMeshViewer")
 
+# Set a default build configuration (Release)
+if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to 'Release' as none was specified.")
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 # Args for nested build process
-set(CMAKE_EXTERNAL_ARGUMENTS_LIST "")
+set(CMAKE_EXTERNAL_ARGUMENTS_LIST "-DCMAKE_BUILD_TYPE=Release -DCMAKE_GENERATOR=${CMAKE_GENERATOR} -Wno-dev")
 include(ExternalProject)
 
 # =========================================
@@ -18,10 +25,6 @@ ExternalProject_Add(glfw_p
 	CMAKE_ARGS ${CMAKE_EXTERNAL_ARGUMENTS_LIST} -DGLFW_BUILD_TESTS=0 -DGLFW_BUILD_EXAMPLES=0 -DGLFW_BUILD_DOCS=0 -DGLFW_INSTALL=0
 	INSTALL_COMMAND ""
 )
-
-# Rift SDK
-# Create debug symbols
-#set(OVR_DEBUG_BUILD 1)
 
 # The primary SDK artifact, a static library for Oculus access 
 add_subdirectory(ext/ovr)

@@ -413,6 +413,9 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		// Bind "the" framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		// Poll or wait for events
+		glfwPollEvents();
+
 		// Get a new leap frame if no listener is used
 		if (!Settings::getInstance().LEAP_USE_LISTENER) {
 			frame = leapController.frame();
@@ -439,13 +442,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		// Draw using attached renderer
 		renderer->draw();
 
-		// Swap framebuffer, only if the rift is not attached
-		if (renderer->getClassType() != EHMDRenderer)
-			glfwSwapBuffers(window);
-
-		// Poll or wait for events
-		glfwPollEvents();
-
 		// Calc fps
 		if (!Settings::getInstance().USE_RIFT && appFPS)
 			calcAndAppendFPS();
@@ -455,6 +451,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 			addAnnotation(annotationTarget, annotationNormal);
 			uploadAnnotation = false;
 		}
+
+		// Swap framebuffer, only if the rift is not attached
+		if (renderer->getClassType() != EHMDRenderer)
+			glfwSwapBuffers(window);
 
 		// Networking
 		if (Settings::getInstance().NETWORK_ENABLED && (long(glfwGetTime() * 1000) - lastTime) >= Settings::getInstance().NETWORK_SEND_RATE) {
