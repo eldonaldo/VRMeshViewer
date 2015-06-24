@@ -10,8 +10,8 @@ Settings::Settings () :
 	ANNOTATIONS					("none"),
 
 	// WINDOW
-	WINDOW_WIDTH				(1200),
-	WINDOW_HEIGHT				(900),
+	WINDOW_WIDTH				(600),
+	WINDOW_HEIGHT				(400),
 	FOV							(60.f),
 	Z_NEAR						(0.001f),
 	Z_FAR						(100.f),
@@ -60,7 +60,8 @@ Settings::Settings () :
 	NETWORK_PORT				(8888),
 	NETWORK_IP					("127.0.0.1"),
 	NETWORK_SEND_RATE			(50),
-	NETWORK_BUFFER_SIZE			(8192)
+	NETWORK_BUFFER_SIZE			(8192),
+	NETWORK_NEW_DATA			(false)
 {}
 
 VR_NAMESPACE_END

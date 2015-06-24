@@ -17,6 +17,7 @@ void UDPSocket::receive () {
 		if (!ec && bytes_recvd > 0) {
 			current_length = bytes_recvd;
 			bufferChanged = true;
+			cout << "Packet arrived" << glfwGetTime() << endl;
 		}
 		
 		Settings::getInstance().NETWORK_LISTEN = true;
@@ -32,6 +33,9 @@ void UDPSocket::send (const std::string &msg, const std::string &ip_address, sho
 			std::cout << "Sent: '" << bytes_sent << "'\n";
 		}*/
 	});
+
+	// Packet sent. Wait for the next change to send a packet
+	Settings::getInstance().NETWORK_NEW_DATA = false;
 }
 
 bool UDPSocket::hasNewData () {

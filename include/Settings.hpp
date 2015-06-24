@@ -86,6 +86,7 @@ public:
 	std::string NETWORK_IP;
 	long NETWORK_SEND_RATE;
 	int NETWORK_BUFFER_SIZE;
+	bool NETWORK_NEW_DATA;
 };
 
 VR_NAMESPACE_END

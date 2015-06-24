@@ -139,7 +139,7 @@ void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	PerspectiveRenderer::update(s, r, t);
 		
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
-		if (Settings::getInstance().LEAP_USE_LISTENER)
+		if (Settings::getInstance().LEAP_USE_LISTENER && leapController.hasFocus())
 			frame = leapController.frame();
 
 		Leap::Image left = frame.images()[0], right = frame.images()[1];

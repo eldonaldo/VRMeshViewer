@@ -34,6 +34,9 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 						(*iter)->releaseBuffers();
 						annotations.erase(iter);
 						found = true;
+						
+						// Need to send a new packet
+						Settings::getInstance().NETWORK_NEW_DATA = true;
 						break;
 					}
 				}
@@ -57,7 +60,6 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 					viewer->uploadAnnotation = true;
 					viewer->annotationTarget = kdtreeNode.getPosition();
 					viewer->annotationNormal = kdtreeNode.getData();
-
 					found = true;
 				}
 			}
@@ -114,6 +116,8 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
 			viewer->getRotationMatrix() = result;
 
+			// Need to send a new packet
+			Settings::getInstance().NETWORK_NEW_DATA = true;
  			break;
 		}
 
@@ -150,11 +154,14 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 				// Compute scaling matrix
 				viewer->getScaleMatrix() = VR_NS::scale(viewer->getScaleMatrix(), factor);
 				lastDistance = distance;
-
 			}
 			
-			if (dotProd <= -0.6f)
+			if (dotProd <= -0.6f) {
 				viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), handSphereCenter);
+				
+				// Need to send a new packet
+				Settings::getInstance().NETWORK_NEW_DATA = true;
+			}
 
 			break;
 		}

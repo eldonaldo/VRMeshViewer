@@ -186,7 +186,7 @@ protected:
 	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
 	ovrHmd hmd; ///< Head mounted device
 	GLFWwindow *window; ///< GLFW window pointer
-	const std::string title; ///< Window title
+	std::string title; ///< Window title
 	Color3f background; ///< Background color
 	const float interval; ///< Interval to refresh FPS in seconds
 	unsigned int frameCount = 0; ///< Frame count

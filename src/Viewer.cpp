@@ -14,6 +14,12 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
 	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr) {
 
+	// Append networking mode in title
+	if (Settings::getInstance().NETWORK_ENABLED) {
+		std::string mode = Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT ? "Client listening on " : "Server sending to ";
+		this->title += " | " + mode + Settings::getInstance().NETWORK_IP + ":" + std::to_string(Settings::getInstance().NETWORK_PORT);
+	}
+
 	// LibOVR need to be initialized before GLFW
 	ovr_Initialize();
 	hmd = ovrHmd_Create(0);
@@ -42,10 +48,10 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	} else {
-		window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	}
 	
 	if (!window)
@@ -238,12 +244,19 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 		} else if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			__cbref->arcball.button(__cbref->lastPos, action == GLFW_PRESS);
 		}
+
+		// Need to send a new packet
+		Settings::getInstance().NETWORK_NEW_DATA = true;
 	});
 
 	/* Mouse movement callback */
 	glfwSetCursorPosCallback(window, [] (GLFWwindow *window, double x, double y) {
 		__cbref->lastPos = Vector2i(int(x), int(y));
 		__cbref->arcball.motion(__cbref->lastPos);
+
+		// Need to send a new packet
+		if (__cbref->arcball.active())
+			Settings::getInstance().NETWORK_NEW_DATA = true;
 	});
 
 	/* Mouse wheel callback */
@@ -259,6 +272,9 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
 		else
 			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
+
+		// Need to send a new packet
+		Settings::getInstance().NETWORK_NEW_DATA = true;
 	});
 
 	/* Window size callback */
@@ -282,12 +298,20 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT)
 		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
 
+	// Default leap listener
+	std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
+	attachLeap(leap);
+
 	// Create gesture handler
 	gestureHandler = std::make_shared<GestureHandler>();
 	gestureHandler->setViewer(this);
 
 	// Seed rnd generator
 	srand(glfwGetTime());
+
+	// Calc fps at startup
+	if (!Settings::getInstance().USE_RIFT && appFPS)
+		calcAndAppendFPS();
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -389,13 +413,11 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	renderer->preProcess();
 
 	// Share the HMD
-	if (leapListener != nullptr) {
-		leapListener->setHmd(hmd);
-		leapListener->setMesh(mesh);
-		leapListener->setGestureHandler(gestureHandler);
-		if (Settings::getInstance().LEAP_USE_LISTENER)
-			leapController.addListener(*leapListener);
-	}
+	leapListener->setHmd(hmd);
+	leapListener->setMesh(mesh);
+	leapListener->setGestureHandler(gestureHandler);
+	if (Settings::getInstance().LEAP_USE_LISTENER)
+		leapController.addListener(*leapListener);
 
 	// Load annotations if desired 
 	if (loadAnnotationsFlag)
@@ -465,16 +487,10 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	
 	// Renderer cleapup
 	renderer->cleanUp();
-	
-	// Remove leap listeners if any
-	if (leapListener != nullptr && Settings::getInstance().LEAP_USE_LISTENER) {
-		leapController.removeListener(*leapListener);
-		leapListener.release();
-	}
 }
 
 void Viewer::processNetworking () {
-	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
+	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER && Settings::getInstance().NETWORK_NEW_DATA)
 		netSocket->send(serializeTransformationState(), Settings::getInstance().NETWORK_IP, Settings::getInstance().NETWORK_PORT);
 	else if (Settings::getInstance().NETWORK_LISTEN)
 		netSocket->receive();
@@ -587,6 +603,26 @@ bool Viewer::pinListContains(const Pin &p) const {
 	return false;
 }
 
+void Viewer::addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c) {
+	if (mesh == nullptr)
+		throw VRException("No mesh to add annotations");
+
+	Matrix3f nm = mesh->getNormalMatrix();
+	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, nm);
+	pin->setColor(c);
+
+	if (!pinListContains(*pin)) {
+		pinList.push_back(pin);
+		renderer->uploadAnnotation(pin, pinList);
+
+		// Need to send a new packet
+		Settings::getInstance().NETWORK_NEW_DATA = true;
+	}
+	else {
+		cout << pin->getPosition().x() << " alreay added " << endl;
+	}
+}
+
 void Viewer::loadAnnotationsOnLoop() {
 	if (!fileExists(annotationsLoadPath))
 		throw VRException("File \"%s\" does not exists!", annotationsLoadPath);
@@ -623,20 +659,6 @@ void Viewer::saveAnnotations () {
 
 		cout << "Saved to: " << savePath << endl;
 	}
-}
-
-void Viewer::addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c) {
-	if (mesh == nullptr)
-		throw VRException("No mesh to add annotations");
-
-	Matrix3f nm = mesh->getNormalMatrix();
-	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, nm);
-	pin->setColor(c);
-
-	//if (!pinListContains(*pin)) {
-		pinList.push_back(pin);
-		renderer->uploadAnnotation(pin, pinList);
-	//}
 }
 
 void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
@@ -702,7 +724,8 @@ std::unique_ptr<Renderer> &Viewer::getRenderer () {
 }
 
 Viewer::~Viewer () {
-	if (leapListener && leapListener != nullptr)
+	// Remove leap listeners if any
+	if (Settings::getInstance().LEAP_USE_LISTENER)
 		leapController.removeListener(*leapListener);
 
 	glfwDestroyWindow(window);
