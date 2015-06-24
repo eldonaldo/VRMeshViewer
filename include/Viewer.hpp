@@ -59,7 +59,7 @@ public:
 	/**
 	* @brief Add an annotation with color
 	*/
-	void addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c);
+	void addAnnotation(const Vector3f &pos, const Vector3f &n, const Vector3f &c);
 
 	/**
 	* @brief Saves the annotations to a file
@@ -128,6 +128,11 @@ public:
 	 */
 	void attachSocket (UDPSocket &s);
 
+	/**
+	* @brief Delete the pin if we hit it
+	*/
+	bool deletePinIfHit(Vector3f &position);
+
 protected:
 
 	/**
@@ -143,7 +148,12 @@ protected:
 	/**
 	* @brief Serializes the annotation vector
 	*/
-	std::string serializeAnnotations();
+	std::string serializeAnnotations(std::vector<std::shared_ptr<Pin>> &list);
+
+	/**
+	* @brief Serializes the annotation vector
+	*/
+	std::string serializeAnnotations(std::vector<Pin> &list);
 
 	/**
 	* @brief Loads annotations from a file. Called issued by method loadAnnotations()
@@ -156,9 +166,14 @@ protected:
 	void loadAnnotationsFromString(std::string &s);
 
 	/**
+	* @brief Returns a list of pins serialized in the string s
+	*/
+	std::vector<Pin> getAnnotationsFromString(std::string &s);
+
+	/**
 	* @brief Checks if the pin is already contained in the pin list
 	*/
-	bool pinListContains(const Pin &p) const;
+	bool pinListContains(std::vector<std::shared_ptr<Pin>> &list, const Pin &p) const;
 
 	/**
 	 * @brief Serializes the translate, scale and rotation matrices
@@ -203,6 +218,8 @@ protected:
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
 	Leap::Frame frame; ///< Leap Frame
 	std::vector<std::shared_ptr<Pin>> pinList; ///< List of annotations
+	std::vector<Pin> pinListAdd; ///< List of annotations to aff for client
+	std::vector<Pin> pinListDelete; ///< List of annotations to delete for client
 	bool loadAnnotationsFlag; ///< Load annotations on start up
 	std::string annotationsLoadPath; ///< File to load from
 	UDPSocket *netSocket; ///< UDP Socket

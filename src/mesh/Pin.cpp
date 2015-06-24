@@ -25,7 +25,7 @@ void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	shader->setUniform("materialColor", prevColor);
 }
 
-void Pin::calculateLocalRotation(Matrix3f &nm) {
+void Pin::calculateLocalRotation(const Matrix3f &nm) {
 	// Make the pin stand perpendicular on the surface of the model
 	Vector4f homogeneousPosition(position.x(), position.y(), position.z(), 1.f);
 	normal = normal.cwiseAbs();
@@ -60,11 +60,19 @@ const Vector3f& Pin::getPosition() const {
 	return position;
 }
 
-void Pin::setColor(Vector3f &c) {
+const Vector3f &Pin::getNormal() const {
+	return normal;
+}
+
+const Vector3f &Pin::getColor() const {
+	return color;
+}
+
+void Pin::setColor(const Vector3f &c) {
 	color = c;
 }
 
-Pin::Pin(Vector3f &pos, Vector3f &n, Matrix3f &nm) : position(pos), normal(n), color(0.8f, 0.f, 0.f) {
+Pin::Pin(const Vector3f &pos, const Vector3f &n, const Matrix3f &nm) : position(pos), normal(n), color(0.8f, 0.f, 0.f) {
 	std::string obj(
 		std::string("v 0.302049 2.23145 0\n") +
 		"v 0 10.2373 0\n" +

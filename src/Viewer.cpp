@@ -21,17 +21,19 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	}
 
 	// LibOVR need to be initialized before GLFW
-	ovr_Initialize();
-	hmd = ovrHmd_Create(0);
+	if (Settings::getInstance().USE_RIFT) {
+		ovr_Initialize();
+		hmd = ovrHmd_Create(0);
 
-	if (!hmd)
-		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+		if (!hmd)
+			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
 		
-	if (!hmd)
-		throw VRException("Could not start the Rift");
+		if (!hmd)
+			throw VRException("Could not start the Rift");
 
-	if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
-		throw VRException("The Rift does not support all of the necessary sensors");
+		if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
+			throw VRException("The Rift does not support all of the necessary sensors");
+	}
 
 	// Initialize GLFW
 	if (!glfwInit())
@@ -118,7 +120,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			// Enable / disable v-sync
 			case GLFW_KEY_V: {
 				static bool disable = true;
-				if (action == GLFW_PRESS) {
+				if (action == GLFW_PRESS && Settings::getInstance().USE_RIFT) {
 					if (disable)
 						ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
 					else
@@ -490,17 +492,21 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 }
 
 void Viewer::processNetworking () {
-	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER && Settings::getInstance().NETWORK_NEW_DATA)
+	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER && Settings::getInstance().NETWORK_NEW_DATA)  {
 		netSocket->send(serializeTransformationState(), Settings::getInstance().NETWORK_IP, Settings::getInstance().NETWORK_PORT);
-	else if (Settings::getInstance().NETWORK_LISTEN)
+
+		// Increase sequence nr
+		sequenceNr = (sequenceNr + 1) % std::numeric_limits<long>::max();
+	} else if (Settings::getInstance().NETWORK_LISTEN) {
 		netSocket->receive();
+	}
 
 	// Parse package and adjust model/view matrix if in client mode
 	if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT && netSocket->hasNewData()) {
 		std::string payload = netSocket->getBufferContent();
 		std::istringstream ss(payload);
 		std::string line;
-
+		
 		// Parse packet
 		while (std::getline(ss, line)) {
 			std::istringstream lss(line);
@@ -512,20 +518,54 @@ void Viewer::processNetworking () {
 				scaleMatrix = stringToMatrix4f(content);
 			else if (prefix == "rotate")
 				rotationMatrix = stringToMatrix4f(content);
-			else if (prefix == "view")
-				renderer->setViewMatrix(stringToMatrix4f(content));
+			/*else if (prefix == "view")
+				renderer->setViewMatrix(stringToMatrix4f(content));*/
 			/*else if (prefix == "translate")
 				translateMatrix = stringToMatrix4f(content);*/
-			else if (prefix == "annotations") {
+			else if (prefix == "annotations_new") {
 				content = payload.substr(payload.find_first_of('{') + 1);
 				content = content.substr(0, content.find_last_of('}'));
 				loadAnnotationsFromString(content);
+			} else if (prefix == "annotations_delete") {
+				content = payload.substr(payload.find_first_of('{') + 1);
+				content = content.substr(0, content.find_last_of('}'));
+				std::vector<Pin> toDelete = getAnnotationsFromString(content);
+				for (auto &pDelete : toDelete) {
+					for (auto iter = pinList.begin(); iter != pinList.end(); iter++) {
+						if (**iter == pDelete) {
+							(*iter)->releaseBuffers();
+							pinList.erase(iter);
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
+}
 
-	// Increase sequence nr
-	sequenceNr = (sequenceNr + 1) % std::numeric_limits<long>::max();
+bool Viewer::deletePinIfHit(Vector3f &position) {
+	bool found = false;
+	for (auto iter = pinList.begin(); iter != pinList.end(); iter++) {
+		BoundingBox3f bbox = (*iter)->getBoundingBox();
+		if (bbox.contains(position)) {
+
+			// Copy pin and inform the client
+			Pin copy((*iter)->getPosition(), (*iter)->getNormal(), mesh->getNormalMatrix());
+			pinListDelete.push_back(copy);
+
+			// Clear graphics memory and delete it safely
+			(*iter)->releaseBuffers();
+			pinList.erase(iter);
+			found = true;
+
+			// Need to send a new packet
+			Settings::getInstance().NETWORK_NEW_DATA = true;
+			break;
+		}
+	}
+
+	return found;
 }
 
 std::string Viewer::serializeTransformationState () {
@@ -539,11 +579,23 @@ std::string Viewer::serializeTransformationState () {
 	state += "rotate " + matrix4fToString(rotationMatrix) + "\n";
 	state += "view " + matrix4fToString(vm) + "\n";
 	
-	if (!pinList.empty()) {
-		state += "annotations {\n";
-		state += serializeAnnotations();
+	// Pins to add
+	if (!pinListAdd.empty()) {
+		state += "annotations_new {\n";
+		state += serializeAnnotations(pinListAdd);
 		state += "}";
 	}
+
+	// Pins to delete
+	if (!pinListDelete.empty()) {
+		state += "annotations_delete {\n";
+		state += serializeAnnotations(pinListDelete);
+		state += "}";
+	}
+
+	// Clear the lists for the next packet
+	pinListAdd.clear();
+	pinListDelete.clear();
 
 	return state;
 }
@@ -552,9 +604,16 @@ void Viewer::attachSocket(UDPSocket &s) {
 	netSocket = &s;
 }
 
-std::string Viewer::serializeAnnotations() {
+std::string Viewer::serializeAnnotations(std::vector<Pin> &list) {
 	std::string	output;
-	for (auto &p : pinList)
+	for (auto &p : list)
+		output += p.serialize();
+	return output;
+}
+
+std::string Viewer::serializeAnnotations(std::vector<std::shared_ptr<Pin>> &list) {
+	std::string	output;
+	for (auto &p : list)
 		output += p->serialize();
 	return output;
 }
@@ -564,8 +623,8 @@ void Viewer::loadAnnotations(const std::string &s) {
 	annotationsLoadPath = s;
 }
 
-void Viewer::loadAnnotationsFromString(std::string &s) {
-	//pinList.clear();
+std::vector<Pin> Viewer::getAnnotationsFromString(std::string &s) {
+	std::vector<Pin> list;
 	std::istringstream is(s);
 	std::string line_str;
 	while (std::getline(is, line_str)) {
@@ -590,20 +649,31 @@ void Viewer::loadAnnotationsFromString(std::string &s) {
 					break;
 			}
 
-			addAnnotation(position, normal, color);
+			Matrix3f nm = mesh->getNormalMatrix();
+			Pin pin(position, normal, nm);
+			pin.setColor(color);
+			list.push_back(pin);
 		}
 	}
+
+	return list;
 }
 
-bool Viewer::pinListContains(const Pin &p) const {
-	for (auto &pin : pinList) 
+void Viewer::loadAnnotationsFromString(std::string &s) {
+	std::vector<Pin> list = getAnnotationsFromString(s);
+	for (auto &p : list)
+		addAnnotation(p.getPosition(), p.getNormal(), p.getColor());
+}
+
+bool Viewer::pinListContains(std::vector<std::shared_ptr<Pin>> &list, const Pin &p) const {
+	for (auto &pin : list) 
 		if (*pin == p)
 			return true;
 	
 	return false;
 }
 
-void Viewer::addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c) {
+void Viewer::addAnnotation(const Vector3f &pos, const Vector3f &n, const Vector3f &c) {
 	if (mesh == nullptr)
 		throw VRException("No mesh to add annotations");
 
@@ -611,15 +681,17 @@ void Viewer::addAnnotation(Vector3f &pos, Vector3f &n, Vector3f &c) {
 	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, nm);
 	pin->setColor(c);
 
-	if (!pinListContains(*pin)) {
+	if (!pinListContains(pinList, *pin)) {
 		pinList.push_back(pin);
 		renderer->uploadAnnotation(pin, pinList);
 
 		// Need to send a new packet
 		Settings::getInstance().NETWORK_NEW_DATA = true;
-	}
-	else {
-		cout << pin->getPosition().x() << " alreay added " << endl;
+		
+		// Inform the client that a new pin needs to be added
+		Pin copy(pos, n, nm);
+		copy.setColor(c);
+		pinListAdd.push_back(copy);
 	}
 }
 
@@ -654,7 +726,7 @@ void Viewer::saveAnnotations () {
 		}
 
 		file.open(savePath);
-		file << serializeAnnotations();
+		file << serializeAnnotations(pinList);
 		file.close();
 
 		cout << "Saved to: " << savePath << endl;

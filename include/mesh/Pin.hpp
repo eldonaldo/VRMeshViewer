@@ -16,7 +16,7 @@ public:
 	/**
 	* @brief Create pin from position, normal and normal matrix
 	*/
-	Pin(Vector3f &pos, Vector3f &n, Matrix3f &nm);
+	Pin(const Vector3f &pos, const Vector3f &n, const Matrix3f &nm);
 	virtual ~Pin() = default;
 
 	/**
@@ -25,9 +25,19 @@ public:
 	const Vector3f &getPosition() const;
 
 	/**
+	* @brief Return pin position
+	*/
+	const Vector3f &getNormal() const;
+
+	/**
+	* @brief Return Pin color
+	*/
+	const Vector3f &getColor() const;
+
+	/**
 	* @brief Set pin color
 	*/
-	void setColor(Vector3f &c);
+	void setColor(const Vector3f &c);
 
 	/**
 	* @brief Overloaded draw
@@ -63,7 +73,7 @@ protected:
 	/**
 	* @brief Calculate local pin rotation
 	*/
-	void calculateLocalRotation(Matrix3f &nm);
+	void calculateLocalRotation(const Matrix3f &nm);
 
 protected:
 

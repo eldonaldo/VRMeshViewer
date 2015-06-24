@@ -17,7 +17,7 @@ void UDPSocket::receive () {
 		if (!ec && bytes_recvd > 0) {
 			current_length = bytes_recvd;
 			bufferChanged = true;
-			cout << "Packet arrived" << glfwGetTime() << endl;
+			cout << "Packet arrived - " << glfwGetTime() << endl;
 		}
 		
 		Settings::getInstance().NETWORK_LISTEN = true;
