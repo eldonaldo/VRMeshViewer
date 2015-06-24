@@ -75,6 +75,7 @@ void PerspectiveRenderer::draw() {
 	if (Settings::getInstance().MESH_DRAW)
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 	shader->setUniform("alpha", 1.f);
+
 	// Draw annotations
 	if (pinList != nullptr && !pinList->empty())
 		for (auto &p : *pinList)

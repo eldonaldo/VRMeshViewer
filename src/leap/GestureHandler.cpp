@@ -22,23 +22,25 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		}
 
 		case GESTURE_STATES::UPDATE: {
+										 Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
 			if (!found) {
+				// Convert world coordinates to local coordinates
+				Matrix4f worldToLocal = mesh->getModelMatrix().inverse();
+				Vector3f localTipPosition = (worldToLocal * Vector4f(avgPinchPos.x(), avgPinchPos.y(), avgPinchPos.z(), 1.f)).head(3);
+				
 				// Check if we hit any existing pin. If yes, remove it
 				for (auto iter = annotations.begin(); iter != annotations.end(); iter++) {
 					BoundingBox3f bbox = (*iter)->getBoundingBox();
 					if (bbox.contains(avgPinchPos)) {
 						(*iter)->releaseBuffers();
 						annotations.erase(iter);
-						found = true;
+						//found = true;
 						break;
 					}
 				}
 
-				// Use the kdtree to search for the nearest point to the tip position to place a pin
-				// Convert world coordinates to local coordinates
-				Matrix4f worldToLocal = mesh->getModelMatrix().inverse();
-				Vector3f localTipPosition = (worldToLocal * Vector4f(avgPinchPos.x(), avgPinchPos.y(), avgPinchPos.z(), 1.f)).head(3);
 
+				// Use the kdtree to search for the nearest point to the tip position to place a pin
 				KDTree kdtree = mesh->getKDTree();
 
 				// Perform search
@@ -66,6 +68,7 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
+					 Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			found = false;
 			break;
 		}

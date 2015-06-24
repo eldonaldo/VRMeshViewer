@@ -263,13 +263,12 @@ void LeapListener::gesturesStateMachines() {
 		// Compute sphere and index finger ext
 		Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
 		float sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
-		Vector3f midPoint = (hand->palm.position + hand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
-		Vector3f pinchMidPoint = (hand->finger[Finger::Type::TYPE_INDEX].position + hand->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
+		Vector3f midPoint = (hand->palm.position + hand->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f - sphereCenter;
+		Vector3f pinchMidPoint = (hand->finger[Finger::Type::TYPE_INDEX].position + hand->finger[Finger::Type::TYPE_THUMB].position) * 0.5f - sphereCenter;
 		Vector3f &f = hand->finger[Finger::Type::TYPE_INDEX].position;
-		Vector3f p = midPoint - sphereCenter;
 		
 		bool pinchInsideSphere = powf((pinchMidPoint.x()), 2.f) + powf((pinchMidPoint.y()), 2.f) + powf((pinchMidPoint.z()), 2.f) <= powf((sphereRadius), 2.f);
-		bool handInsideSphere = powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
+		bool handInsideSphere = powf((midPoint.x()), 2.f) + powf((midPoint.y()), 2.f) + powf((midPoint.z()), 2.f) <= powf((sphereRadius), 2.f);
 		int otherHand = (i + 1) % 2;
 
 
