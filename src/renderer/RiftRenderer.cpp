@@ -137,7 +137,7 @@ void RiftRenderer::preProcess () {
 void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Update global state
 	PerspectiveRenderer::update(s, r, t);
-
+		
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 		if (Settings::getInstance().LEAP_USE_LISTENER)
 			frame = leapController.frame();

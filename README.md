@@ -17,7 +17,9 @@ Bachelor Thesis
 
 #### Leap Motion
 
-* Disable "Robust Mode Tracking" in the Leap Motion settings
+* Disable "Robust Mode Tracking" in the Leap Motion settings. Currently there is no way to query if the device
+is in robust mode. If the device is in robust mode, it frequently happens that the Leap images sizes change and thus
+the OpenGL buffers are not correct anymore.
 
 ## Installation
 
