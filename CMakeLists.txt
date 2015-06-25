@@ -41,7 +41,7 @@ add_subdirectory(ext/ovr)
 find_library(LEAP_LIBRARY NAMES leap PATHS /usr/local/lib $ENV{LEAPSDK_DIR}/lib $ENV{LEAPSDK_DIR}/lib/x64 $ENV{LEAPSDK_DIR} ~/Library/Frameworks /Library/Frameworks)
 
 # Add nanogui build path to search path
-link_directories(${CMAKE_BINARY_DIR}/ext_build/src/nanogui_p-build)
+link_directories(${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src ${CMAKE_BINARY_DIR}/ext_build/src/nanogui_p-build)
 
 # External libs
 set(extra_libs nanogui ovr ${LEAP_LIBRARY})
@@ -155,8 +155,8 @@ add_executable(VRMeshViewer
 )
 
 # Make sure to build in the right order
-add_dependencies(VRMeshViewer glfw_p)
 add_dependencies(VRMeshViewer nanogui_p)
+add_dependencies(VRMeshViewer glfw_p)
 if(WIN32)
 	add_dependencies(VRMeshViewer glew_p)
 endif()

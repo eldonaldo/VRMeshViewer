@@ -2,9 +2,6 @@
 
 VR_NAMESPACE_BEGIN
 
-// Used inside callback functions to access the viewer's state
-Viewer *__cbref;
-
 #if defined(PLATFORM_WINDOWS)
 	static bool glewInitialized = false;
 #endif
@@ -12,7 +9,8 @@ Viewer *__cbref;
 Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr) {
+	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr)
+	, ready(false) {
 
 	// Append networking mode in title
 	if (Settings::getInstance().NETWORK_ENABLED) {
@@ -27,7 +25,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 		if (!hmd)
 			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
-		
+
 		if (!hmd)
 			throw VRException("Could not start the Rift");
 
@@ -35,263 +33,12 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			throw VRException("The Rift does not support all of the necessary sensors");
 	}
 
-	// Initialize GLFW
-	if (!glfwInit())
-		throw VRException("Could not start GLFW");
-
-	// Request OpenGL compatible 3.3 context with the core profile enabled
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	if (!Settings::getInstance().USE_RIFT)
-		glfwWindowHint(GLFW_SAMPLES, 4);
-
-	if (Settings::getInstance().USE_RIFT || fullscreen) {
-		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
-	} else {
-		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
-	}
-	
-	if (!window)
-		throw VRException("Could not open a GFLW window");
-
-	glfwMakeContextCurrent(window);
-
-// Initialize GLEW
-#if defined(PLATFORM_WINDOWS)
-	if (!glewInitialized) {
-		glewExperimental = GL_TRUE;
-		glewInitialized = true;
-		if (glewInit() != GLEW_NO_ERROR)
-			throw VRException("Could not initialize GLEW!");
-	}
-#endif
-
-	// Default view port and reset all pixels to black
-	background = Vector3f(0.8f, 0.8f, 0.8f);
-
-	glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
-	glViewport(0, 0, width, height);
-	glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glfwSwapBuffers(window);
-
-	// Enable or disable OpenGL features
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if (!Settings::getInstance().USE_RIFT)
-		glEnable(GL_MULTISAMPLE);
-
-#if defined(PLATFORM_APPLE)
-    /* Poll for events once before starting a potentially
-       lengthy loading process. This is needed to be
-       classified as "interactive" by other software such
-       as iTerm2 */
-
-    glfwPollEvents();
-#endif
+	// Init GLFW/Glew if rift used. Otherwise nanogui will do the job
+	if (Settings::getInstance().USE_RIFT)
+		init();
 
     // Setup arcball
     arcball.setSize(Vector2i(width, height));
-
-	// Set callbacks
-	glfwSetKeyCallback(window, [] (GLFWwindow *window, int key, int scancode, int action, int mods) {
-		switch (key) {
-			// Exit render loop
-			case GLFW_KEY_ESCAPE:
-				if (action == GLFW_PRESS)
-					glfwSetWindowShouldClose(window, 1);
-				break;
-
-			// Recenter HDM pose
-			case GLFW_KEY_R:
-				if (action == GLFW_PRESS)
-					ovrHmd_RecenterPose(__cbref->hmd);
-				break;
-
-			// Enable / disable v-sync
-			case GLFW_KEY_V: {
-				static bool disable = true;
-				if (action == GLFW_PRESS && Settings::getInstance().USE_RIFT) {
-					if (disable)
-						ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
-					else
-						ovrHmd_SetEnabledCaps(__cbref->hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Draw wireframe overlay
-			case GLFW_KEY_W: {
-				static bool disable = true;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().MESH_DRAW_WIREFRAME = disable;
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Draw wireframe overlay
-			case GLFW_KEY_B: {
-				static bool disable = true;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().MESH_DRAW_BBOX = disable;
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Draw mesh or not?
-			case GLFW_KEY_M: {
-				static bool disable = false;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().MESH_DRAW = disable;
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Show sphere or not
-			case GLFW_KEY_S: {
-				static bool disable = false;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().ENABLE_SPHERE = disable;
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Show virtual hands or not
-			case GLFW_KEY_H: {
-				static bool disable = false;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().SHOW_HANDS = disable;
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Enable/disable passthrough
-			case GLFW_KEY_P: {
-				static bool disable = false;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().LEAP_USE_PASSTHROUGH = disable;
-					disable = !disable;
-				}
-				break;
-			}
-
-			// Place object to defauls
-			case GLFW_KEY_C: {
-				 __cbref->getTranslateMatrix() = Matrix4f::Identity();
-				 __cbref->getScaleMatrix() = Matrix4f::Identity();
-				 __cbref->getTranslateMatrix() = Matrix4f::Identity();
-				break;
-			}
-
-			// Save annotations to a file
-			case GLFW_KEY_A: {
-				if (action == GLFW_PRESS)
-					__cbref->saveAnnotations();
-
-				break;
-			}
-
-			// Enable/disable leap for 2d use
-			case GLFW_KEY_L: {
-				static bool disable = true;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().USE_LEAP = disable && __cbref->leapController.isConnected();
-					disable = !disable;
-				}
-
-				break;
-			}
-		}
-	});
-
-	/* Mouse click callback */
-	glfwSetMouseButtonCallback(window, [] (GLFWwindow *window, int button, int action, int mods) {
-		if (!Settings::getInstance().USE_RIFT && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && action == GLFW_PRESS) {
-			// Query viewport
-			GLint viewport[4];
-			glGetIntegerv(GL_VIEWPORT, viewport);
-			Vector2i viewPortSize(viewport[2], viewport[3]);
-
-			// Query cursor position and depth value at this position
-			double x, y; GLfloat z;
-			glfwGetCursorPos(window, &x, &y);
-			glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
-			Vector3f pos(x, viewport[3] - y, z);
-
-			// Unproject scene
-			Matrix4f VM = __cbref->getRenderer()->getViewMatrix() * __cbref->getMesh()->getModelMatrix();
-			Vector3f worldPosition = unproject(pos, VM, __cbref->getRenderer()->getProjectionMatrix(), viewPortSize);
-
-			// Add/Delete an annotation
-			Vector3f n(0.f, 1.f, 0.f);
-			if (!__cbref->deletePinIfHit(worldPosition))
-				__cbref->addAnnotation(worldPosition, n);
-
-//			cout << z << endl;
-//			ppv(worldPosition);
-		} else if (button == GLFW_MOUSE_BUTTON_LEFT) {
-			__cbref->arcball.button(__cbref->lastPos, action == GLFW_PRESS);
-		}
-
-		// Need to send a new packet
-		Settings::getInstance().NETWORK_NEW_DATA = true;
-	});
-
-	/* Mouse movement callback */
-	glfwSetCursorPosCallback(window, [] (GLFWwindow *window, double x, double y) {
-		__cbref->lastPos = Vector2i(int(x), int(y));
-		__cbref->arcball.motion(__cbref->lastPos);
-
-		// Need to send a new packet
-		if (__cbref->arcball.active())
-			Settings::getInstance().NETWORK_NEW_DATA = true;
-	});
-
-	/* Mouse wheel callback */
-	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		if (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
-			return;
-
-		float scaleFactor = 0.05f;
-#if defined(PLATFORM_WINDOWS)
-		scaleFactor = 0.45f;
-#endif
-		if (y >= 0)
-			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
-		else
-			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
-
-		// Need to send a new packet
-		Settings::getInstance().NETWORK_NEW_DATA = true;
-	});
-
-	/* Window size callback */
-	glfwSetWindowSizeCallback(window, [] (GLFWwindow *window, int width, int height) {
-		glViewport(0, 0, width, height);
-		glfwGetFramebufferSize(window, &(__cbref->FBWidth), &(__cbref->FBHeight));
-		__cbref->width = width; __cbref->height = height;
-		__cbref->getArcball().setSize(Vector2i(width, height));
-		if (__cbref->renderer)
-			__cbref->renderer->updateFBSize(__cbref->FBWidth, __cbref->FBHeight);
-	});
-
-	// Set pointer for callback functions
-	__cbref = this;
 
 	// Leap hands
 	hands[0] = std::make_shared<SkeletonHand>(true); // Right
@@ -317,6 +64,72 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 		calcAndAppendFPS();
 }
 
+void Viewer::init () {
+	// Initialize GLFW
+	if (!glfwInit())
+		throw VRException("Could not start GLFW");
+
+	// Request OpenGL compatible 3.3 context with the core profile enabled
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	if (!Settings::getInstance().USE_RIFT)
+		glfwWindowHint(GLFW_SAMPLES, 4);
+
+	if (Settings::getInstance().USE_RIFT || Settings::getInstance().FULLSCREEN) {
+		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+		//viewerGLFWwindow = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		viewerGLFWwindow = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+	} else {
+		viewerGLFWwindow = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+	}
+
+	if (!viewerGLFWwindow)
+		throw VRException("Could not open a GFLW viewerGLFWwindow");
+
+	glfwMakeContextCurrent(viewerGLFWwindow);
+
+// Initialize GLEW
+#if defined(PLATFORM_WINDOWS)
+	if (!glewInitialized) {
+		glewExperimental = GL_TRUE;
+		glewInitialized = true;
+		if (glewInit() != GLEW_NO_ERROR)
+			throw VRException("Could not initialize GLEW!");
+	}
+#endif
+
+	// Default view port and reset all pixels to black
+	background = Vector3f(0.8f, 0.8f, 0.8f);
+
+	glfwGetFramebufferSize(viewerGLFWwindow, &FBWidth, &FBHeight);
+	glViewport(0, 0, width, height);
+	glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glfwSwapBuffers(viewerGLFWwindow);
+
+	// Enable or disable OpenGL features
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!Settings::getInstance().USE_RIFT)
+		glEnable(GL_MULTISAMPLE);
+
+#if defined(PLATFORM_APPLE)
+	/* Poll for events once before starting a potentially
+	   lengthy loading process. This is needed to be
+	   classified as "interactive" by other software such
+	   as iTerm2 */
+
+	glfwPollEvents();
+#endif
+}
+
 void Viewer::calcAndAppendFPS () {
 	static float t0 = glfwGetTime();
 
@@ -328,9 +141,9 @@ void Viewer::calcAndAppendFPS () {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
 
-		// Append to window title
+		// Append to viewerGLFWwindow title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
-		glfwSetWindowTitle(window, newTitle.c_str());
+		glfwSetWindowTitle(viewerGLFWwindow, newTitle.c_str());
 		
 		// Reset the FPS frame counter and set the initial time to be now
 		frameCount = 0;
@@ -388,16 +201,16 @@ void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 	leapListener->setHands(hands[0], hands[1]);
 }
 
-void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
-	renderer = std::move(r);
+void Viewer::display(std::shared_ptr<Mesh> &m, std::shared_ptr<Renderer> &r) {
+	renderer = r;
 	mesh = m;
 
 	// Reconfigure settings if the target is the Rift
 	if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
 		width = hmd->Resolution.w;
 		height = hmd->Resolution.h;
-		glfwSetWindowSize(window, width, height);
-		glfwGetFramebufferSize(window, &FBWidth, &FBHeight);
+		glfwSetWindowSize(viewerGLFWwindow, width, height);
+		glfwGetFramebufferSize(viewerGLFWwindow, &FBWidth, &FBHeight);
 		glViewport(0, 0, width, height);
 	}
 
@@ -411,7 +224,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	gestureHandler->setMesh(mesh);
 	renderer->setMesh(mesh);
 	renderer->setHands(hands[0], hands[1]);
-	renderer->setWindow(window);
+	renderer->setWindow(viewerGLFWwindow);
 	renderer->updateFBSize(FBWidth, FBHeight);
 	renderer->preProcess();
 
@@ -429,65 +242,76 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	// Print some info
 	std::cout << info() << std::endl;
 
+	// ready to display opengl content
+	ready = true;
+}
+
+void Viewer::render (long lastTime) {
+	// Bind the default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// Get a new leap frame if no listener is used
+	if (!Settings::getInstance().LEAP_USE_LISTENER) {
+		frame = leapController.frame();
+		renderer->setFrame(frame);
+		leapListener->onDirectFrame(frame);
+	}
+
+	// Update arcball
+	if ((Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER) ||
+		(!Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && !Settings::getInstance().USE_LEAP)) {
+		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+	}
+
+	// Bounding sphere
+	renderer->setSphereCenter(sphereCenter);
+	renderer->setSphereRadius(sphereRadius);
+
+	// Update state
+	renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
+
+	// Clear buffers
+	renderer->clear(background);
+
+	// Draw using attached renderer
+	renderer->draw();
+
+	// Calc fps
+	if (!Settings::getInstance().USE_RIFT && appFPS)
+		calcAndAppendFPS();
+
+	// Add annotation
+	if (uploadAnnotation) {
+		addAnnotation(annotationTarget, annotationNormal);
+		uploadAnnotation = false;
+	}
+
+//	// Swap framebuffer, only if the rift is not attached
+//	if (renderer->getClassType() != EHMDRenderer)
+//		glfwSwapBuffers(viewerGLFWwindow);
+
+	// Networking
+	if (Settings::getInstance().NETWORK_ENABLED && (long(glfwGetTime() * 1000) - lastTime) >= Settings::getInstance().NETWORK_SEND_RATE) {
+		processNetworking();
+		lastTime = long(glfwGetTime() * 1000);
+	}
+}
+
+void Viewer::renderLoop () {
 	// Last send time in milliseconds
 	long lastTime = glfwGetTime() * 1000;
 
 	// Render loop
 	glfwSwapInterval(0);
-	while (!glfwWindowShouldClose(window)) {
-		// Bind the default framebuffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	while (!glfwWindowShouldClose(viewerGLFWwindow)) {
 		// Poll for events to process
 		glfwPollEvents();
 
-		// Get a new leap frame if no listener is used
-		if (!Settings::getInstance().LEAP_USE_LISTENER) {
-			frame = leapController.frame();
-			renderer->setFrame(frame);
-			leapListener->onDirectFrame(frame);
-		}
-
-		// Update arcball
-		if ((Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER) ||
-			(!Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && !Settings::getInstance().USE_LEAP)) {
-			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
-		}
-
-		// Bounding sphere
-		renderer->setSphereCenter(sphereCenter);
-		renderer->setSphereRadius(sphereRadius);
-
-		// Update state
-		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
-
-		// Clear buffers
-		renderer->clear(background);
-
-		// Draw using attached renderer
-		renderer->draw();
-
-		// Calc fps
-		if (!Settings::getInstance().USE_RIFT && appFPS)
-			calcAndAppendFPS();
-		
-		// Add annotation
-		if (uploadAnnotation) {
-			addAnnotation(annotationTarget, annotationNormal);
-			uploadAnnotation = false;
-		}
-
-		// Swap framebuffer, only if the rift is not attached
-		if (renderer->getClassType() != EHMDRenderer)
-			glfwSwapBuffers(window);
-
-		// Networking
-		if (Settings::getInstance().NETWORK_ENABLED && (long(glfwGetTime() * 1000) - lastTime) >= Settings::getInstance().NETWORK_SEND_RATE) {
-			processNetworking();
-			lastTime = long(glfwGetTime() * 1000);
-		}
+		// Render
+		if (ready)
+			render(lastTime);
 	}
-	
+
 	// Renderer cleapup
 	renderer->cleanUp();
 }
@@ -792,7 +616,7 @@ std::vector<std::shared_ptr<Pin>> &Viewer::getAnnotations() {
 	return pinList;
 }
 
-std::unique_ptr<Renderer> &Viewer::getRenderer () {
+std::shared_ptr<Renderer> &Viewer::getRenderer () {
 	return renderer;
 }
 
@@ -801,7 +625,7 @@ Viewer::~Viewer () {
 	if (Settings::getInstance().LEAP_USE_LISTENER)
 		leapController.removeListener(*leapListener);
 
-	glfwDestroyWindow(window);
+	glfwDestroyWindow(viewerGLFWwindow);
 	glfwTerminate();
 
 	// Destroy the rift. Needs to be called after glfwTerminate

@@ -72,7 +72,7 @@ protected:
 protected:
 
 	bool riftMounted; ///< Leap on HMD?
-	float windowWidth, windowHeight; ///y GLFW window size
+	float windowWidth, windowHeight; ///y GLFW viewerGLFWwindow size
 	float FBWidth, FBHeight; ///< Framebuffer size
 	std::shared_ptr<SkeletonHand> leftHand, rightHand, currentHand; ///< Leap hands
 	std::shared_ptr<SkeletonHand> skeletonHands[2]; ///< Pointer to the hands above

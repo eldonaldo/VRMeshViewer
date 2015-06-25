@@ -10,8 +10,10 @@ Settings::Settings () :
 	ANNOTATIONS					("none"),
 
 	// WINDOW
-	WINDOW_WIDTH				(600),
-	WINDOW_HEIGHT				(400),
+	TITLE						("Virtual Reality Mesh Viewer"),
+	WINDOW_WIDTH				(1200),
+	WINDOW_HEIGHT				(900),
+	FULLSCREEN					(false),
 	FOV							(60.f),
 	Z_NEAR						(0.001f),
 	Z_FAR						(100.f),
@@ -40,7 +42,7 @@ Settings::Settings () :
 	// LEAP, 1.f = 1 Unit = 1 millimeter
 	// PASSTHROUGH
 	USE_LEAP					(false),
-	LEAP_USE_PASSTHROUGH		(true),
+	LEAP_USE_PASSTHROUGH		(false),
 	LEAP_NO_HMD_OFFSET			(0.f, 0.20f, 0.f),
 	LEAP_ALPHA_SCALE			(0.7f),
 	LEAP_CAMERA_SHIFT_X			(0.006f),

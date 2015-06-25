@@ -19,7 +19,7 @@ VR_NAMESPACE_BEGIN
  * @brief Basis mesh viewer class.
  *
  * This class uses GLFW to construct a OS specific
- * window and allows all modern extension to be loaded with GLEW on
+ * viewerGLFWwindow and allows all modern extension to be loaded with GLEW on
  * windows machines.
  */
 class Viewer {
@@ -49,7 +49,7 @@ public:
 	 * Renderer::update() is that the states get updated and Renderer::draw() is responsible
 	 * of drawing the data. Of course a renderer must be set in advance.
 	 */
-	virtual void display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r);
+	virtual void display(std::shared_ptr<Mesh> &m, std::shared_ptr<Renderer> &r);
 
 	/**
 	* @brief Add an annotation
@@ -121,7 +121,7 @@ public:
 	/**
 	 * @brief Returns a pointer to the renderer
 	 */
-	std::unique_ptr<Renderer> &getRenderer ();
+	std::shared_ptr<Renderer> &getRenderer ();
 
 	/**
 	 * @brief Attaches a UDP socket
@@ -133,7 +133,17 @@ public:
 	*/
 	bool deletePinIfHit(Vector3f &position);
 
+	/**
+	 * @brief Render loop for 3D content
+	 */
+	void renderLoop ();
+
 protected:
+
+	/**
+	 * @brief Internal render method
+	 */
+	void render (long lastTime = 0);
 
 	/**
 	 * @brief Places the object in the world coordindate system and scales it for the immersion effect and builds the kd-tree
@@ -141,7 +151,7 @@ protected:
 	virtual void placeObjectAndBuildKDTree (std::shared_ptr<Mesh> &m);
 
 	/**
-	 * @brief Displays the FPS count in the title of the window and returns the calculated FPS
+	 * @brief Displays the FPS count in the title of the viewerGLFWwindow and returns the calculated FPS
 	 */
 	virtual void calcAndAppendFPS ();
 
@@ -185,6 +195,12 @@ protected:
 	 */
 	void processNetworking ();
 
+	/**
+	 * @brief Init GLFW/Glew and OpenGL
+	 */
+	void init ();
+
+
 public:
 
 	int FBWidth, FBHeight; ///< Framebuffer size
@@ -194,19 +210,20 @@ public:
 	Vector3f annotationTarget; ///< Annotation target
 	Vector3f annotationNormal; ///< Annotation normal
 	bool uploadAnnotation; ///< flag whether to upload a annotation or not
+
 	Leap::Controller leapController; ///< Leap controller
 
 protected:
-
-	std::unique_ptr<Renderer> renderer; ///< Bounded renderer
+	bool ready; ///< True when all geometry is uploaded to the GPU on the startup
+	std::shared_ptr<Renderer> renderer; ///< Bounded renderer
 	ovrHmd hmd; ///< Head mounted device
-	GLFWwindow *window; ///< GLFW window pointer
+	GLFWwindow *viewerGLFWwindow; ///< GLFW viewerGLFWwindow pointer
 	std::string title; ///< Window title
 	Color3f background; ///< Background color
 	const float interval; ///< Interval to refresh FPS in seconds
 	unsigned int frameCount = 0; ///< Frame count
 	double fps = 0.0; ///< FPS count
-	bool appFPS = true; ///< If true, then the current FPS count is appended to the window title
+	bool appFPS = true; ///< If true, then the current FPS count is appended to the viewerGLFWwindow title
 	std::shared_ptr<Mesh> mesh; ///< Pointer to mesh
 	Arcball arcball; ///< Arcball
 	Matrix4f scaleMatrix; ///< Scale matrix

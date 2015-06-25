@@ -46,6 +46,8 @@ public:
 	std::string ANNOTATIONS;
 	int WINDOW_WIDTH;
 	int WINDOW_HEIGHT;
+	std::string TITLE;
+	bool FULLSCREEN;
 	float FOV;
 	float Z_NEAR;
 	float Z_FAR;

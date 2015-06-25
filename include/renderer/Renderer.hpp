@@ -152,7 +152,7 @@ public:
 	}
 
 	/**
-	 * @brief Handle to the GFLW window for rendering
+	 * @brief Handle to the GFLW viewerGLFWwindow for rendering
 	 */
 	void setWindow (GLFWwindow *w) {
 		window = w;
@@ -216,7 +216,7 @@ protected:
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
 	std::shared_ptr<SkeletonHand> leftHand, rightHand; ///< Leap hands
 	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
-	GLFWwindow *window; ///< GFLW window handle
+	GLFWwindow *window; ///< GFLW viewerGLFWwindow handle
 	ovrHmd hmd; ///< Head mounted device
 	bool showHands; ///< Display leap hands
 	Leap::Controller leapController; ///< Leap controller

@@ -1,14 +1,16 @@
+#include <thread>
 #include "common.hpp"
 #include "Viewer.hpp"
+#include "Gui.hpp"
 #include "mesh/WavefrontObj.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
 #include "renderer/RiftRenderer.hpp"
 #include "leap/LeapListener.hpp"
 #include "network/UDPSocket.hpp"
-#include <thread>
 
 using namespace VR_NS;
 
+// Forward declaration
 void initShader(std::shared_ptr<GLShader> &shader);
 
 bool parseArgs (int argc, char *argv[]) {
@@ -47,22 +49,31 @@ int main (int argc, char *argv[]) {
 	// Settings
 	int &width = Settings::getInstance().WINDOW_WIDTH, &height = Settings::getInstance().WINDOW_HEIGHT;
 	float &fov = Settings::getInstance().FOV, &zNear = Settings::getInstance().Z_NEAR, &zFar = Settings::getInstance().Z_FAR;
+	bool &fullscreen = Settings::getInstance().FULLSCREEN;
+	std::string &title = Settings::getInstance().TITLE;
 
 	try {
+		// Nanogui only available in 2D mode
+		if (!Settings::getInstance().USE_RIFT)
+			nanogui::init();
 
 		// This sets up the OpenGL context and needs the be first call
-		Viewer viewer("Virtual Reality Mesh Viewer", width, height, false);
+		Viewer *viewer;
+		if (Settings::getInstance().USE_RIFT)
+			viewer = new Viewer(title, width, height, fullscreen);
+		else
+			viewer = new Gui();
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();
 		initShader(shader);
 
 		// Create an appropriate renderer
-		std::unique_ptr<Renderer> renderer;
+		std::shared_ptr<Renderer> renderer;
 		if (Settings::getInstance().USE_RIFT)
-			renderer = std::unique_ptr<Renderer>(new RiftRenderer(shader, fov, width, height, zNear, zFar));
+			renderer = std::make_shared<RiftRenderer>(shader, fov, width, height, zNear, zFar);
 		else
-			renderer = std::unique_ptr<Renderer>(new PerspectiveRenderer(shader, fov, width, height, zNear, zFar));
+			renderer = std::make_shared<PerspectiveRenderer>(shader, fov, width, height, zNear, zFar);
 
 		// Load mesh
 //		Settings::getInstance().MODEL = "resources/models/dragon/dragon.obj";
@@ -72,7 +83,7 @@ int main (int argc, char *argv[]) {
 
 		// Create Leap listener
 		std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
-		viewer.attachLeap(leap);
+		viewer->attachLeap(leap);
 
 		// Networking
 		std::unique_ptr<std::thread> netThread;
@@ -103,20 +114,35 @@ int main (int argc, char *argv[]) {
 				io_service.run();
 			}));
 
-			viewer.attachSocket(socket);
+			viewer->attachSocket(socket);
 		}
 
 		// Load annotations, if any, and run
 		if (Settings::getInstance().ANNOTATIONS != "none")
-			viewer.loadAnnotations(Settings::getInstance().ANNOTATIONS);
+			viewer->loadAnnotations(Settings::getInstance().ANNOTATIONS);
 
-		viewer.display(mesh, renderer);
-		
+		/**
+		 * Call the render loop.
+		 * If we're in the 2D mode render using nanogui.
+		 * Otherwise do it through the viewer directly.
+		 */
+		viewer->display(mesh, renderer);
+		if (Settings::getInstance().USE_RIFT)
+			viewer->renderLoop();
+		else
+			nanogui::mainloop();
+
 		// Stop networking and join to main thread
 		if (Settings::getInstance().NETWORK_ENABLED) {
 			io_service.stop();
 			netThread->join();
 		}
+
+		delete viewer;
+
+		// Nanogui only available in 2D mode
+		if (!Settings::getInstance().USE_RIFT)
+			nanogui::shutdown();
 
 	} catch (std::exception &e) {
 		std::cout << "Runtime error: "<< e.what() << std::endl;

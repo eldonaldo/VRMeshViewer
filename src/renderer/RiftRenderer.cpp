@@ -71,8 +71,8 @@ void RiftRenderer::preProcess () {
 	cfg.OGL.Header.BackBufferSize = hmd->Resolution;
 	cfg.OGL.Header.Multisample = 0;
 #if defined(PLATFORM_WINDOWS)
-	// Need to attach window for direct rendering (only supported on windows)
-	cfg.OGL.Window = glfwGetWin32Window(window);
+	// Need to attach viewerGLFWwindow for direct rendering (only supported on windows)
+	cfg.OGL.Window = glfwGetWin32Window(viewerGLFWwindow);
 	cfg.OGL.DC = GetDC(cfg.OGL.Window);
 #endif
 
