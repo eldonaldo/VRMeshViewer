@@ -16,3 +16,6 @@
 [submodule "ext/asio"]
 	path = ext/asio
 	url = https://github.com/chriskohlhoff/asio/
+[submodule "ext/nanogui"]
+	path = ext/nanogui
+	url = https://github.com/wjakob/nanogui

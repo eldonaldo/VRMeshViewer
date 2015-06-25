@@ -11,8 +11,8 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # Args for nested build process
-set(CMAKE_EXTERNAL_ARGUMENTS_LIST "-DCMAKE_BUILD_TYPE=Release -DCMAKE_GENERATOR=${CMAKE_GENERATOR} -Wno-dev")
 include(ExternalProject)
+set(CMAKE_EXTERNAL_ARGUMENTS_LIST -DCMAKE_BUILD_TYPE=Release -DCMAKE_GENERATOR=${CMAKE_GENERATOR} -Wno-dev -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/ext_build/dist)
 
 # =========================================
 # External dependencies
@@ -26,12 +26,25 @@ ExternalProject_Add(glfw_p
 	INSTALL_COMMAND ""
 )
 
+# Nanogui
+ExternalProject_Add(nanogui_p
+	URL "${CMAKE_SOURCE_DIR}/ext/nanogui"
+	PREFIX "ext_build"
+	CMAKE_ARGS ${CMAKE_EXTERNAL_ARGUMENTS_LIST} -DNANOGUI_INSTALL=False
+	INSTALL_COMMAND ""
+)
+
 # The primary SDK artifact, a static library for Oculus access 
 add_subdirectory(ext/ovr)
 
 # Add Leap and OVR libraries
 find_library(LEAP_LIBRARY NAMES leap PATHS /usr/local/lib $ENV{LEAPSDK_DIR}/lib $ENV{LEAPSDK_DIR}/lib/x64 $ENV{LEAPSDK_DIR} ~/Library/Frameworks /Library/Frameworks)
-set(extra_libs ovr ${LEAP_LIBRARY})
+
+# Add nanogui build path to search path
+link_directories(${CMAKE_BINARY_DIR}/ext_build/src/nanogui_p-build)
+
+# External libs
+set(extra_libs nanogui ovr ${LEAP_LIBRARY})
 
 if (WIN32)
 	# Windows needs GLEW
@@ -89,6 +102,7 @@ include_directories(
 	ext/leap/include
 	ext/leap/util
 	ext/asio/asio/include
+	ext/nanogui/include
 	include
 	${CMAKE_BINARY_DIR}
 )
@@ -117,7 +131,8 @@ add_executable(VRMeshViewer
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
 	include/network/UDPSocket.hpp
-	
+	include/Gui.hpp
+
 	# Source code files
 	src/main.cpp
 	src/common.cpp
@@ -136,10 +151,12 @@ add_executable(VRMeshViewer
 	src/leap/SkeletonHand.cpp
 	src/leap/GestureHandler.cpp
 	src/network/UDPSocket.cpp
+	src/Gui.cpp
 )
 
 # Make sure to build in the right order
 add_dependencies(VRMeshViewer glfw_p)
+add_dependencies(VRMeshViewer nanogui_p)
 if(WIN32)
 	add_dependencies(VRMeshViewer glew_p)
 endif()
