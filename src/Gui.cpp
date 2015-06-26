@@ -6,13 +6,12 @@ VR_NAMESPACE_BEGIN
 
 using namespace nanogui;
 
-Gui *__cbref1;
-
 Gui::Gui ()
 	: Screen(Vector2i(Settings::getInstance().WINDOW_WIDTH, Settings::getInstance().WINDOW_HEIGHT)
 	, Settings::getInstance().TITLE, true, Settings::getInstance().FULLSCREEN),
 	Viewer(Settings::getInstance().TITLE, Settings::getInstance().WINDOW_WIDTH, Settings::getInstance().WINDOW_HEIGHT
 	, Settings::getInstance().FULLSCREEN) {
+
 
 	// Set pointer to GLFW viewerGLFWwindow
 	viewerGLFWwindow = glfwWindow();
@@ -23,10 +22,19 @@ Gui::Gui ()
 
 	performLayout(mNVGContext);
 
+	glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!Settings::getInstance().USE_RIFT)
+		glEnable(GL_MULTISAMPLE);
+
 	drawAll();
 	setVisible(true);
-
-	__cbref1 = this;
 }
 
 void Gui::drawContents () {
