@@ -41,9 +41,8 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	// Set pointer to GLFW viewerGLFWwindow
 	viewerGLFWwindow = glfwWindow();
 
-	nanogui::Window *windw = new nanogui::Window(this, "Button demo");
-	windw->setPosition(Vector2i(15, 15));
-	windw->setLayout(new nanogui::GroupLayout());
+	// Init GUI elements
+	initGUI();
 
 	setBackground(Vector3f(0.8f, 0.8f, 0.8f));
 
@@ -51,6 +50,80 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	performLayout(mNVGContext);
 	drawAll();
 	setVisible(true);
+}
+
+void Viewer::initGUI () {
+	using namespace nanogui;
+
+	// Model window
+	Window *window = new Window(this, "Mesh");
+	window->setPosition(Vector2i(15, 15));
+	window->setLayout(new GroupLayout());
+
+	// Model
+	Widget *tools = new Widget(window);
+	tools->setLayout(new BoxLayout(BoxLayout::Horizontal, BoxLayout::Middle, 0, 6));
+	Button *b = new Button(tools, "Load");
+	b->setCallback([&] {
+		// Save a pointer to the old mesh to delete it later
+		std::shared_ptr<Mesh> oldMesh = mesh;
+
+		// Load the new mesh
+		std::string path = file_dialog({{"obj", "Wavefront OBJ"}, {"txt", "Text file"}}, false);
+		std::shared_ptr<Mesh> model = std::make_shared<WavefrontOBJ>(path);
+		upload(model);
+
+		// Delete the old mesh from the GPU
+		if (oldMesh)
+			oldMesh->releaseBuffers();
+	});
+
+	CheckBox *cb = new CheckBox(window, "Use Oculus Rift", [] (bool state) {
+
+	});
+
+	cb = new CheckBox(window, "Draw Boundig Box", [] (bool state) { Settings::getInstance().MESH_DRAW_BBOX = state; });
+	cb = new CheckBox(window, "Draw Wireframe", [] (bool state) { Settings::getInstance().MESH_DRAW_WIREFRAME = state; });
+	cb = new CheckBox(window, "Hide Mesh", [] (bool state) { Settings::getInstance().MESH_DRAW = !state; });
+
+	// Annotations window
+	window = new Window(this, "Annotations");
+	window->setPosition(Vector2i(15, 160));
+	window->setLayout(new GroupLayout());
+
+	// Annotations
+	tools = new Widget(window);
+	tools->setLayout(new BoxLayout(BoxLayout::Horizontal, BoxLayout::Middle, 0, 6));
+	b = new Button(tools, "Load");
+	b->setCallback([&] {
+		cout << file_dialog({{"txt", "Text file"} }, false) << endl;
+
+	});
+
+	b = new Button(tools, "Save");
+	b->setCallback([&] {
+		cout << "File dialog result: " << file_dialog({{"txt", "Text file"} }, true) << endl;
+	});
+
+	// Networking window
+	window = new Window(this, "Networking");
+	window->setPosition(Vector2i(15, 280));
+	window->setLayout(new GroupLayout());
+
+	// Networking
+	TextBox *textBox = new TextBox(window);
+	textBox->setFixedSize(Vector2i(115, 25));
+	textBox->setValue("IP-Address");
+
+	textBox = new TextBox(window);
+	textBox->setFixedSize(Vector2i(115, 25));
+	textBox->setValue("Port");
+
+	b = new Button(window, "Start");
+	b->setCallback([] { cout << "pushed!" << endl; });
+
+	b = new Button(window, "Listen");
+	b->setCallback([] { cout << "pushed!" << endl; });
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -124,9 +197,11 @@ void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 	leapListener->setHands(hands[0], hands[1]);
 }
 
-void Viewer::display(std::shared_ptr<Mesh> &m, std::shared_ptr<Renderer> &r) {
-	renderer = r;
+void Viewer::upload(std::shared_ptr<Mesh> &m) {
 	mesh = m;
+
+	// not ready to display opengl content
+	ready = false;
 
 	// Reconfigure settings if the target is the Rift
 	if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
@@ -138,7 +213,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::shared_ptr<Renderer> &r) {
 	}
 
 	renderer->setController(leapController);
-	renderer->setHmd(hmd); 
+	renderer->setHmd(hmd);
 
 	// Place object in world for immersion
 	placeObjectAndBuildKDTree(mesh);
@@ -158,9 +233,9 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::shared_ptr<Renderer> &r) {
 	if (Settings::getInstance().LEAP_USE_LISTENER)
 		leapController.addListener(*leapListener);
 
-	// Load annotations if desired 
-	if (loadAnnotationsFlag)
-		loadAnnotationsOnLoop(); 
+	// Load annotations if desired
+//	if (loadAnnotationsFlag)
+//		loadAnnotationsOnLoop();
 
 	// Print some info
 	std::cout << info() << std::endl;
@@ -245,7 +320,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 				ovrHmd_RecenterPose(hmd);
 			break;
 
-			// Enable / disable v-sync
+		// Enable / disable v-sync
 		case GLFW_KEY_V: {
 			static bool disable = true;
 			if (action == GLFW_PRESS && Settings::getInstance().USE_RIFT) {
@@ -258,7 +333,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Draw wireframe overlay
+		// Draw wireframe overlay
 		case GLFW_KEY_W: {
 			static bool disable = true;
 			if (action == GLFW_PRESS) {
@@ -278,7 +353,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Draw mesh or not?
+		// Draw mesh or not?
 		case GLFW_KEY_M: {
 			static bool disable = false;
 			if (action == GLFW_PRESS) {
@@ -288,7 +363,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Show sphere or not
+		// Show sphere or not
 		case GLFW_KEY_S: {
 			static bool disable = false;
 			if (action == GLFW_PRESS) {
@@ -298,7 +373,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Show virtual hands or not
+		// Show virtual hands or not
 		case GLFW_KEY_H: {
 			static bool disable = false;
 			if (action == GLFW_PRESS) {
@@ -308,7 +383,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Enable/disable passthrough
+		// Enable/disable passthrough
 		case GLFW_KEY_P: {
 			static bool disable = false;
 			if (action == GLFW_PRESS) {
@@ -318,7 +393,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Place object to defauls
+		// Place object to defaults
 		case GLFW_KEY_C: {
 			getTranslateMatrix() = Matrix4f::Identity();
 			getScaleMatrix() = Matrix4f::Identity();
@@ -326,7 +401,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Save annotations to a file
+		// Save annotations to a file
 		case GLFW_KEY_A: {
 			if (action == GLFW_PRESS)
 				saveAnnotations();
@@ -334,7 +409,7 @@ bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
 			break;
 		}
 
-			// Enable/disable leap for 2d use
+		// Enable/disable leap for 2d use
 		case GLFW_KEY_L: {
 			static bool disable = true;
 			if (action == GLFW_PRESS) {
@@ -371,6 +446,11 @@ void Viewer::framebufferSizeChanged () {
 
 bool Viewer::mouseButtonEvent (const Vector2i &p, int button, bool down, int modifiers) {
 	if (!Settings::getInstance().USE_RIFT && glfwGetKey(viewerGLFWwindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && down) {
+		// OpenGL settings
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
+
 		// Query viewport
 		GLint viewport[4];
 		glGetIntegerv(GL_VIEWPORT, viewport);
@@ -744,6 +824,10 @@ std::vector<std::shared_ptr<Pin>> &Viewer::getAnnotations() {
 
 std::shared_ptr<Renderer> &Viewer::getRenderer () {
 	return renderer;
+}
+
+void Viewer::setRenderer (std::shared_ptr<Renderer> &r) {
+	renderer = r;
 }
 
 Viewer::~Viewer () {

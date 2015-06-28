@@ -15,6 +15,10 @@
 #include "network/UDPSocket.hpp"
 #include "nanogui/window.h"
 #include "nanogui/layout.h"
+#include "nanogui/label.h"
+#include "nanogui/button.h"
+#include "nanogui/checkbox.h"
+#include "nanogui/textbox.h"
 
 VR_NAMESPACE_BEGIN
 
@@ -43,16 +47,12 @@ public:
 	 *
 	 * @param l Leap Listener instance
 	 */
-	virtual void attachLeap (std::unique_ptr<LeapListener> &l);
+	void attachLeap (std::unique_ptr<LeapListener> &l);
 
 	/**
-	 * @brief Displays the data
-	 *
-	 * Internally it calls the Renderer::update() and Renderer::draw() methods. The purpose of
-	 * Renderer::update() is that the states get updated and Renderer::draw() is responsible
-	 * of drawing the data. Of course a renderer must be set in advance.
+	 * @brief Uploads and preprocesses the mesh
 	 */
-	virtual void display(std::shared_ptr<Mesh> &m, std::shared_ptr<Renderer> &r);
+	void upload(std::shared_ptr<Mesh> &m);
 
 	/**
 	* @brief Add an annotation
@@ -73,6 +73,11 @@ public:
 	* @brief Loads annotations from a file previous saved with saveAnnotations()
 	*/
 	void loadAnnotations(const std::string &s);
+
+	/**
+	 * @brief Sets the renderer
+	 */
+	void setRenderer (std::shared_ptr<Renderer> &r);
 
 	/**
 	* @brief Retrieve some OpenGL infos
@@ -137,24 +142,48 @@ public:
 	bool deletePinIfHit(Vector3f &position);
 
 	/**
-	 * @brief Render loop for 3D content
+	 * @brief Render loop for 3D content with the rift
 	 */
 	void renderLoop ();
 
+	/**
+	 * @brief Displays the data
+	 */
 	void drawContents();
 
+	/**
+	 * @brief Mouse button events
+	 */
 	virtual bool mouseButtonEvent (const Vector2i &p, int button, bool down, int modifiers) override;
 
+	/**
+	 * @brief Mouse button events
+	 */
 	virtual bool mouseMotionEvent (const Vector2i &p, const Vector2i &rel, int button, int modifiers) override;
 
+	/**
+	 * @brief Scroll events
+	 */
 	virtual bool scrollEvent (const Vector2i &p, const Vector2f &rel) override;
 
+	/**
+	 * @brief Mouse drag events
+	 */
 	virtual bool mouseDragEvent (const Vector2i &p, const Vector2i &rel, int button, int modifiers) override;
 
+	/**
+	 * @brief Mouse enter events
+	 */
 	virtual bool mouseEnterEvent (const Vector2i &p, bool enter) override;
 
+	/**
+	 * @brief Frambuffer size changed
+	 */
 	virtual void framebufferSizeChanged () override;
 
+	/**
+	 * @brief Keyboard events
+	 */
 	bool keyboardEvent(int key, int scancode, bool action, int mods);
 
 protected:
@@ -208,6 +237,11 @@ protected:
 	 * @brief Process networking operations
 	 */
 	void processNetworking ();
+
+	/**
+	 * @brief Place GUI objects
+	 */
+	void initGUI();
 
 public:
 

@@ -97,6 +97,7 @@ void PerspectiveRenderer::draw() {
 	 */
 	// Bounding box
 	if (Settings::getInstance().MESH_DRAW_BBOX) {
+		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(1.f, 0.f, 0.f));
@@ -110,6 +111,7 @@ void PerspectiveRenderer::draw() {
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
 	}
 
 	// Bounding sphere

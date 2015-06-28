@@ -97,7 +97,7 @@ int main (int argc, char *argv[]) {
 //		Settings::getInstance().MODEL = "resources/models/dragon/dragon.obj";
 //		Settings::getInstance().MODEL = "resources/models/ironman/ironman.obj";
 //		Settings::getInstance().MODEL = "resources/models/muro/muro.obj";
-		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>(Settings::getInstance().MODEL);
+//		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>(Settings::getInstance().MODEL);
 
 		// Create Leap listener
 		std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
@@ -144,7 +144,8 @@ int main (int argc, char *argv[]) {
 		 * If we're in the 2D mode render using nanogui.
 		 * Otherwise do it through the viewer directly.
 		 */
-		viewer->display(mesh, renderer);
+//		viewer->upload(mesh, renderer);
+		viewer->setRenderer(renderer);
 		if (Settings::getInstance().USE_RIFT)
 			viewer->renderLoop();
 		else
