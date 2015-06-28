@@ -1,7 +1,6 @@
 #include <thread>
 #include "common.hpp"
 #include "Viewer.hpp"
-#include "Gui.hpp"
 #include "mesh/WavefrontObj.hpp"
 #include "renderer/PerspectiveRenderer.hpp"
 #include "renderer/RiftRenderer.hpp"
@@ -46,10 +45,27 @@ int main (int argc, char *argv[]) {
 		return -1;
 	}
 
+	// LibOVR need to be initialized before GLFW
+	ovrHmd hmd;
+	if (Settings::getInstance().USE_RIFT) {
+		ovr_Initialize();
+		hmd = ovrHmd_Create(0);
+
+		// Create debug hmd
+		if (!hmd)
+			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+
+		if (!hmd)
+			throw VRException("Could not start the Rift");
+
+		// Configure which sensors we need to have
+		if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
+			throw VRException("The Rift does not support all of the necessary sensors");
+	}
+
 	// Settings
 	int &width = Settings::getInstance().WINDOW_WIDTH, &height = Settings::getInstance().WINDOW_HEIGHT;
 	float &fov = Settings::getInstance().FOV, &zNear = Settings::getInstance().Z_NEAR, &zFar = Settings::getInstance().Z_FAR;
-	bool &fullscreen = Settings::getInstance().FULLSCREEN;
 	std::string &title = Settings::getInstance().TITLE;
 
 	try {
@@ -57,12 +73,14 @@ int main (int argc, char *argv[]) {
 		if (!Settings::getInstance().USE_RIFT)
 			nanogui::init();
 
-		// This sets up the OpenGL context and needs the be first call
-		Viewer *viewer;
-		if (Settings::getInstance().USE_RIFT)
-			viewer = new Viewer(title, width, height, fullscreen);
-		else
-			viewer = new Gui();
+		// Append networking mode in title
+		if (Settings::getInstance().NETWORK_ENABLED) {
+			std::string mode = Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT ? "Client listening on " : "Server sending to ";
+			title += " | " + mode + Settings::getInstance().NETWORK_IP + ":" + std::to_string(Settings::getInstance().NETWORK_PORT);
+		}
+
+		// This sets up the OpenGL context
+		Viewer *viewer = new Viewer(title, width, height, hmd);
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();

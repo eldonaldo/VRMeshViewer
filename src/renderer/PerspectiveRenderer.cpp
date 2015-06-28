@@ -68,15 +68,24 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 void PerspectiveRenderer::draw() {
 	shader->bind();
+
+	// OpenGL settings
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// Shader options
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 	shader->setUniform("alpha", 1.f);
-	
+
 	// Draw the mesh
 	if (Settings::getInstance().MESH_DRAW)
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 
 	// Draw annotations
-	shader->setUniform("alpha", 1.f);
 	if (pinList != nullptr && !pinList->empty())
 		for (auto &p : *pinList)
 			p->draw(getViewMatrix(), getProjectionMatrix());
@@ -144,6 +153,9 @@ void PerspectiveRenderer::draw() {
 		else
 			rightHand->draw(getViewMatrix(), getProjectionMatrix());
 	}
+
+	// Unbind the shader for other renderings
+	shader->unbind();
 }
 
 void PerspectiveRenderer::cleanUp () {

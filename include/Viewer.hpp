@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common.hpp"
+#include "nanogui/screen.h"
 #include "mesh/Mesh.hpp"
 #include "mesh/Cube.hpp"
 #include "mesh/Pin.hpp"
@@ -12,6 +13,8 @@
 #include "leap/GestureHandler.hpp"
 #include "Eigen/Geometry"
 #include "network/UDPSocket.hpp"
+#include "nanogui/window.h"
+#include "nanogui/layout.h"
 
 VR_NAMESPACE_BEGIN
 
@@ -22,13 +25,13 @@ VR_NAMESPACE_BEGIN
  * viewerGLFWwindow and allows all modern extension to be loaded with GLEW on
  * windows machines.
  */
-class Viewer {
+class Viewer : public nanogui::Screen {
 public:
 
 	/**
 	 * @brief Default constructor
 	 */
-	Viewer(const std::string &title, int width, int height, bool fullscreen = false);
+	Viewer(const std::string &title, int width, int height, ovrHmd &hmd);
 
 	/**
 	 * @brief Default constructor
@@ -138,12 +141,23 @@ public:
 	 */
 	void renderLoop ();
 
-protected:
+	void drawContents();
 
-	/**
-	 * @brief Internal render method
-	 */
-	void render (long lastTime = 0);
+	virtual bool mouseButtonEvent (const Vector2i &p, int button, bool down, int modifiers) override;
+
+	virtual bool mouseMotionEvent (const Vector2i &p, const Vector2i &rel, int button, int modifiers) override;
+
+	virtual bool scrollEvent (const Vector2i &p, const Vector2f &rel) override;
+
+	virtual bool mouseDragEvent (const Vector2i &p, const Vector2i &rel, int button, int modifiers) override;
+
+	virtual bool mouseEnterEvent (const Vector2i &p, bool enter) override;
+
+	virtual void framebufferSizeChanged () override;
+
+	bool keyboardEvent(int key, int scancode, bool action, int mods);
+
+protected:
 
 	/**
 	 * @brief Places the object in the world coordindate system and scales it for the immersion effect and builds the kd-tree
@@ -194,12 +208,6 @@ protected:
 	 * @brief Process networking operations
 	 */
 	void processNetworking ();
-
-	/**
-	 * @brief Init GLFW/Glew and OpenGL
-	 */
-	void init ();
-
 
 public:
 

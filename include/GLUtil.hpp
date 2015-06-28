@@ -52,6 +52,7 @@ public:
 
     /// Select this shader for subsequent draw calls
     void bind();
+    void unbind();
 
     /// Release underlying OpenGL objects
     void free();

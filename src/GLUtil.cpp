@@ -116,6 +116,11 @@ void GLShader::bind() {
     glBindVertexArray(mVertexArrayObject);
 }
 
+void GLShader::unbind() {
+    glUseProgram(mProgramShader);
+    glBindVertexArray(0);
+}
+
 GLint GLShader::attrib(const std::string &name, bool warn) const {
     GLint id = glGetAttribLocation(mProgramShader, name.c_str());
     if (id == -1 && warn)

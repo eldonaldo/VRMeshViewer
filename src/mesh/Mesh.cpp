@@ -58,8 +58,8 @@ void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, getTriangleCount() * 3, GL_UNSIGNED_INT, NULL);
 	glBindVertexArray(0);
+	shader->unbind();
 }
-
 
 void Mesh::upload(std::shared_ptr<GLShader> &s) {
 	shader = s;
@@ -77,7 +77,6 @@ void Mesh::upload(std::shared_ptr<GLShader> &s) {
 	glVertexAttribPointer(pp, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(pp);
 	
-
 	// UV
 	if (m_UV.cols() > 0) {
 		glGenBuffers(1, &vbo[TEXCOORD_BUFFER]);
@@ -106,13 +105,20 @@ void Mesh::upload(std::shared_ptr<GLShader> &s) {
 	// Reset state
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	shader->unbind();
 }
 
-void Mesh::setTranslateMatrix (Matrix4f &t) { transMat = t; }
+void Mesh::setTranslateMatrix (Matrix4f &t) {
+	transMat = t;
+}
 
-void Mesh::setScaleMatrix (Matrix4f &t) { scaleMat = t; }
+void Mesh::setScaleMatrix (Matrix4f &t) {
+	scaleMat = t;
+}
 
-void Mesh::setRotationMatrix (Matrix4f &t) { rotateMat = t; }
+void Mesh::setRotationMatrix (Matrix4f &t) {
+	rotateMat = t;
+}
 
 void Mesh::translate (float x, float y, float z) {
 	transMat = VR_NS::translate(Matrix4f::Identity(), Vector3f(x, y, z));

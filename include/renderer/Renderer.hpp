@@ -48,7 +48,6 @@ public:
 	 */
 	virtual void clear (Vector3f background) {
 		glClearDepth(1.0f);
-		glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
@@ -211,9 +210,9 @@ public:
 
 protected:
 
+	std::shared_ptr<GLShader> shader; ///< Bounded shader
 	std::shared_ptr<Mesh> mesh; ///< Bounded mesh
 	Cube bbox; ///< Visual representation of the bounding box of the mesh
-	std::shared_ptr<GLShader> shader; ///< Bounded shader
 	std::shared_ptr<SkeletonHand> leftHand, rightHand; ///< Leap hands
 	float FBWidth, FBHeight; ///< To avoid cyclic includes and incomplete type errors
 	GLFWwindow *window; ///< GFLW viewerGLFWwindow handle

@@ -6,38 +6,13 @@ VR_NAMESPACE_BEGIN
 	static bool glewInitialized = false;
 #endif
 
-Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
+Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr)
-	, ready(false) {
+	, hmd(hmd), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr)
+	, ready(false), nanogui::Screen(Vector2i(width, height), title, true, Settings::getInstance().USE_RIFT || Settings::getInstance().FULLSCREEN) {
 
-	// Append networking mode in title
-	if (Settings::getInstance().NETWORK_ENABLED) {
-		std::string mode = Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT ? "Client listening on " : "Server sending to ";
-		this->title += " | " + mode + Settings::getInstance().NETWORK_IP + ":" + std::to_string(Settings::getInstance().NETWORK_PORT);
-	}
-
-	// LibOVR need to be initialized before GLFW
-	if (Settings::getInstance().USE_RIFT) {
-		ovr_Initialize();
-		hmd = ovrHmd_Create(0);
-
-		if (!hmd)
-			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
-
-		if (!hmd)
-			throw VRException("Could not start the Rift");
-
-		if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
-			throw VRException("The Rift does not support all of the necessary sensors");
-	}
-
-	// Init GLFW/Glew if rift used. Otherwise nanogui will do the job
-	if (Settings::getInstance().USE_RIFT)
-		init();
-
-    // Setup arcball
+	// Setup arcball
     arcball.setSize(Vector2i(width, height));
 
 	// Leap hands
@@ -62,72 +37,20 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	// Calc fps at startup
 	if (!Settings::getInstance().USE_RIFT && appFPS)
 		calcAndAppendFPS();
-}
 
-void Viewer::init () {
-	// Initialize GLFW
-	if (!glfwInit())
-		throw VRException("Could not start GLFW");
+	// Set pointer to GLFW viewerGLFWwindow
+	viewerGLFWwindow = glfwWindow();
 
-	// Request OpenGL compatible 3.3 context with the core profile enabled
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	if (!Settings::getInstance().USE_RIFT)
-		glfwWindowHint(GLFW_SAMPLES, 4);
+	nanogui::Window *windw = new nanogui::Window(this, "Button demo");
+	windw->setPosition(Vector2i(15, 15));
+	windw->setLayout(new nanogui::GroupLayout());
 
-	if (Settings::getInstance().USE_RIFT || Settings::getInstance().FULLSCREEN) {
-		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//viewerGLFWwindow = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		viewerGLFWwindow = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
-	} else {
-		viewerGLFWwindow = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
-	}
+	setBackground(Vector3f(0.8f, 0.8f, 0.8f));
 
-	if (!viewerGLFWwindow)
-		throw VRException("Could not open a GFLW viewerGLFWwindow");
-
-	glfwMakeContextCurrent(viewerGLFWwindow);
-
-// Initialize GLEW
-#if defined(PLATFORM_WINDOWS)
-	if (!glewInitialized) {
-		glewExperimental = GL_TRUE;
-		glewInitialized = true;
-		if (glewInit() != GLEW_NO_ERROR)
-			throw VRException("Could not initialize GLEW!");
-	}
-#endif
-
-	// Default view port and reset all pixels to black
-	background = Vector3f(0.8f, 0.8f, 0.8f);
-
-	glfwGetFramebufferSize(viewerGLFWwindow, &FBWidth, &FBHeight);
-	glViewport(0, 0, width, height);
-	glClearColor(background.coeff(0), background.coeff(1), background.coeff(2), 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glfwSwapBuffers(viewerGLFWwindow);
-
-	// Enable or disable OpenGL features
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if (!Settings::getInstance().USE_RIFT)
-		glEnable(GL_MULTISAMPLE);
-
-#if defined(PLATFORM_APPLE)
-	/* Poll for events once before starting a potentially
-	   lengthy loading process. This is needed to be
-	   classified as "interactive" by other software such
-	   as iTerm2 */
-
-	glfwPollEvents();
-#endif
+	// Init nanogui
+	performLayout(mNVGContext);
+	drawAll();
+	setVisible(true);
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -246,61 +169,63 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::shared_ptr<Renderer> &r) {
 	ready = true;
 }
 
-void Viewer::render (long lastTime) {
-	// Bind the default framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+void Viewer::drawContents () {
+	// Wait for the uploads to complete
+	if (ready) {
+		// t0
+		static long lastTime = glfwGetTime() * 1000;
 
-	// Get a new leap frame if no listener is used
-	if (!Settings::getInstance().LEAP_USE_LISTENER) {
-		frame = leapController.frame();
-		renderer->setFrame(frame);
-		leapListener->onDirectFrame(frame);
-	}
+		// Bind the default framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Update arcball
-	if ((Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER) ||
-		(!Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && !Settings::getInstance().USE_LEAP)) {
-		rotationMatrix = arcball.matrix(renderer->getViewMatrix());
-	}
+		// Get a new leap frame if no listener is used
+		if (!Settings::getInstance().LEAP_USE_LISTENER) {
+			frame = leapController.frame();
+			renderer->setFrame(frame);
+			leapListener->onDirectFrame(frame);
+		}
 
-	// Bounding sphere
-	renderer->setSphereCenter(sphereCenter);
-	renderer->setSphereRadius(sphereRadius);
+		// Update arcball
+		if ((Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT &&
+			 Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER) ||
+			(!Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT &&
+			 !Settings::getInstance().USE_LEAP)) {
+			rotationMatrix = arcball.matrix(renderer->getViewMatrix());
+		}
 
-	// Update state
-	renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
+		// Bounding sphere
+		renderer->setSphereCenter(sphereCenter);
+		renderer->setSphereRadius(sphereRadius);
 
-	// Clear buffers
-	renderer->clear(background);
+		// Update state
+		renderer->update(scaleMatrix, rotationMatrix, translateMatrix);
 
-	// Draw using attached renderer
-	renderer->draw();
+		// Clear buffers
+		renderer->clear(background);
 
-	// Calc fps
-	if (!Settings::getInstance().USE_RIFT && appFPS)
-		calcAndAppendFPS();
+		// Draw using attached renderer
+		renderer->draw();
 
-	// Add annotation
-	if (uploadAnnotation) {
-		addAnnotation(annotationTarget, annotationNormal);
-		uploadAnnotation = false;
-	}
+		// Calc fps
+		if (!Settings::getInstance().USE_RIFT && appFPS)
+			calcAndAppendFPS();
 
-//	// Swap framebuffer, only if the rift is not attached
-//	if (renderer->getClassType() != EHMDRenderer)
-//		glfwSwapBuffers(viewerGLFWwindow);
+		// Add annotation
+		if (uploadAnnotation) {
+			addAnnotation(annotationTarget, annotationNormal);
+			uploadAnnotation = false;
+		}
 
-	// Networking
-	if (Settings::getInstance().NETWORK_ENABLED && (long(glfwGetTime() * 1000) - lastTime) >= Settings::getInstance().NETWORK_SEND_RATE) {
-		processNetworking();
-		lastTime = long(glfwGetTime() * 1000);
+		// Networking
+		if (Settings::getInstance().NETWORK_ENABLED &&
+			(long(glfwGetTime() * 1000) - lastTime) >= Settings::getInstance().NETWORK_SEND_RATE) {
+			processNetworking();
+			lastTime = long(glfwGetTime() * 1000);
+		}
 	}
 }
 
 void Viewer::renderLoop () {
-	// Last send time in milliseconds
-	long lastTime = glfwGetTime() * 1000;
-
 	// Render loop
 	glfwSwapInterval(0);
 	while (!glfwWindowShouldClose(viewerGLFWwindow)) {
@@ -308,12 +233,213 @@ void Viewer::renderLoop () {
 		glfwPollEvents();
 
 		// Render
-		if (ready)
-			render(lastTime);
+		drawContents();
+	}
+}
+
+bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
+	switch (key) {
+		// Recenter HDM pose
+		case GLFW_KEY_R:
+			if (action == GLFW_PRESS)
+				ovrHmd_RecenterPose(hmd);
+			break;
+
+			// Enable / disable v-sync
+		case GLFW_KEY_V: {
+			static bool disable = true;
+			if (action == GLFW_PRESS && Settings::getInstance().USE_RIFT) {
+				if (disable)
+					ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction | ovrHmdCap_NoVSync);
+				else
+					ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
+				disable = !disable;
+			}
+			break;
+		}
+
+			// Draw wireframe overlay
+		case GLFW_KEY_W: {
+			static bool disable = true;
+			if (action == GLFW_PRESS) {
+				Settings::getInstance().MESH_DRAW_WIREFRAME = disable;
+				disable = !disable;
+			}
+			break;
+		}
+
+			// Draw wireframe overlay
+		case GLFW_KEY_B: {
+			static bool disable = true;
+			if (action == GLFW_PRESS) {
+				Settings::getInstance().MESH_DRAW_BBOX = disable;
+				disable = !disable;
+			}
+			break;
+		}
+
+			// Draw mesh or not?
+		case GLFW_KEY_M: {
+			static bool disable = false;
+			if (action == GLFW_PRESS) {
+				Settings::getInstance().MESH_DRAW = disable;
+				disable = !disable;
+			}
+			break;
+		}
+
+			// Show sphere or not
+		case GLFW_KEY_S: {
+			static bool disable = false;
+			if (action == GLFW_PRESS) {
+				Settings::getInstance().ENABLE_SPHERE = disable;
+				disable = !disable;
+			}
+			break;
+		}
+
+			// Show virtual hands or not
+		case GLFW_KEY_H: {
+			static bool disable = false;
+			if (action == GLFW_PRESS) {
+				Settings::getInstance().SHOW_HANDS = disable;
+				disable = !disable;
+			}
+			break;
+		}
+
+			// Enable/disable passthrough
+		case GLFW_KEY_P: {
+			static bool disable = false;
+			if (action == GLFW_PRESS) {
+				Settings::getInstance().LEAP_USE_PASSTHROUGH = disable;
+				disable = !disable;
+			}
+			break;
+		}
+
+			// Place object to defauls
+		case GLFW_KEY_C: {
+			getTranslateMatrix() = Matrix4f::Identity();
+			getScaleMatrix() = Matrix4f::Identity();
+			getTranslateMatrix() = Matrix4f::Identity();
+			break;
+		}
+
+			// Save annotations to a file
+		case GLFW_KEY_A: {
+			if (action == GLFW_PRESS)
+				saveAnnotations();
+
+			break;
+		}
+
+			// Enable/disable leap for 2d use
+		case GLFW_KEY_L: {
+			static bool disable = true;
+			if (action == GLFW_PRESS) {
+				Settings::getInstance().USE_LEAP = disable && leapController.isConnected();
+				disable = !disable;
+			}
+
+			break;
+		}
 	}
 
-	// Renderer cleapup
-	renderer->cleanUp();
+	return Screen::keyboardEvent(key, scancode, action, mods);
+}
+
+void Viewer::framebufferSizeChanged () {
+	Screen::framebufferSizeChanged();
+
+	FBWidth = mFBSize.x();
+	FBHeight = mFBSize.y();
+
+	// Get the window size, not framebuffer size
+	int Wwidth, Wheight;
+	glfwGetWindowSize(viewerGLFWwindow, &Wwidth, &Wheight);
+	glViewport(0, 0, Wwidth, Wheight);
+	getArcball().setSize(Vector2i(Wwidth, Wheight));
+
+	// Propagate
+	width = Wwidth;
+	height = Wheight;
+
+	if (renderer)
+		renderer->updateFBSize(FBWidth, FBHeight);
+}
+
+bool Viewer::mouseButtonEvent (const Vector2i &p, int button, bool down, int modifiers) {
+	if (!Settings::getInstance().USE_RIFT && glfwGetKey(viewerGLFWwindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && down) {
+		// Query viewport
+		GLint viewport[4];
+		glGetIntegerv(GL_VIEWPORT, viewport);
+		Vector2i viewPortSize(viewport[2], viewport[3]);
+
+		// Query cursor position and depth value at this position
+		double x, y; GLfloat z;
+		glfwGetCursorPos(viewerGLFWwindow, &x, &y);
+		glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
+		Vector3f pos(x, viewport[3] - y, z);
+
+		// Unproject scene
+		Matrix4f VM = getRenderer()->getViewMatrix() * getMesh()->getModelMatrix();
+		Vector3f worldPosition = unproject(pos, VM, getRenderer()->getProjectionMatrix(), viewPortSize);
+
+		// Add/Delete an annotation
+		Vector3f n(0.f, 1.f, 0.f);
+		if (!deletePinIfHit(worldPosition))
+			addAnnotation(worldPosition, n);
+
+//		cout << z << endl;
+//		ppv(worldPosition);
+	} else if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		arcball.button(lastPos, down);
+	}
+
+	// Need to send a new packet
+	Settings::getInstance().NETWORK_NEW_DATA = true;
+
+	return Widget::mouseButtonEvent(p, button, down, modifiers);
+}
+
+bool Viewer::mouseMotionEvent (const Vector2i &p, const Vector2i &rel, int button, int modifiers) {
+	lastPos = Vector2i(int(p.x()), int(p.y()));
+	arcball.motion(lastPos);
+
+	// Need to send a new packet
+	if (arcball.active())
+		Settings::getInstance().NETWORK_NEW_DATA = true;
+
+	return Widget::mouseMotionEvent(p, rel, button, modifiers);
+}
+
+bool Viewer::scrollEvent (const Vector2i &p, const Vector2f &rel) {
+	if (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
+		return false;
+
+	float scaleFactor = 0.05f;
+#if defined(PLATFORM_WINDOWS)
+scaleFactor = 0.45f;
+#endif
+
+	if (rel.y() >= 0)
+		scaleMatrix = scale(scaleMatrix, 1.f + scaleFactor);
+	else
+		scaleMatrix = scale(scaleMatrix, 1.f - scaleFactor);
+
+	// Need to send a new packet
+	Settings::getInstance().NETWORK_NEW_DATA = true;
+
+	return Widget::scrollEvent(p, rel);
+}
+
+bool Viewer::mouseDragEvent (const Vector2i &p, const Vector2i &rel, int button, int modifiers) {
+	return Widget::mouseDragEvent(p, rel, button, modifiers);
+}
+
+bool Viewer::mouseEnterEvent (const Vector2i &p, bool enter) {
+	return Widget::mouseEnterEvent(p, enter);
 }
 
 void Viewer::processNetworking () {
@@ -621,12 +747,15 @@ std::shared_ptr<Renderer> &Viewer::getRenderer () {
 }
 
 Viewer::~Viewer () {
+	// Renderer cleanup
+	renderer->cleanUp();
+
 	// Remove leap listeners if any
 	if (Settings::getInstance().LEAP_USE_LISTENER)
 		leapController.removeListener(*leapListener);
 
-	glfwDestroyWindow(viewerGLFWwindow);
-	glfwTerminate();
+//	glfwDestroyWindow(viewerGLFWwindow);
+//	glfwTerminate();
 
 	// Destroy the rift. Needs to be called after glfwTerminate
 	if (hmd) {
