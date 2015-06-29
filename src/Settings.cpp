@@ -40,7 +40,7 @@ Settings::Settings () :
 	// LEAP, 1.f = 1 Unit = 1 millimeter
 	// PASSTHROUGH
 	USE_LEAP					(false),
-	LEAP_USE_PASSTHROUGH		(true),
+	LEAP_USE_PASSTHROUGH		(false),
 	LEAP_NO_HMD_OFFSET			(0.f, 0.20f, 0.f),
 	LEAP_ALPHA_SCALE			(0.7f),
 	LEAP_CAMERA_SHIFT_X			(0.006f),

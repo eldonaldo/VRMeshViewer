@@ -194,6 +194,7 @@ void LeapListener::onDirectFrame(const Frame &frame) {
 			}
 			
 			currentHand->visible = false;
+			currentHand->confidence = 0.f;
 
 			for (auto &g : gestures[handIndex])
 				g.second = GESTURE_STATES::STOP;

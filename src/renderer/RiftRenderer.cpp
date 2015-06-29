@@ -2,55 +2,53 @@
 
 VR_NAMESPACE_BEGIN
 
-RiftRenderer::RiftRenderer (std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
-	: leapShader(nullptr), leapVAO(0), leapV_VBO(0), leapUV_VBO(0), leapF_VBO(0)
-	, PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
+RiftRenderer::RiftRenderer(std::shared_ptr<GLShader> &shader, float fov, float width, float height, float zNear, float zFar)
+: leapShader(nullptr), leapVAO(0), leapV_VBO(0), leapUV_VBO(0), leapF_VBO(0)
+, PerspectiveRenderer(shader, fov, width, height, zNear, zFar) {
 
 	// Leap passthrough shader
-	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
-		leapShader = std::make_shared<GLShader>();
-		leapShader->init(
-			"leap-shader",
+	leapShader = std::make_shared<GLShader>();
+	leapShader->init(
+		"leap-shader",
 
-			// Vertex shader
-			std::string("#version 330") + "\n" +
+		// Vertex shader
+		std::string("#version 330") + "\n" +
 
-			"uniform mat4 mvp;" + "\n" +
+		"uniform mat4 mvp;" + "\n" +
 
-			"in vec3 position;" + "\n" +
-			"in vec2 texCoord;" + "\n" +
+		"in vec3 position;" + "\n" +
+		"in vec2 texCoord;" + "\n" +
 
-			"out vec2 uv;" + "\n" +
+		"out vec2 uv;" + "\n" +
 
-			"void main () {" + "\n" +
-			"	uv = texCoord;" + "\n" +
-			"	gl_Position = mvp * vec4(position, 1.0);" + "\n" +
-			"}" + "\n",
+		"void main () {" + "\n" +
+		"    uv = texCoord;" + "\n" +
+		"    gl_Position = mvp * vec4(position, 1.0);" + "\n" +
+		"}" + "\n",
 
-			// Fragment shader
-			std::string("#version 330") + "\n" +
+		// Fragment shader
+		std::string("#version 330") + "\n" +
 
-			"uniform sampler2D rawTexture;" + "\n" +
-			"uniform sampler2D distortionTexture;" + "\n" +
+		"uniform sampler2D rawTexture;" + "\n" +
+		"uniform sampler2D distortionTexture;" + "\n" +
 
-			"in vec2 uv;" + "\n" +
+		"in vec2 uv;" + "\n" +
 
-			"out vec4 color;" + "\n" +
+		"out vec4 color;" + "\n" +
 
-			"void main () {" + "\n" +
-			"	vec4 index = texture(distortionTexture, uv);" + "\n" +
+		"void main () {" + "\n" +
+		"    vec4 index = texture(distortionTexture, uv);" + "\n" +
 
-			"	// Only use xy within [0, 1]" + "\n" +
-			"	if (index.r > 0.0 && index.r < 1.0 && index.g > 0.0 && index.g < 1.0)" + "\n" +
-			"    	color = vec4(texture(rawTexture, index.rg).rrr, 1);" + "\n" +
-			"	else" + "\n" +
-			"    	color = vec4(0, 0, 0, 1);" + "\n" +
-			"}" + "\n"
-		);
-	}
+		"    // Only use xy within [0, 1]" + "\n" +
+		"    if (index.r > 0.0 && index.r < 1.0 && index.g > 0.0 && index.g < 1.0)" + "\n" +
+		"        color = vec4(texture(rawTexture, index.rg).rrr, 1);" + "\n" +
+		"    else" + "\n" +
+		"        color = vec4(0, 0, 0, 1);" + "\n" +
+		"}" + "\n"
+	);
 }
 
-void RiftRenderer::preProcess () {
+void RiftRenderer::preProcess() {
 	// Upload mesh and set uniforms in shader
 	PerspectiveRenderer::preProcess();
 
@@ -94,158 +92,62 @@ void RiftRenderer::preProcess () {
 
 	// Dismiss warning
 	ovrHmd_DismissHSWDisplay(hmd);
-	
+
 	// Upload leap shader data
-	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
-		if (!leapController.isConnected())
-			throw VRException("Passthrough enabled but Leap not connected");
+	leapShader->bind();
 
-		leapShader->bind();
+	// Leap image textures
+	// Left
+	leapRawTexture[0] = GLFramebuffer::createTexture();
+	leapDistortionTexture[0] = GLFramebuffer::createTexture();
 
-		// Leap image textures
-		// Left
-		std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
-		leapRawTexture[0] = std::get<0>(t0);
+	// Right
+	leapRawTexture[1] = GLFramebuffer::createTexture();
+	leapDistortionTexture[1] = GLFramebuffer::createTexture();
 
-		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
-		leapDistortionTexture[0] = std::get<0>(t1);
-
-		// Right
-		std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
-		leapRawTexture[1] = std::get<0>(t2);
-		
-		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
-		leapDistortionTexture[1] = std::get<0>(t3);
-
-		// Left PBOs
-		leap_PBO[0][0][0] = std::get<1>(t0);
-		leap_PBO[0][0][1] = std::get<1>(t1);
-		leap_PBO[0][1][0] = std::get<2>(t0);
-		leap_PBO[0][1][1] = std::get<2>(t1);
-
-		// Right PBOs
-		leap_PBO[1][0][0] = std::get<1>(t2);
-		leap_PBO[1][0][1] = std::get<1>(t3);
-		leap_PBO[1][1][0] = std::get<2>(t2);
-		leap_PBO[1][1][1] = std::get<2>(t3);
-
-		// Upload geometry
-		uploadBackgroundCube();
-	}
+	// Upload geometry
+	uploadBackgroundCube();
 }
 
-void RiftRenderer::update (Matrix4f &s, Matrix4f &r, Matrix4f &t) {
+void RiftRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Update global state
 	PerspectiveRenderer::update(s, r, t);
-		
-	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
-		if (Settings::getInstance().LEAP_USE_LISTENER && leapController.hasFocus())
-			frame = leapController.frame();
 
-		Leap::Image left = frame.images()[0], right = frame.images()[1];
-			
-		// Indices for PBOs
-		static int index = 1;
-		static int nextIndex = 0;
-		index = (index + 1) % 2;
-		nextIndex = (index + 1) % 2;
+	// Leap passthrough
+	if (Settings::getInstance().LEAP_USE_PASSTHROUGH && leapController.isConnected()) {
+		Leap::Frame frame = leapController.frame();
+		if (frame.isValid()) {
+			Leap::Image left = leapController.images()[0], right = leapController.images()[1];
 
-		// Buffer sizes
-		int bufferSizeRaw = 153600;
-		int bufferSizeDistortion = 32768;
+			if (left.width() > 0) {
+				// Single channel 8bit map = GL_RED
+				glBindTexture(GL_TEXTURE_2D, leapRawTexture[0]);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
 
-		/**
-		* For left and right camera images
-		*
-		* We're using pixel buffer objects to increase performance.
-		* Per texture two PBO are used. On frame n we draw on the n % 2 PBO
-		* and displaz the content of the (n - 1) % 2 PBO. That wat we create from
-		* the synchronous glTexImage/glTexSubImage a pipelined ansync mode.
-		*/
-		for (int i = 0; i < 2; i++) {
-			Leap::Image &currentImage = left;
-			if (i == 1)
-				currentImage = right;
-
-			// =======================
-			// DRAW RAW TEXTURE
-			// =======================
-
-			// Bind the texture and PBO
-			glBindTexture(GL_TEXTURE_2D, leapRawTexture[i]);
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][index][0]);
-
-			// Copy pixels from PBO to texture object. Use offset instead of ponter.
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, rawWidth, rawHeight, GL_RED, GL_UNSIGNED_BYTE, 0);
-
-			// =======================
-			// UPDATE RAW TEXTURE
-			// =======================
-
-			// Bind PBO to update texture source
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][0]);
-
-			// Note that glMapBufferARB() causes sync issue.
-			// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
-			// until GPU to finish its job. To avoid waiting (idle), you can call
-			// first glBufferDataARB() with NULL pointer before glMapBufferARB().
-			// If you do that, the previous data in PBO will be discarded and
-			// glMapBufferARB() returns a new allocated pointer immediately
-			// even if GPU is still working with the previous data.
-			glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeRaw, 0, GL_STREAM_DRAW);
-
-			// Map the buffer object into client's memory
-			GLubyte* ptr1 = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-			if (ptr1) {
-				memcpy(ptr1, currentImage.data(), bufferSizeRaw); // Update data directly on the mapped buffer
-				glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
+				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
+				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[0]);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, left.distortion());
 			}
-			// =======================
-			// DRAW DISTORTION TEXTURE
-			// =======================
 
-			// Bbind the texture and PBO
-			glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[i]);
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][index][1]);
+			if (right.width() > 0) {
+				// Single channel 8bit map = GL_RED
+				glBindTexture(GL_TEXTURE_2D, leapRawTexture[1]);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, right.data());
 
-			// Copy pixels from PBO to texture object. Use offset instead of ponter.
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, distWidth, distHeight, GL_RG, GL_FLOAT, 0);
-
-			// =======================
-			// UPDATE DISTORTION TEXTURE
-			// =======================
-
-			// Bind PBO to update texture source
-			glBindBuffer(GL_PIXEL_UNPACK_BUFFER, leap_PBO[i][nextIndex][1]);
-
-			// Note that glMapBufferARB() causes sync issue.
-			// If GPU is working with this buffer, glMapBufferARB() will wait(stall)
-			// until GPU to finish its job. To avoid waiting (idle), you can call
-			// first glBufferDataARB() with NULL pointer before glMapBufferARB().
-			// If you do that, the previous data in PBO will be discarded and
-			// glMapBufferARB() returns a new allocated pointer immediately
-			// even if GPU is still working with the previous data.
-			glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSizeDistortion, 0, GL_STREAM_DRAW);
-
-			// Map the buffer object into client's memory
-			GLfloat* ptr2 = (GLfloat*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-			if (ptr2) {
-				memcpy(ptr2, currentImage.distortion(), bufferSizeDistortion); // Ipdate data directly on the mapped buffer
-				glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // Release the mapped buffer
+				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
+				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[1]);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, right.distortion());
 			}
 		}
-
-		// Release PBO buffer
-		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}
 }
 
-void RiftRenderer::clear (Vector3f background) {
+void RiftRenderer::clear(Vector3f background) {
 	frameBuffer[0].clear();
 	frameBuffer[1].clear();
 }
 
-void RiftRenderer::draw () {
+void RiftRenderer::draw() {
 	// Heads yaw angle
 	static float yaw = 0.f;
 
@@ -288,7 +190,8 @@ void RiftRenderer::draw () {
 		setViewMatrix(v);
 
 		// Leap passthrough
-			
+		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
+
 			// Offset for the corresponding leap cameras
 			float mid = 0.5f;
 			float x = (eye == ovrEyeType::ovrEye_Right ? -1.f : +1.f) * Settings::getInstance().LEAP_CAMERA_SHIFT_X;
@@ -300,7 +203,6 @@ void RiftRenderer::draw () {
 			Matrix4f vl = Eigen::Map<Matrix4f>((float *)viewLeapCam.Transposed().M);
 			setViewMatrixLeap(vl);
 
-		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 			// Draw Leap distorted image
 			leapShader->bind();
 			leapShader->setUniform("mvp", getProjectionMatrix());
@@ -335,7 +237,7 @@ void RiftRenderer::uploadBackgroundCube() {
 	UV.col(1) = Vector2f(1.f, 0.f);
 	UV.col(2) = Vector2f(1.f, 1.f);
 	UV.col(3) = Vector2f(0.f, 1.f);
-	
+
 	// Indices
 	MatrixXu F(3, 2);
 	F.col(0) = Vector3ui(0, 1, 2);
@@ -387,12 +289,12 @@ void RiftRenderer::drawOnCube(ovrEyeType eye) {
 	glBindTexture(GL_TEXTURE_2D, leapRawTexture[i]);
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[i]);
-	
+
 	glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, NULL);
 	glBindVertexArray(0);
 }
 
-void RiftRenderer::cleanUp () {
+void RiftRenderer::cleanUp() {
 	PerspectiveRenderer::cleanUp();
 
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {

@@ -50,8 +50,8 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		//window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	}
@@ -84,7 +84,6 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	if (!Settings::getInstance().USE_RIFT)
@@ -182,7 +181,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 			// Enable/disable passthrough
 			case GLFW_KEY_P: {
-				static bool disable = false;
+				static bool disable = true;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().LEAP_USE_PASSTHROUGH = disable;
 					disable = !disable;
@@ -328,6 +327,8 @@ void Viewer::calcAndAppendFPS () {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
 
+		cout << fps << endl;
+
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
 		glfwSetWindowTitle(window, newTitle.c_str());
@@ -468,7 +469,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		renderer->draw();
 
 		// Calc fps
-		if (!Settings::getInstance().USE_RIFT && appFPS)
+		if (appFPS)
 			calcAndAppendFPS();
 		
 		// Add annotation

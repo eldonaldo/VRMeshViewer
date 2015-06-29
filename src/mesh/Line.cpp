@@ -14,7 +14,6 @@ Line::Line(Vector3f a, Vector3f b) : Mesh() {
 }
 
 void Line::update(Vector3f &a, Vector3f &b) {
-	m_V.resize(3, 2);
 	m_V.col(0) = a;
 	m_V.col(1) = b;
 }

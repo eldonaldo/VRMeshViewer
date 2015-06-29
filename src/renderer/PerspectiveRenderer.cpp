@@ -68,13 +68,16 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 void PerspectiveRenderer::draw() {
 	shader->bind();
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 	shader->setUniform("alpha", 1.f);
 	
 	// Draw the mesh
 	if (Settings::getInstance().MESH_DRAW)
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
-	shader->setUniform("alpha", 1.f);
 
 	// Draw annotations
 	if (pinList != nullptr && !pinList->empty())
@@ -88,6 +91,7 @@ void PerspectiveRenderer::draw() {
 	 */
 	// Bounding box
 	if (Settings::getInstance().MESH_DRAW_BBOX) {
+		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(1.f, 0.f, 0.f));
@@ -101,10 +105,12 @@ void PerspectiveRenderer::draw() {
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
 	}
 
 	// Bounding sphere
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_SPHERE && Settings::getInstance().ENABLE_SPHERE) {
+		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(0.3f, 0.3f, 0.3f));
@@ -114,6 +120,7 @@ void PerspectiveRenderer::draw() {
 
 		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
 	}
 
 	// Draw wireframe overlay
@@ -132,17 +139,25 @@ void PerspectiveRenderer::draw() {
 	// Draw hands
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_HANDS) {
 		shader->setUniform("materialColor", Vector3f(0.8f, 0.8f, 0.8f));
-		shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		if (Settings::getInstance().USE_RIFT)
-			leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
-		else
-			leftHand->draw(getViewMatrix(), getProjectionMatrix());
+		glDisable(GL_CULL_FACE);
 
-		shader->setUniform("alpha", rightHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
-		if (Settings::getInstance().USE_RIFT)
-			rightHand->draw(getLeapViewMatrix(), getProjectionMatrix());
-		else
-			rightHand->draw(getViewMatrix(), getProjectionMatrix());
+		if (leftHand->visible) {
+			shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
+			if (Settings::getInstance().USE_RIFT && Settings::getInstance().LEAP_USE_PASSTHROUGH)
+				leftHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+			else
+				leftHand->draw(getViewMatrix(), getProjectionMatrix());
+		}
+
+		if (rightHand->visible) {
+			shader->setUniform("alpha", rightHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
+			if (Settings::getInstance().USE_RIFT && Settings::getInstance().LEAP_USE_PASSTHROUGH)
+				rightHand->draw(getLeapViewMatrix(), getProjectionMatrix());
+			else
+				rightHand->draw(getViewMatrix(), getProjectionMatrix());
+		}
+
+		glEnable(GL_CULL_FACE);
 	}
 }
 
