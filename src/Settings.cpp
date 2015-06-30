@@ -24,6 +24,7 @@ Settings::Settings () :
 
 	// MATERIAL
 	MATERIAL_COLOR				(0.8f, 0.8f, 0.8f),
+	MATERIAL_COLOR_ROTATION		(0.8f, 0.8f, 0.8f),
 
 	// LIGHTNING
 	LIGHT_INTENSITY				(1.f, 1.f, 1.f),
@@ -61,7 +62,13 @@ Settings::Settings () :
 	NETWORK_IP					("127.0.0.1"),
 	NETWORK_SEND_RATE			(50),
 	NETWORK_BUFFER_SIZE			(8192),
-	NETWORK_NEW_DATA			(false)
+	NETWORK_NEW_DATA			(false),
+
+	// ROTATION SPHERE SCALES
+	SPHERE_VISUAL_SCALE			(0.5f),
+	SPHERE_SMALL_SCALE			(0.38f),
+	SPHERE_MEDIUM_SCALE			(0.7f),
+	SPHERE_LARGE_SCALE			(1.1f)
 {}
 
 VR_NAMESPACE_END

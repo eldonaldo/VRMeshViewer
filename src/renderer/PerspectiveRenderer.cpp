@@ -20,6 +20,8 @@ void PerspectiveRenderer::preProcess () {
 	shader->bind();
 	mesh->upload(shader);
 	sphere.upload(shader);
+	sphere1.upload(shader);
+	sphere0.upload(shader);
 
 	// Upload hands
 	if (Settings::getInstance().SHOW_HANDS) {
@@ -52,11 +54,26 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Bounding sphere
 	if (Settings::getInstance().SHOW_SPHERE) {
 		sphereCenter = mesh->getBoundingBox().getCenter();
-		sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+		sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_VISUAL_SCALE;
 
 		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
 		sphere.scale(Matrix4f::Identity(), sphereRadius, sphereRadius, sphereRadius);
 		sphere.setRotationMatrix(r);
+
+
+
+
+		sphereRadius1 = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_LARGE_SCALE;
+
+		sphere1.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
+		sphere1.scale(Matrix4f::Identity(), sphereRadius1, sphereRadius1, sphereRadius1);
+		sphere1.setRotationMatrix(r);
+
+		sphereRadius0 = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_SMALL_SCALE;
+
+		sphere0.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
+		sphere0.scale(Matrix4f::Identity(), sphereRadius0, sphereRadius0, sphereRadius0);
+		sphere0.setRotationMatrix(r);
 	}
 
 	// Create virtual point light
@@ -69,6 +86,7 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 void PerspectiveRenderer::draw() {
 	shader->bind();
 
+	// OpengGL Settings
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
@@ -114,9 +132,23 @@ void PerspectiveRenderer::draw() {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(0.3f, 0.3f, 0.3f));
+		
 		shader->setUniform("alpha", 0.3f);
 
 		sphere.draw(getViewMatrix(), getProjectionMatrix());
+		
+
+
+
+		//shader->setUniform("alpha", 0.3f);
+		//shader->setUniform("materialColor", Vector3f(0.4f, 0.4f, 0.4f));
+		//
+		//sphere1.draw(getViewMatrix(), getProjectionMatrix());
+
+		/*shader->setUniform("alpha", 0.3f);
+		shader->setUniform("materialColor", Vector3f(0.6f, 0.f, 0.f));
+
+		sphere0.draw(getViewMatrix(), getProjectionMatrix());*/
 
 		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

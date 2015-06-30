@@ -80,16 +80,27 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::START: {
 			Settings::getInstance().SHOW_SPHERE = true;
 			center = mesh->getBoundingBox().getCenter();
-			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_SMALL_SCALE;
 			lastPos = projectOnSphere(midPoint, center, radius);
 			incr = Quaternionf::Identity();
 			break;
 		}
 
 		case GESTURE_STATES::UPDATE: {
+			center = mesh->getBoundingBox().getCenter();
+			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_SMALL_SCALE;
+			float r = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_VISUAL_SCALE;
+
+			// Calculate distance to displayed sphere for visual assistance
+			Vector3f spherePoint = projectOnSphere(midPoint, center, r);
+			float distance = (spherePoint - midPoint).norm();
+			distance /= (Settings::getInstance().SPHERE_MEDIUM_SCALE - Settings::getInstance().SPHERE_SMALL_SCALE) * 0.5f;
+			Settings::getInstance().MATERIAL_COLOR_ROTATION = Vector3f(distance, 1.f - distance, 0.f);
+
+
 			// Project points on sphere around bbox center
 			midPoint = projectOnSphere(midPoint, center, radius);
-			
+
 			// Rotation axis and angle
 			Vector3f axis = lastPos.cross(midPoint);
 			float sa = std::sqrt(axis.dot(axis));
@@ -114,6 +125,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
+			Settings::getInstance().MATERIAL_COLOR_ROTATION = Settings::getInstance().MATERIAL_COLOR;
 			Settings::getInstance().SHOW_SPHERE = false;
 			lastPos = projectOnSphere(midPoint, center, radius);
 			quat = (incr * quat).normalized();
@@ -127,6 +139,7 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 	auto &right = hands[0], &left = hands[1];
 	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
 	float distance = (right->palm.position - left->palm.position).norm();
+	float dotProdThreshold = -0.45f;
 
 	Vector3f midRight = (right->palm.position + right->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
@@ -135,7 +148,7 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 	switch (state) {
 		case GESTURE_STATES::UPDATE: {
 			// Only if distance is bigger than 2 cm in change and hands point together (dot product)
-			if (dotProd <= -0.6f && fabs(distance - lastDistance) >= 0.01f) {
+			if (dotProd <= dotProdThreshold && fabs(distance - lastDistance) >= 0.01f) {
 				// We want that the bounding box fits our hands when scaling
 				BoundingBox3f bbox = mesh->getBoundingBox();
 				float diag = (bbox.max - bbox.min).norm();
@@ -144,9 +157,12 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 				// Compute scaling matrix
 				viewer->getScaleMatrix() = VR_NS::scale(viewer->getScaleMatrix(), factor);
 				lastDistance = distance;
+
+				// Need to send a new packet
+				Settings::getInstance().NETWORK_NEW_DATA = true;
 			}
 			
-			if (dotProd <= -0.6f) {
+			if (dotProd <= dotProdThreshold) {
 				viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), handSphereCenter);
 				
 				// Need to send a new packet
@@ -185,7 +201,7 @@ void GestureHandler::grab(GESTURE_STATES state, HANDS hand, std::shared_ptr<Skel
 	}
 }
 
-Vector3f GestureHandler::projectOnSphere(Vector3f &v, Vector3f &sphereCenter, float sphereRadius) {
+Vector3f GestureHandler::projectOnSphere(const Vector3f &v, const Vector3f &sphereCenter, float sphereRadius) {
 	Vector3f r = v - sphereCenter;
 	Vector3f projectedR = (sphereRadius / r.norm()) * r;
 	return projectedR;

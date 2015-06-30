@@ -56,6 +56,7 @@ public:
 	Eigen::Vector3f CAMERA_HEADS_UP;
 
 	Eigen::Vector3f MATERIAL_COLOR;
+	Eigen::Vector3f MATERIAL_COLOR_ROTATION;
 	Eigen::Vector3f LIGHT_INTENSITY;
 
 	bool MESH_DRAW;
@@ -87,6 +88,11 @@ public:
 	long NETWORK_SEND_RATE;
 	int NETWORK_BUFFER_SIZE;
 	bool NETWORK_NEW_DATA;
+
+	float SPHERE_VISUAL_SCALE;
+	float SPHERE_SMALL_SCALE;
+	float SPHERE_MEDIUM_SCALE;
+	float SPHERE_LARGE_SCALE;
 };
 
 VR_NAMESPACE_END

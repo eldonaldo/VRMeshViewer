@@ -27,7 +27,7 @@ public:
 	virtual void onDisconnect (const Leap::Controller &controller);
 	virtual void onExit(const Leap::Controller &controller);
 	virtual void onFrame (const Leap::Controller &controller);
-	virtual void onDirectFrame(const Leap::Frame &frame);
+	virtual Leap::Frame pollFrame (const Leap::Controller &controller);
 	virtual void onServiceConnect (const Leap::Controller &controller);
 	virtual void onServiceDisconnect (const Leap::Controller &controller);
 	virtual void onDeviceChange (const Leap::Controller &controller);
@@ -69,6 +69,10 @@ protected:
 	 */
 	GESTURE_STATES leapToInternState (Leap::Gesture::State &s);
 
+	void stopRotationGesture(int hand = -1);
+	void stopZoomGesture();
+	void stopPinchGensture(int hand = -1);
+
 protected:
 
 	bool riftMounted; ///< Leap on HMD?
@@ -81,6 +85,7 @@ protected:
 	ovrHmd hmd; ///< The Rift
 	std::shared_ptr<Mesh> mesh;
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
+	Leap::Frame lastValidFrame; ///< Last valid Leap Frame
 };
 
 VR_NAMESPACE_END

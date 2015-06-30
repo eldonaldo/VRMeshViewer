@@ -115,29 +115,27 @@ void RiftRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 	// Leap passthrough
 	if (Settings::getInstance().LEAP_USE_PASSTHROUGH && leapController.isConnected()) {
-		Leap::Frame frame = leapController.frame();
+		if (Settings::getInstance().LEAP_USE_LISTENER)
+			frame = leapController.frame();
+		
 		if (frame.isValid()) {
-			Leap::Image left = leapController.images()[0], right = leapController.images()[1];
+			Leap::Image left = frame.images()[0], right = frame.images()[1];
 
-			if (left.width() > 0) {
-				// Single channel 8bit map = GL_RED
-				glBindTexture(GL_TEXTURE_2D, leapRawTexture[0]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
+			// Single channel 8bit map = GL_RED
+			glBindTexture(GL_TEXTURE_2D, leapRawTexture[0]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
 
-				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
-				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[0]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, left.distortion());
-			}
+			// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
+			glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[0]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, left.distortion());
 
-			if (right.width() > 0) {
-				// Single channel 8bit map = GL_RED
-				glBindTexture(GL_TEXTURE_2D, leapRawTexture[1]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, right.data());
+			// Single channel 8bit map = GL_RED
+			glBindTexture(GL_TEXTURE_2D, leapRawTexture[1]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, right.data());
 
-				// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
-				glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[1]);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, right.distortion());
-			}
+			// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
+			glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[1]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, right.distortion());
 		}
 	}
 }
@@ -155,7 +153,6 @@ void RiftRenderer::draw() {
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
 
 	// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
-	//cameraPosition.y() = ovrHmd_GetFloat(hmd, OVR_KEY_EYE_HEIGHT, cameraPosition.y());
 	OVR::Vector3f camPosition(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
 	// Get eye poses, feeding in correct IPD offset
@@ -210,7 +207,6 @@ void RiftRenderer::draw() {
 		}
 
 		// Draw the mesh for each eye
-		shader->bind();
 		PerspectiveRenderer::draw();
 	}
 

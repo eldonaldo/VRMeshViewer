@@ -44,8 +44,6 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	if (!Settings::getInstance().USE_RIFT)
-		glfwWindowHint(GLFW_SAMPLES, 4);
 
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
@@ -86,8 +84,6 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	if (!Settings::getInstance().USE_RIFT)
-		glEnable(GL_MULTISAMPLE);
 
 #if defined(PLATFORM_APPLE)
     /* Poll for events once before starting a potentially
@@ -327,7 +323,7 @@ void Viewer::calcAndAppendFPS () {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
 
-		cout << fps << endl;
+		//cout << fps << endl;
 
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
@@ -444,9 +440,8 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 
 		// Get a new leap frame if no listener is used
 		if (!Settings::getInstance().LEAP_USE_LISTENER) {
-			frame = leapController.frame();
+			frame = leapListener->pollFrame(leapController);
 			renderer->setFrame(frame);
-			leapListener->onDirectFrame(frame);
 		}
 
 		// Update arcball

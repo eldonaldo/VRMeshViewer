@@ -30,7 +30,7 @@ public:
 	 */
 	Renderer (std::shared_ptr<GLShader> &s)
 		: shader(s), FBWidth(0), FBHeight(0), window(nullptr), viewMatrix(Matrix4f::Identity())
-		, projectionMatrix(Matrix4f::Identity()), hmd(nullptr), showHands(true), sphereRadius(0.f), sphere(1.f, 24, 24) {
+		, projectionMatrix(Matrix4f::Identity()), hmd(nullptr), showHands(true), sphereRadius(0.f), sphere(1.f, 24, 24), sphereRadius1(0.f), sphere1(1.f, 24, 24) {
 
 	};
 
@@ -221,8 +221,12 @@ protected:
 	bool showHands; ///< Display leap hands
 	Leap::Controller leapController; ///< Leap controller
 	Sphere sphere; ///< Bounding hand sphere
+	Sphere sphere1; ///< Bounding hand sphere
+	Sphere sphere0; ///< Bounding hand sphere
 	Vector3f sphereCenter; ///< Sphere center
 	float sphereRadius; ///< Sphere radius
+	float sphereRadius1; ///< Sphere radius
+	float sphereRadius0; ///< Sphere radius
 	Leap::Frame frame; ///< Leap motion frame
 	std::vector<std::shared_ptr<Pin>> *pinList = nullptr; ///< List of pins
 

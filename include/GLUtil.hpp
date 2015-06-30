@@ -250,6 +250,40 @@ public:
 		return textureID;
 	}
 
+	static std::tuple<GLuint, GLuint, GLuint> createPBOTexture(int width, int height, int size, int channels, bool useBytes = true) {
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		if (useBytes)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, 0);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, width, height, 0, GL_RG, GL_FLOAT, 0);
+
+		// Use two pixel buffer objects to increase performance because of asynchronous DMA transfer
+		// Oe to write and one to read (and vice versa)
+		GLuint pbo1, pbo2;
+		unsigned int bufferSize = width * height* channels * size;
+
+		// PBO 1
+		glGenBuffers(1, &pbo1);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo1);
+		glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSize, 0, GL_STREAM_DRAW);
+
+		// PBO 2
+		glGenBuffers(1, &pbo2);
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo2);
+		glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSize, 0, GL_STREAM_DRAW);
+
+		// Reset state
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		return std::make_tuple(textureID, pbo1, pbo2);
+	}
+
 public:
 
     Vector2i mSize;

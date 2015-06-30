@@ -54,13 +54,16 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	//mesh.palm.draw(viewMatrix, projectionMatrix);
 	mesh.handJoint.draw(viewMatrix, projectionMatrix);
 
+	Vector3f color = Settings::getInstance().MATERIAL_COLOR;
+	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR_ROTATION);
 	for (int i = 0; i < 5; i++)
 		mesh.finger[i].draw(viewMatrix, projectionMatrix);
+	shader->setUniform("materialColor", color);
+
 
 	for (int i = 0; i < 5; i++)
 		for (int j = 0; j < mesh.nrOfJoints; j++)
 			mesh.joints[i][j].draw(viewMatrix, projectionMatrix);
-
 	/**
 	 * This not efficient at all to do it that way - but since a line consists
 	 * only of two points its feasible.
