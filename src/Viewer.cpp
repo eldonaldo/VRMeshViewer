@@ -231,13 +231,30 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 			// Unproject scene
 			Matrix4f VM = __cbref->getRenderer()->getViewMatrix() * __cbref->getMesh()->getModelMatrix();
-			Vector3f worldPosition = unproject(pos, VM, __cbref->getRenderer()->getProjectionMatrix(), viewPortSize);
+			Vector3f unprojectedPos = unproject(pos, VM, __cbref->getRenderer()->getProjectionMatrix(), viewPortSize);
+			Vector3f worldPos = (__cbref->getMesh()->getModelMatrix() * Vector4f(unprojectedPos.x(), unprojectedPos.y(), unprojectedPos.z(), 1.f)).head(3);
 
 			// Add/Delete an annotation
 			Vector3f n(0.f, 1.f, 0.f);
-			if (!__cbref->deletePinIfHit(worldPosition))
-				__cbref->addAnnotation(worldPosition, n);
+			if (!__cbref->deletePinIfHit(worldPos)) {
+				KDTree kdtree = __cbref->getMesh()->getKDTree();
 
+				// Perform search
+				std::vector<uint32_t> results;
+				kdtree.search(unprojectedPos, Settings::getInstance().ANNOTATION_SEACH_RADIUS, results);
+
+				// If there is a hit upload a pin
+				if (!results.empty()) {
+
+					// We take the first hit
+					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[results[0]];
+
+					// Notify the viewer
+					__cbref->uploadAnnotation = true;
+					__cbref->annotationTarget = kdtreeNode.getPosition();
+					__cbref->annotationNormal = kdtreeNode.getData();
+				}
+			}
 		} else if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			__cbref->arcball.button(__cbref->lastPos, action == GLFW_PRESS);
 		}

@@ -13,7 +13,6 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 	auto &h = hands[hand];
 	static bool found = false;
 	Vector3f avgPinchPos = (hands[hand]->finger[Finger::Type::TYPE_INDEX].position + hands[hand]->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
-	auto &annotations = viewer->getAnnotations();
 
 	switch (state) {
 		case GESTURE_STATES::START: {
