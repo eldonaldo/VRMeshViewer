@@ -65,7 +65,12 @@ public:
 	void addAnnotation(const Vector3f &pos, const Vector3f &n, const Vector3f &c);
 
 	/**
-	* @brief Saves the annotations to a file
+	* @brief Saves the annotations to specified file
+	*/
+	void saveAnnotations(const std::string &path);
+
+	/**
+	* @brief Saves the annotations to a generated file
 	*/
 	void saveAnnotations();
 
@@ -211,7 +216,7 @@ protected:
 	/**
 	* @brief Loads annotations from a file. Called issued by method loadAnnotations()
 	*/
-	void loadAnnotationsOnLoop();
+	void loadAnnotationsDelayed ();
 
 	/**
 	* @brief Loads annotations from a string

@@ -65,17 +65,19 @@ void Viewer::initGUI () {
 	tools->setLayout(new BoxLayout(BoxLayout::Horizontal, BoxLayout::Middle, 0, 6));
 	Button *b = new Button(tools, "Load");
 	b->setCallback([&] {
-		// Save a pointer to the old mesh to delete it later
-		std::shared_ptr<Mesh> oldMesh = mesh;
-
-		// Load the new mesh
 		std::string path = file_dialog({{"obj", "Wavefront OBJ"}, {"txt", "Text file"}}, false);
-		std::shared_ptr<Mesh> model = std::make_shared<WavefrontOBJ>(path);
-		upload(model);
+		if (!path.empty()) {
+			// Save a pointer to the old mesh to delete it later
+			std::shared_ptr<Mesh> oldMesh = mesh;
 
-		// Delete the old mesh from the GPU
-		if (oldMesh)
-			oldMesh->releaseBuffers();
+			// Load the new mesh
+			std::shared_ptr<Mesh> model = std::make_shared<WavefrontOBJ>(path);
+			upload(model);
+
+			// Delete the old mesh from the GPU
+			if (oldMesh)
+				oldMesh->releaseBuffers();
+		}
 	});
 
 	CheckBox *cb = new CheckBox(window, "Use Oculus Rift", [] (bool state) {
@@ -88,7 +90,7 @@ void Viewer::initGUI () {
 
 	// Annotations window
 	window = new Window(this, "Annotations");
-	window->setPosition(Vector2i(15, 160));
+	window->setPosition(Vector2i(15, 220));
 	window->setLayout(new GroupLayout());
 
 	// Annotations
@@ -96,18 +98,31 @@ void Viewer::initGUI () {
 	tools->setLayout(new BoxLayout(BoxLayout::Horizontal, BoxLayout::Middle, 0, 6));
 	b = new Button(tools, "Load");
 	b->setCallback([&] {
-		cout << file_dialog({{"txt", "Text file"} }, false) << endl;
-
+		std::string annotations = file_dialog({{"txt", "Text file"} }, false);
+		if (!annotations.empty()) {
+			loadAnnotations(annotations);
+			loadAnnotationsDelayed();
+		}
 	});
 
 	b = new Button(tools, "Save");
 	b->setCallback([&] {
-		cout << "File dialog result: " << file_dialog({{"txt", "Text file"} }, true) << endl;
+		std::string path = file_dialog({{"txt", "Text file"} }, true);
+		if (!path.empty())
+			saveAnnotations();
+	});
+
+	b = new Button(window, "Clear All");
+	b->setCallback([&] {
+		for (auto &p : pinList)
+			p->releaseBuffers();
+
+		pinList.clear();
 	});
 
 	// Networking window
 	window = new Window(this, "Networking");
-	window->setPosition(Vector2i(15, 280));
+	window->setPosition(Vector2i(15, 360));
 	window->setLayout(new GroupLayout());
 
 	// Networking
@@ -691,6 +706,10 @@ std::vector<Pin> Viewer::getAnnotationsFromString(std::string &s) {
 }
 
 void Viewer::loadAnnotationsFromString(std::string &s) {
+	for (auto &p : pinList)
+		p->releaseBuffers();
+	pinList.clear();
+
 	std::vector<Pin> list = getAnnotationsFromString(s);
 	for (auto &p : list)
 		addAnnotation(p.getPosition(), p.getNormal(), p.getColor());
@@ -726,7 +745,7 @@ void Viewer::addAnnotation(const Vector3f &pos, const Vector3f &n, const Vector3
 	}
 }
 
-void Viewer::loadAnnotationsOnLoop() {
+void Viewer::loadAnnotationsDelayed () {
 	if (!fileExists(annotationsLoadPath))
 		throw VRException("File \"%s\" does not exists!", annotationsLoadPath);
 
@@ -740,28 +759,30 @@ void Viewer::loadAnnotationsOnLoop() {
 	loadAnnotationsFromString(annotations);
 }
 
+void Viewer::saveAnnotations (const std::string &path) {
+	std::ofstream file;
+	file.open(path);
+	file << serializeAnnotations(pinList);
+	file.close();
+
+	cout << "Saved to: " << path << endl;
+}
+
 void Viewer::saveAnnotations () {
-	if (!pinList.empty()) {
-		std::ofstream file;
-		std::size_t pos = mesh->getName().find_last_of("/\\");
-		std::string path = mesh->getName().substr(0, pos);
-		std::string filename = mesh->getName().substr(pos + 1);
-		std::size_t pos1 = filename.find_last_of('.');
-		filename = filename.substr(0, pos1) + "-annotations";
+	std::size_t pos = mesh->getName().find_last_of("/\\");
+	std::string path = mesh->getName().substr(0, pos);
+	std::string filename = mesh->getName().substr(pos + 1);
+	std::size_t pos1 = filename.find_last_of('.');
+	filename = filename.substr(0, pos1) + "-annotations";
 
-		int i = 1;
-		std::string savePath = path + "/" + filename + "-" + toString(i) + ".txt";
-		while (fileExists(savePath)) {
-			i++;
-			savePath = path + "/" + filename + "-" + toString(i) + ".txt";
-		}
-
-		file.open(savePath);
-		file << serializeAnnotations(pinList);
-		file.close();
-
-		cout << "Saved to: " << savePath << endl;
+	int i = 1;
+	std::string savePath = path + "/" + filename + "-" + toString(i) + ".txt";
+	while (fileExists(savePath)) {
+		i++;
+		savePath = path + "/" + filename + "-" + toString(i) + ".txt";
 	}
+
+	saveAnnotations(savePath);
 }
 
 void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
