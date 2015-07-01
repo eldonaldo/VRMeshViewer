@@ -19,6 +19,9 @@
 #include "nanogui/button.h"
 #include "nanogui/checkbox.h"
 #include "nanogui/textbox.h"
+#include "nanogui/combobox.h"
+#include "nanogui/messagedialog.h"
+#include "nanogui/colorwheel.h"
 
 VR_NAMESPACE_BEGIN
 

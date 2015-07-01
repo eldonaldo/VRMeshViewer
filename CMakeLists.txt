@@ -103,6 +103,7 @@ include_directories(
 	ext/leap/util
 	ext/asio/asio/include
 	ext/nanogui/include
+	ext/nanogui/ext/nanovg/src
 	include
 	${CMAKE_BINARY_DIR}
 )

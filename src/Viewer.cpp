@@ -93,15 +93,20 @@ void Viewer::initGUI () {
 	window->setPosition(Vector2i(15, 220));
 	window->setLayout(new GroupLayout());
 
+
 	// Annotations
 	tools = new Widget(window);
 	tools->setLayout(new BoxLayout(BoxLayout::Horizontal, BoxLayout::Middle, 0, 6));
 	b = new Button(tools, "Load");
 	b->setCallback([&] {
-		std::string annotations = file_dialog({{"txt", "Text file"} }, false);
-		if (!annotations.empty()) {
-			loadAnnotations(annotations);
-			loadAnnotationsDelayed();
+		if (mesh) {
+			std::string annotations = file_dialog({{"txt", "Text file"} }, false);
+			if (!annotations.empty()) {
+				loadAnnotations(annotations);
+				loadAnnotationsDelayed();
+			}
+		} else {
+			auto dlg = new MessageDialog(this, MessageDialog::Warning, "Error", "Please load a model");
 		}
 	});
 
@@ -120,9 +125,11 @@ void Viewer::initGUI () {
 		pinList.clear();
 	});
 
+	cb = new CheckBox(window, "Hide Annotations", [] (bool state) { Settings::getInstance().ANNOTATIONS_DRAW = !state; });
+
 	// Networking window
 	window = new Window(this, "Networking");
-	window->setPosition(Vector2i(15, 360));
+	window->setPosition(Vector2i(15, 375));
 	window->setLayout(new GroupLayout());
 
 	// Networking
@@ -134,11 +141,24 @@ void Viewer::initGUI () {
 	textBox->setFixedSize(Vector2i(115, 25));
 	textBox->setValue("Port");
 
-	b = new Button(window, "Start");
-	b->setCallback([] { cout << "pushed!" << endl; });
+	new ComboBox(window, {"Visitor", "Presenter"});
 
-	b = new Button(window, "Listen");
-	b->setCallback([] { cout << "pushed!" << endl; });
+	Button *tb = new Button(window, "Start");
+	tb->setButtonFlags(Button::ToggleButton);
+	tb->setChangeCallback([&] (bool state) {
+
+	});
+
+//	// Misc
+//	window = new Window(this, "Miscellaneous");
+//	window->setPosition(Vector2i(15, 575));
+//	window->setLayout(new GroupLayout());
+//
+//	// Material
+//	ColorWheel *cw = new ColorWheel(window);
+//	cw->setCallback([] (const Vector3f &color) {
+//		Settings::getInstance().MATERIAL_COLOR = color;
+//	});
 }
 
 void Viewer::calcAndAppendFPS () {
@@ -213,10 +233,9 @@ void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
 }
 
 void Viewer::upload(std::shared_ptr<Mesh> &m) {
-	mesh = m;
-
 	// not ready to display opengl content
 	ready = false;
+	mesh = m;
 
 	// Reconfigure settings if the target is the Rift
 	if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
@@ -254,6 +273,12 @@ void Viewer::upload(std::shared_ptr<Mesh> &m) {
 
 	// Print some info
 	std::cout << info() << std::endl;
+
+	// Reset model state
+	translateMatrix.setIdentity();
+	scaleMatrix.setIdentity();
+	rotationMatrix.setIdentity();
+	arcball.setState(Quaternionf::Identity());
 
 	// ready to display opengl content
 	ready = true;

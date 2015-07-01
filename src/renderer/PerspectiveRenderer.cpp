@@ -86,7 +86,7 @@ void PerspectiveRenderer::draw() {
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 
 	// Draw annotations
-	if (pinList != nullptr && !pinList->empty())
+	if (Settings::getInstance().ANNOTATIONS_DRAW && pinList != nullptr && !pinList->empty())
 		for (auto &p : *pinList)
 			p->draw(getViewMatrix(), getProjectionMatrix());
 
