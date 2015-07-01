@@ -225,8 +225,9 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			// Query cursor position and depth value at this position
 			double x, y; GLfloat z;
 			glfwGetCursorPos(window, &x, &y);
-			glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
-			Vector3f pos(x, viewport[3] - y, z);
+			double invertedY = viewport[3] - y;
+			glReadPixels(x, invertedY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
+			Vector3f pos(x, invertedY, z);
 
 			// Unproject scene
 			Matrix4f VM = __cbref->getRenderer()->getViewMatrix() * __cbref->getMesh()->getModelMatrix();
@@ -237,8 +238,6 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			if (!__cbref->deletePinIfHit(worldPosition))
 				__cbref->addAnnotation(worldPosition, n);
 
-//			cout << z << endl;
-//			ppv(worldPosition);
 		} else if (button == GLFW_MOUSE_BUTTON_LEFT) {
 			__cbref->arcball.button(__cbref->lastPos, action == GLFW_PRESS);
 		}

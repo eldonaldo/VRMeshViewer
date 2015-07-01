@@ -10,14 +10,14 @@ Settings::Settings () :
 	ANNOTATIONS					("none"),
 
 	// WINDOW
-	WINDOW_WIDTH				(600),
-	WINDOW_HEIGHT				(400),
+	WINDOW_WIDTH				(1200),
+	WINDOW_HEIGHT				(900),
 	FOV							(60.f),
 	Z_NEAR						(0.001f),
-	Z_FAR						(100.f),
+	Z_FAR						(10.f),
 
 	// CAMERA, 1.f = 1 Unit = 1 meter
-	USE_RIFT					(true),
+	USE_RIFT					(false),
 	CAMERA_OFFSET				(0.f, 0.20f, 0.40f),
 	CAMERA_LOOK_AT				(0.f, 0.f, 0.f),
 	CAMERA_HEADS_UP				(0.f, 1.f, 0.f),
