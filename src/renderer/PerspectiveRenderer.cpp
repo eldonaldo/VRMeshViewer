@@ -16,12 +16,12 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 void PerspectiveRenderer::preProcess () {
 	Renderer::preProcess();
 
-	// Upload mesh
+	// Upload meshes
 	shader->bind();
 	mesh->upload(shader);
 	sphere.upload(shader);
-	sphere1.upload(shader);
-	sphere0.upload(shader);
+	sphere_large.upload(shader);
+	sphere_small.upload(shader);
 
 	// Upload hands
 	if (Settings::getInstance().SHOW_HANDS) {
@@ -59,21 +59,21 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		sphere.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
 		sphere.scale(Matrix4f::Identity(), sphereRadius, sphereRadius, sphereRadius);
 		sphere.setRotationMatrix(r);
+		
+		// Debug spheres
+		if (Settings::getInstance().SHOW_DEBUG_SPHERES) {
+			// Large sphere
+			sphereRadius_large = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_LARGE_SCALE;
+			sphere_large.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
+			sphere_large.scale(Matrix4f::Identity(), sphereRadius_large, sphereRadius_large, sphereRadius_large);
+			sphere_large.setRotationMatrix(r);
 
-
-
-
-		sphereRadius1 = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_LARGE_SCALE;
-
-		sphere1.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
-		sphere1.scale(Matrix4f::Identity(), sphereRadius1, sphereRadius1, sphereRadius1);
-		sphere1.setRotationMatrix(r);
-
-		sphereRadius0 = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_SMALL_SCALE;
-
-		sphere0.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
-		sphere0.scale(Matrix4f::Identity(), sphereRadius0, sphereRadius0, sphereRadius0);
-		sphere0.setRotationMatrix(r);
+			// Small sphere
+			sphereRadius_small = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_SMALL_SCALE;
+			sphere_small.translate(sphereCenter.x(), sphereCenter.y(), sphereCenter.z());
+			sphere_small.scale(Matrix4f::Identity(), sphereRadius_small, sphereRadius_small, sphereRadius_small);
+			sphere_small.setRotationMatrix(r);
+		}
 	}
 
 	// Create virtual point light
@@ -126,29 +126,29 @@ void PerspectiveRenderer::draw() {
 		glEnable(GL_CULL_FACE);
 	}
 
-	// Bounding sphere
+	// Rotation sphere
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_SPHERE && Settings::getInstance().ENABLE_SPHERE) {
 		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(0.3f, 0.3f, 0.3f));
 		
+		// (Visual) Rotation sphere
 		shader->setUniform("alpha", 0.3f);
-
 		sphere.draw(getViewMatrix(), getProjectionMatrix());
 		
+		// Debug spheres
+		if (Settings::getInstance().SHOW_DEBUG_SPHERES) {
+			// Large
+			shader->setUniform("alpha", 0.3f);
+			shader->setUniform("materialColor", Vector3f(0.4f, 0.4f, 0.4f));
+			sphere_large.draw(getViewMatrix(), getProjectionMatrix());
 
-
-
-		//shader->setUniform("alpha", 0.3f);
-		//shader->setUniform("materialColor", Vector3f(0.4f, 0.4f, 0.4f));
-		//
-		//sphere1.draw(getViewMatrix(), getProjectionMatrix());
-
-		//shader->setUniform("alpha", 0.3f);
-		//shader->setUniform("materialColor", Vector3f(0.6f, 0.f, 0.f));
-
-		//sphere0.draw(getViewMatrix(), getProjectionMatrix());
+			// Small
+			shader->setUniform("alpha", 0.3f);
+			shader->setUniform("materialColor", Vector3f(0.6f, 0.f, 0.f));
+			sphere_small.draw(getViewMatrix(), getProjectionMatrix());
+		}
 
 		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

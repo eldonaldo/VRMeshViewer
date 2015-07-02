@@ -308,7 +308,7 @@ void LeapListener::gesturesStateMachines() {
 			gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
 		}
 		else if ((!onlyRotationActive
-			|| !hand->visible || !handInside_LargeSphere || handInside_SmallSphere || hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD
+			|| !hand->visible || !handInside_LargeSphere || handInside_SmallSphere || (extendedCount == 0 && hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD)
 			)
 			&& (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)
 		) {
