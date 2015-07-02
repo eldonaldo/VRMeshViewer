@@ -72,7 +72,7 @@ void RiftRenderer::preProcess () {
 	cfg.OGL.Header.Multisample = 0;
 #if defined(PLATFORM_WINDOWS)
 	// Need to attach viewerGLFWwindow for direct rendering (only supported on windows)
-	cfg.OGL.Window = glfwGetWin32Window(viewerGLFWwindow);
+	cfg.OGL.Window = glfwGetWin32Window(window);
 	cfg.OGL.DC = GetDC(cfg.OGL.Window);
 #endif
 
