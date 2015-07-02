@@ -235,7 +235,6 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			Vector3f worldPos = (__cbref->getMesh()->getModelMatrix() * Vector4f(unprojectedPos.x(), unprojectedPos.y(), unprojectedPos.z(), 1.f)).head(3);
 
 			// Add/Delete an annotation
-			Vector3f n(0.f, 1.f, 0.f);
 			if (!__cbref->deletePinIfHit(worldPos)) {
 				KDTree kdtree = __cbref->getMesh()->getKDTree();
 
