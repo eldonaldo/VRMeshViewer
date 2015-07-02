@@ -10,8 +10,8 @@ Settings::Settings () :
 	ANNOTATIONS					("none"),
 
 	// WINDOW
-	WINDOW_WIDTH				(1200),
-	WINDOW_HEIGHT				(900),
+	WINDOW_WIDTH				(1000),
+	WINDOW_HEIGHT				(700),
 	FOV							(60.f),
 	Z_NEAR						(0.001f),
 	Z_FAR						(10.f),
