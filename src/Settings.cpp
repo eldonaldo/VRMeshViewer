@@ -54,6 +54,7 @@ Settings::Settings () :
 	GESTURES_GRAB_THRESHOLD		(1.f),
 	GESTURES_RELATIVE_TRANSLATE	(true),
 	ANNOTATION_SEACH_RADIUS		(0.005f),
+	ANNOTATIONS_DRAW			(true),
 
 	// NETWORKING, 1 length unit = 1 millimeter, 1 size unit = 1 byte
 	NETWORK_ENABLED				(false),
