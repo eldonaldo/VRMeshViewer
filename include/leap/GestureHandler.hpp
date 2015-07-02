@@ -56,7 +56,11 @@ public:
 	*/
 	static Vector2f normalize (const Vector3f &v);
 
+	// Project point on sphere
 	Vector3f projectOnSphere(const Vector3f &v, const Vector3f &sphereCenter, float sphereRadius);
+
+	// Project a point to the sphere sourrding that point
+	Vector3f projectToSphere(const Vector3f &v, const Vector3f &sphereCenter, float sphereRadius);
 
 private:
 

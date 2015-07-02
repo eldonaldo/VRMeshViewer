@@ -219,7 +219,8 @@ extern std::string handName (HANDS hand);
 extern float clamp(float x);
 
 /// Pretty print vector
-extern void ppv(Vector3f v);
+extern void ppv(const Vector3f v);
+extern std::string pv(const Vector3f v);
 
 /// Checks if the file exists
 extern bool fileExists(const std::string &name);

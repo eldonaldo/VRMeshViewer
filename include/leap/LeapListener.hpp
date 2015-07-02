@@ -85,7 +85,6 @@ protected:
 	ovrHmd hmd; ///< The Rift
 	std::shared_ptr<Mesh> mesh;
 	std::shared_ptr<GestureHandler> gestureHandler; ///< Gesture handler
-	Leap::Frame lastValidFrame; ///< Last valid Leap Frame
 };
 
 VR_NAMESPACE_END

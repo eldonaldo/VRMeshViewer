@@ -18,7 +18,7 @@ Settings::Settings () :
 
 	// CAMERA, 1.f = 1 Unit = 1 meter
 	USE_RIFT					(false),
-	CAMERA_OFFSET				(0.f, 0.20f, 0.40f),
+	CAMERA_OFFSET				(0.f, 0.20f, 0.35f),
 	CAMERA_LOOK_AT				(0.f, 0.f, 0.f),
 	CAMERA_HEADS_UP				(0.f, 1.f, 0.f),
 
@@ -50,7 +50,7 @@ Settings::Settings () :
 
 	// GESTURES
 	GESTURES_PINCH_THRESHOLD	(0.95f),
-	GESTURES_GRAB_THRESHOLD		(1.f),
+	GESTURES_GRAB_THRESHOLD		(0.85f),
 	GESTURES_RELATIVE_TRANSLATE	(true),
 	ANNOTATION_SEACH_RADIUS		(0.005f),
 
@@ -65,10 +65,10 @@ Settings::Settings () :
 	NETWORK_NEW_DATA			(false),
 
 	// ROTATION SPHERE SCALES
-	SPHERE_VISUAL_SCALE			(0.5f),
-	SPHERE_SMALL_SCALE			(0.38f),
-	SPHERE_MEDIUM_SCALE			(0.7f),
-	SPHERE_LARGE_SCALE			(1.1f)
+	SPHERE_SMALL_SCALE			(0.001f),
+	SPHERE_MEDIUM_SCALE			(0.6f),
+	SPHERE_VISUAL_SCALE			(0.4f),
+	SPHERE_LARGE_SCALE			(0.9f)
 {}
 
 VR_NAMESPACE_END

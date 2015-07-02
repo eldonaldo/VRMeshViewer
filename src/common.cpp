@@ -115,8 +115,12 @@ float clamp(float x) {
 	else return x;
 }
 
-void ppv(Vector3f v) {
+void ppv(const Vector3f v) {
 	cout << "[" << v.x() << ", " << v.y() << ", " << v.z() << "]" << endl;
+}
+
+std::string pv(const Vector3f v) {
+	return "[" + std::to_string(v.x()) + ", " + std::to_string(v.y()) + ", " + std::to_string(v.z()) + "]";
 }
 
 bool fileExists(const std::string &name) {

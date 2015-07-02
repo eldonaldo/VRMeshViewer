@@ -48,8 +48,8 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		//window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	}
@@ -222,6 +222,8 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			glGetIntegerv(GL_VIEWPORT, viewport);
 			Vector2i viewPortSize(viewport[2], viewport[3]);
 
+			cout << viewport[2] << ", " <<viewport[3] << endl;
+
 			// Query cursor position and depth value at this position
 			double x, y; GLfloat z;
 			glfwGetCursorPos(window, &x, &y);
@@ -235,7 +237,6 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			Vector3f worldPos = (__cbref->getMesh()->getModelMatrix() * Vector4f(unprojectedPos.x(), unprojectedPos.y(), unprojectedPos.z(), 1.f)).head(3);
 
 			// Add/Delete an annotation
-			Vector3f n(0.f, 1.f, 0.f);
 			if (!__cbref->deletePinIfHit(worldPos)) {
 				KDTree kdtree = __cbref->getMesh()->getKDTree();
 
@@ -311,7 +312,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	// Enable HMD mode and pass through
 	if (Settings::getInstance().USE_RIFT)
 		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
-
+	
 	// Default leap listener
 	std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
 	attachLeap(leap);

@@ -140,15 +140,15 @@ void PerspectiveRenderer::draw() {
 
 
 
-		//shader->setUniform("alpha", 0.3f);
-		//shader->setUniform("materialColor", Vector3f(0.4f, 0.4f, 0.4f));
-		//
-		//sphere1.draw(getViewMatrix(), getProjectionMatrix());
+		shader->setUniform("alpha", 0.3f);
+		shader->setUniform("materialColor", Vector3f(0.4f, 0.4f, 0.4f));
+		
+		sphere1.draw(getViewMatrix(), getProjectionMatrix());
 
-		/*shader->setUniform("alpha", 0.3f);
+		shader->setUniform("alpha", 0.3f);
 		shader->setUniform("materialColor", Vector3f(0.6f, 0.f, 0.f));
 
-		sphere0.draw(getViewMatrix(), getProjectionMatrix());*/
+		sphere0.draw(getViewMatrix(), getProjectionMatrix());
 
 		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
