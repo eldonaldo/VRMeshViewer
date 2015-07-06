@@ -356,7 +356,7 @@ void LeapListener::gesturesStateMachines() {
 				)
 				&& (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)
 				) {
-				cout << !onlyRotationActive << !hand->visible << !handInside_LargeSphere << handInside_SmallSphere << extendedCount << (hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD) << endl;
+				cout << !onlyRotationActive << !hand->visible << !handInside_LargeSphere << extendedCount << (extendedCount == 0 && hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD) << endl;
 				
 				static double t0 = glfwGetTime();
 				if (resetEnd[i]) {
