@@ -67,7 +67,7 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 
 void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	static Vector3f lastPos(0.f, 0.f, 0.f);
-	static Quaternionf incr = Quaternionf::Identity(), quat = Quaternionf::Identity();
+	static Quaternionf quat = Quaternionf::Identity();
 	Vector3f midPoint = (hands[hand]->palm.position + hands[hand]->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	
 	static Vector3f center(0.f, 0.f, 0.f);
@@ -79,7 +79,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			center = mesh->getBoundingBox().getCenter();
 			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_MEDIUM_SCALE;
 			lastPos = projectOnSphere(midPoint, center, radius);
-			incr = Quaternionf::Identity();
+			quat = Quaternionf::Identity();
 			break;
 		}
 
@@ -95,28 +95,22 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			midPoint = projectOnSphere(midPoint, center, radius);
 
 			// Rotation axis and angle
-			lastPos.normalize(); midPoint.normalize();
 			Vector3f axis = lastPos.cross(midPoint);
-			float sa = std::sqrt(axis.dot(axis));
-			float ca = lastPos.dot(midPoint);
-			float angle = std::atan2(sa, ca);
-			
+			float angle = acosf(lastPos.dot(midPoint) / ((lastPos.norm() * midPoint.norm())));
+
 			// Compute rotation using quats
-			incr = Eigen::AngleAxisf(angle, axis.normalized());
-			if (!std::isfinite(incr.norm()))
-				incr = Quaternionf::Identity();
+			quat = Eigen::AngleAxisf(angle, axis.normalized());
+			if (!std::isfinite(quat.norm()))
+				quat = Quaternionf::Identity();
 
 			// Construct rotation matrix
 			Matrix4f result = Matrix4f::Identity();
-			result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
-			viewer->getRotationMatrix() = result;
+			result.block<3, 3>(0, 0) = quat.toRotationMatrix();
+			viewer->getRotationMatrix() = result * viewer->getRotationMatrix();
 
-			// Fix to avoid "spinn around" when angle is goind near 180 deg
-			if (angle >= 150.f * DEG_TO_RAD) {
-				lastPos = projectOnSphere(midPoint, center, radius);
-				quat = (incr * quat).normalized();
-				incr = Quaternionf::Identity();
-			}
+			// Reset tracking state
+			lastPos = midPoint;
+			quat = Quaternionf::Identity();
 
 			// Need to send a new packet
 			Settings::getInstance().NETWORK_NEW_DATA = true;
@@ -128,9 +122,6 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		default: {
 			Settings::getInstance().MATERIAL_COLOR_ROTATION = Settings::getInstance().MATERIAL_COLOR;
 			Settings::getInstance().SHOW_SPHERE = false;
-			lastPos = projectOnSphere(midPoint, center, radius);
-			quat = (incr * quat).normalized();
-			incr = Quaternionf::Identity();
 			break;
 		}
 	}
@@ -144,22 +135,26 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	Vector3f handSphereCenter = (midRight + midLeft) * 0.5f;
 
+	static float diagStart = 0.f;
+	static Matrix4f initialScale = Matrix4f::Identity();
+
 	switch (state) {
+		case GESTURE_STATES::START: {
+			diagStart = (mesh->getBoundingBox().max - mesh->getBoundingBox().min).norm();
+			initialScale = viewer->getScaleMatrix();
+		}
+
 		case GESTURE_STATES::UPDATE: {
-			// Only if distance is bigger than 2 cm in change
-			if (fabs(distance - lastDistance) >= 0.01f) {
-				// We want that the bounding box fits our hands when scaling
-				BoundingBox3f bbox = mesh->getBoundingBox();
-				float diag = (bbox.max - bbox.min).norm();
-				float factor = (distance / diag);
+			// We want that the bounding box fits our hands when scaling
+			BoundingBox3f bbox = mesh->getBoundingBox();
+			float diag = (bbox.max - bbox.min).norm();
+			float factor = (distance / diag);
 
-				// Compute scaling matrix
-				viewer->getScaleMatrix() = VR_NS::scale(viewer->getScaleMatrix(), factor);
-				lastDistance = distance;
+			// Compute scaling matrix
+			viewer->getScaleMatrix() = VR_NS::scale(initialScale, (factor * diag) / diagStart);
 
-				// Need to send a new packet
-				Settings::getInstance().NETWORK_NEW_DATA = true;
-			}
+			// Need to send a new packet
+			Settings::getInstance().NETWORK_NEW_DATA = true;
 			
 			viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), handSphereCenter);
 				
@@ -169,11 +164,10 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 			break;
 		}
 
-		case GESTURE_STATES::START:
+		
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-			lastDistance = distance;
 			break;
 		}
 	}

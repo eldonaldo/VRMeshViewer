@@ -66,7 +66,6 @@ private:
 
 	Viewer *viewer; ///< Viewer
 	std::shared_ptr<Mesh> mesh; ///< Mesh
-	float lastDistance = 0.f; ///< Last known sclaing distance in milimeter
 };
 
 VR_NAMESPACE_END
