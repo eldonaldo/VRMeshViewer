@@ -9,9 +9,6 @@
 
 using namespace VR_NS;
 
-// Forward declaration
-void initShader(std::shared_ptr<GLShader> &shader);
-
 bool parseArgs (int argc, char *argv[]) {
 	if (argc < 2)
 		return false;
@@ -46,52 +43,31 @@ int main (int argc, char *argv[]) {
 	}
 
 	// LibOVR need to be initialized before GLFW
-	ovrHmd hmd;
-	if (Settings::getInstance().USE_RIFT) {
-		ovr_Initialize();
-		hmd = ovrHmd_Create(0);
+	ovr_Initialize();
+	ovrHmd hmd = ovrHmd_Create(0);
 
-		// Create debug hmd
-		if (!hmd)
-			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+	// Create debug hmd
+	if (!hmd)
+		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
 
-		if (!hmd)
-			throw VRException("Could not start the Rift");
+	if (!hmd)
+		throw VRException("Could not start the Rift");
 
-		// Configure which sensors we need to have
-		if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
-			throw VRException("The Rift does not support all of the necessary sensors");
-	}
+	// Configure which sensors we need to have
+	if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
+		throw VRException("The Rift does not support all of the necessary sensors");
 
 	// Settings
 	int &width = Settings::getInstance().WINDOW_WIDTH, &height = Settings::getInstance().WINDOW_HEIGHT;
-	float &fov = Settings::getInstance().FOV, &zNear = Settings::getInstance().Z_NEAR, &zFar = Settings::getInstance().Z_FAR;
 	std::string &title = Settings::getInstance().TITLE;
 
 	try {
-		// Nanogui only available in 2D mode
-		if (!Settings::getInstance().USE_RIFT)
-			nanogui::init();
 
-		// Append networking mode in title
-		if (Settings::getInstance().NETWORK_ENABLED) {
-			std::string mode = Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT ? "Client listening on " : "Server sending to ";
-			title += " | " + mode + Settings::getInstance().NETWORK_IP + ":" + std::to_string(Settings::getInstance().NETWORK_PORT);
-		}
+		// Nanogui init
+		nanogui::init();
 
 		// This sets up the OpenGL context
 		Viewer *viewer = new Viewer(title, width, height, hmd);
-
-		// Create shader
-		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();
-		initShader(shader);
-
-		// Create an appropriate renderer
-		std::shared_ptr<Renderer> renderer;
-		if (Settings::getInstance().USE_RIFT)
-			renderer = std::make_shared<RiftRenderer>(shader, fov, width, height, zNear, zFar);
-		else
-			renderer = std::make_shared<PerspectiveRenderer>(shader, fov, width, height, zNear, zFar);
 
 		// Load mesh
 //		Settings::getInstance().MODEL = "resources/models/dragon/dragon.obj";
@@ -145,10 +121,9 @@ int main (int argc, char *argv[]) {
 		 * Otherwise do it through the viewer directly.
 		 */
 //		viewer->upload(mesh, renderer);
-		viewer->setRenderer(renderer);
-		if (Settings::getInstance().USE_RIFT)
-			viewer->renderLoop();
-		else
+//		if (Settings::getInstance().USE_RIFT)
+//			viewer->renderLoop();
+//		else
 			nanogui::mainloop();
 
 		// Stop networking and join to main thread
@@ -159,9 +134,8 @@ int main (int argc, char *argv[]) {
 
 		delete viewer;
 
-		// Nanogui only available in 2D mode
-		if (!Settings::getInstance().USE_RIFT)
-			nanogui::shutdown();
+		// Nanogui shutdown
+		nanogui::shutdown();
 
 	} catch (std::exception &e) {
 		std::cout << "Runtime error: "<< e.what() << std::endl;
@@ -170,76 +144,4 @@ int main (int argc, char *argv[]) {
 	}
 
 	return 0;
-}
-
-
-void initShader(std::shared_ptr<GLShader> &shader) {
-	shader->init(
-		// Name
-		"std-shader",
-
-		// Vertex shader
-		std::string("#version 330") + "\n" +
-
-		"uniform mat4 mvp;" + "\n" +
-
-		"in vec3 position;" + "\n" +
-		"in vec3 normal;" + "\n" +
-
-		"out vec3 vertexNormal;" + "\n" +
-		"out vec3 vertexPosition;" + "\n" +
-
-		"void main () {" + "\n" +
-		"    // Pass through" + "\n" +
-		"    vertexNormal = normal;" + "\n" +
-		"    vertexPosition = position;" + "\n" +
-
-		"    gl_Position = mvp * vec4(position, 1.0);" + "\n" +
-		"}" + "\n",
-
-		// Fragment shader
-		std::string("#version 330") + "\n" +
-
-		"// Point light representation" + "\n" +
-		"struct Light {" + "\n" +
-		"    vec3 position;" + "\n" +
-		"    vec3 intensity;" + "\n" +
-		"};" + "\n" +
-
-		"uniform Light light;" + "\n" +
-		"uniform vec3 materialColor;" + "\n" +
-		"uniform mat4 modelMatrix;" + "\n" +
-		"uniform mat3 normalMatrix;" + "\n" +
-		"uniform float alpha;" + "\n" +
-		"uniform bool simpleColor = false;" + "\n" +
-
-		"in vec3 vertexNormal;" + "\n" +
-		"in vec3 vertexPosition;" + "\n" +
-
-		"out vec4 color;" + "\n" +
-
-		"void main () {" + "\n" +
-		"    // Without wireframe overlay" + "\n" +
-		"    if (!simpleColor) {" + "\n" +
-		"        // Transform normal" + "\n" +
-		"        vec3 normal = normalize(normalMatrix * vertexNormal);" + "\n" +
-
-		"        // Position of fragment in world coodinates" + "\n" +
-		"        vec3 position = vec3(modelMatrix * vec4(vertexPosition, 1.0));" + "\n" +
-
-		"        // Calculate the vector from surface to the light" + "\n" +
-		"        vec3 surfaceToLight = light.position - position;" + "\n" +
-
-		"        // Calculate the cosine of the angle of incidence = brightness" + "\n" +
-		"        float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));" + "\n" +
-		"        brightness = clamp(brightness, 0.0, 1.0);" + "\n" +
-
-		"        // Calculate final color of the pixel" + "\n" +
-		"        color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +
-		"    } else {" + "\n" +
-		"        // Draw all in simple colors" + "\n" +
-		"        color = vec4(materialColor, alpha);" + "\n" +
-		"    }" + "\n" +
-		"}" + "\n"
-	);
 }

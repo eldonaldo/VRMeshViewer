@@ -83,11 +83,6 @@ public:
 	void loadAnnotations(const std::string &s);
 
 	/**
-	 * @brief Sets the renderer
-	 */
-	void setRenderer (std::shared_ptr<Renderer> &r);
-
-	/**
 	* @brief Retrieve some OpenGL infos
 	*
 	* @return Supported OpenGL Versions
@@ -251,6 +246,21 @@ protected:
 	 */
 	void initGUI();
 
+	/**
+	 * @brief Resets the model state
+	 */
+	void resetModelState ();
+
+	/**
+	 * @brief Preprocesses the Perspective/Rift renderer
+	 */
+	void preProcessRenderer ();
+
+	/**
+	 * @brief Init shader code
+	 */
+	void initShader(std::shared_ptr<GLShader> &shader);
+
 public:
 
 	int FBWidth, FBHeight; ///< Framebuffer size
@@ -264,6 +274,8 @@ public:
 	Leap::Controller leapController; ///< Leap controller
 
 protected:
+
+	std::shared_ptr<GLShader> shader; ///< Bounded shader
 	bool ready; ///< True when all geometry is uploaded to the GPU on the startup
 	std::shared_ptr<Renderer> renderer; ///< Bounded renderer
 	ovrHmd hmd; ///< Head mounted device

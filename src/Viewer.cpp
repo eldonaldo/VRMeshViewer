@@ -2,9 +2,8 @@
 
 VR_NAMESPACE_BEGIN
 
-#if defined(PLATFORM_WINDOWS)
-	static bool glewInitialized = false;
-#endif
+// Used inside callback functions to access the viewer's stat
+Viewer *__cbptr;
 
 Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
@@ -34,6 +33,18 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	// Seed rnd generator
 	srand(glfwGetTime());
 
+	// Create shader and renderer
+	shader = std::make_shared<GLShader>();
+	initShader(shader);
+	renderer = std::make_shared<PerspectiveRenderer>(
+		shader,
+		Settings::getInstance().FOV,
+		Settings::getInstance().WINDOW_WIDTH,
+		Settings::getInstance().WINDOW_HEIGHT,
+		Settings::getInstance().Z_NEAR,
+		Settings::getInstance().Z_FAR
+	);
+
 	// Calc fps at startup
 	if (!Settings::getInstance().USE_RIFT && appFPS)
 		calcAndAppendFPS();
@@ -45,6 +56,7 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	initGUI();
 
 	setBackground(Vector3f(0.8f, 0.8f, 0.8f));
+	__cbptr = this;
 
 	// Init nanogui
 	performLayout(mNVGContext);
@@ -80,19 +92,96 @@ void Viewer::initGUI () {
 		}
 	});
 
-	CheckBox *cb = new CheckBox(window, "Use Oculus Rift", [] (bool state) {
-
-	});
-
-	cb = new CheckBox(window, "Draw Boundig Box", [] (bool state) { Settings::getInstance().MESH_DRAW_BBOX = state; });
+	CheckBox *cb = new CheckBox(window, "Draw Boundig Box", [] (bool state) { Settings::getInstance().MESH_DRAW_BBOX = state; });
 	cb = new CheckBox(window, "Draw Wireframe", [] (bool state) { Settings::getInstance().MESH_DRAW_WIREFRAME = state; });
 	cb = new CheckBox(window, "Hide Mesh", [] (bool state) { Settings::getInstance().MESH_DRAW = !state; });
+
+	b = new Button(window, "Start Oculus Rift");
+	b->setCallback([&] {
+//		nanogui::leave();
+		ready = false;
+//		Settings::getInstance().USE_RIFT = true;
+
+		// Reconfigure settings if the target is the Rift
+		width = hmd->Resolution.w;
+		height = hmd->Resolution.h;
+
+		// Make a new GLFW context for fullscreen mode
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+//		viewerGLFWwindow = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		GLFWwindow *w = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		glfwDestroyWindow(viewerGLFWwindow);
+		viewerGLFWwindow = w;
+		glfwMakeContextCurrent(viewerGLFWwindow);
+		setGlfwWindow(viewerGLFWwindow);
+
+		// Reset keyboard callback
+		glfwSetKeyCallback(viewerGLFWwindow, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
+			__cbptr->keyboardEvent(key, scancode, action, mods);
+		});
+
+		glfwSetCursorPosCallback(viewerGLFWwindow, [](GLFWwindow *w, double x, double y) {
+			Vector2i p(x, y);
+			__cbptr->mouseMotionEvent(p, p, !GLFW_KEY_LEFT_CONTROL, 0);
+		});
+
+		glfwSetMouseButtonCallback(viewerGLFWwindow, [](GLFWwindow *w, int button, int action, int modifiers) {
+			double x, y;
+			glfwGetCursorPos(w, &x, &y);
+			Vector2i p(x, y);
+			__cbptr->mouseButtonEvent(p, button, action == GLFW_PRESS, modifiers);
+		});
+
+		// Recompile the shader
+		shader->free();
+		shader.reset(new GLShader());
+		initShader(shader);
+
+//		// Change renderer and delete old one
+		renderer = std::make_shared<RiftRenderer>(
+				shader,
+				Settings::getInstance().FOV,
+				width,
+				height,
+				Settings::getInstance().Z_NEAR,
+				Settings::getInstance().Z_FAR
+		);
+		// Change renderer and delete old one
+//		renderer = std::make_shared<PerspectiveRenderer>(
+//				shader,
+//				Settings::getInstance().FOV,
+//				width,
+//				height,
+//				Settings::getInstance().Z_NEAR,
+//				Settings::getInstance().Z_FAR
+//		);
+
+		glViewport(0, 0, width, height);
+
+		// Preprocess renderer state
+		preProcessRenderer();
+		std::cout << info() << std::endl;
+
+		// Save a pointer to the old mesh to delete it later
+		upload(mesh);
+
+		glfwShowWindow(viewerGLFWwindow);
+		performLayout(mNVGContext);
+		setVisible(true);
+		ready = true;
+//		nanogui::mainloop();
+	});
 
 	// Annotations window
 	window = new Window(this, "Annotations");
 	window->setPosition(Vector2i(15, 220));
 	window->setLayout(new GroupLayout());
-
 
 	// Annotations
 	tools = new Widget(window);
@@ -161,129 +250,6 @@ void Viewer::initGUI () {
 //	});
 }
 
-void Viewer::calcAndAppendFPS () {
-	static float t0 = glfwGetTime();
-
-	// Get the current time in seconds since the program started (non-static, so executed every time)
-	double currentTime = glfwGetTime();
-
-	// Calculate and display the FPS
-	if ((currentTime - t0) > interval) {
-		// Calculate the FPS as the number of frames divided by the interval in seconds
-		fps = double(frameCount) / (currentTime - t0);
-
-		// Append to viewerGLFWwindow title
-		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
-		glfwSetWindowTitle(viewerGLFWwindow, newTitle.c_str());
-		
-		// Reset the FPS frame counter and set the initial time to be now
-		frameCount = 0;
-		t0 = glfwGetTime();
-	} else {
-		frameCount++;
-	}
-}
-
-void Viewer::placeObjectAndBuildKDTree (std::shared_ptr<Mesh> &m) {
-	BoundingBox3f &bbox = m->getBoundingBox();
-
-	// Calculate current bounding box diagonal length
-	float diag = (bbox.max - bbox.min).norm();
-	float factor = Settings::getInstance().MESH_DIAGONAL / diag;
-
-	// Translate to center
-	Matrix4f T = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
-	
-	// Compute scaling matrix
-	Matrix4f S = scale(Matrix4f::Identity(), factor);
-
-	// Transform object outside of OpenGL such that the correct metric units and center position are right away passed into OpenGL
-	MatrixXf vertices = m->getVertexPositions();
-	MatrixXf newPos(3, vertices.cols());
-	Matrix4f transformMat = S * T;
-
-	KDTree &kdtree = m->getKDTree();
-
-	kdtree.clear();
-	kdtree.reserve(sizeof(Vector3f) * vertices.cols());
-	bbox.reset();
-
-	for (int i = 0; i < vertices.cols(); i++) {
-		Vector3f v = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
-		newPos.col(i) = v;
-		bbox.expandBy(v);
-
-		GenericKDTreeNode<Point3f, Point3f> kdPoint(v, m->getVertexNormals().col(i));
-		kdtree.push_back(kdPoint);
-	}
-
-	m->setVertexPositions(newPos);
-
-	// Bounding sphere
-	sphereCenter = mesh->getBoundingBox().getCenter();
-	sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
-
-	// Build kd-tree
-	kdtree.build();
-}
-
-void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
-	leapListener = std::move(l);
-	leapListener->setHands(hands[0], hands[1]);
-}
-
-void Viewer::upload(std::shared_ptr<Mesh> &m) {
-	// not ready to display opengl content
-	ready = false;
-	mesh = m;
-
-	// Reconfigure settings if the target is the Rift
-	if (renderer->getClassType() == EHMDRenderer && hmd != nullptr) {
-		width = hmd->Resolution.w;
-		height = hmd->Resolution.h;
-		glfwSetWindowSize(viewerGLFWwindow, width, height);
-		glfwGetFramebufferSize(viewerGLFWwindow, &FBWidth, &FBHeight);
-		glViewport(0, 0, width, height);
-	}
-
-	renderer->setController(leapController);
-	renderer->setHmd(hmd);
-
-	// Place object in world for immersion
-	placeObjectAndBuildKDTree(mesh);
-
-	// Renderer pre processing
-	gestureHandler->setMesh(mesh);
-	renderer->setMesh(mesh);
-	renderer->setHands(hands[0], hands[1]);
-	renderer->setWindow(viewerGLFWwindow);
-	renderer->updateFBSize(FBWidth, FBHeight);
-	renderer->preProcess();
-
-	// Share the HMD
-	leapListener->setHmd(hmd);
-	leapListener->setMesh(mesh);
-	leapListener->setGestureHandler(gestureHandler);
-	if (Settings::getInstance().LEAP_USE_LISTENER)
-		leapController.addListener(*leapListener);
-
-	// Load annotations if desired
-//	if (loadAnnotationsFlag)
-//		loadAnnotationsOnLoop();
-
-	// Print some info
-	std::cout << info() << std::endl;
-
-	// Reset model state
-	translateMatrix.setIdentity();
-	scaleMatrix.setIdentity();
-	rotationMatrix.setIdentity();
-	arcball.setState(Quaternionf::Identity());
-
-	// ready to display opengl content
-	ready = true;
-}
-
 void Viewer::drawContents () {
 	// Wait for the uploads to complete
 	if (ready) {
@@ -350,6 +316,115 @@ void Viewer::renderLoop () {
 		// Render
 		drawContents();
 	}
+}
+
+void Viewer::upload(std::shared_ptr<Mesh> &m) {
+	// not ready to display opengl content
+	ready = false;
+	mesh = m;
+
+	// Place object in world for immersion
+	placeObjectAndBuildKDTree(mesh);
+	gestureHandler->setMesh(mesh);
+
+	// Share the HMD and Leap
+	leapListener->setHmd(hmd);
+	leapListener->setMesh(mesh);
+	leapListener->setGestureHandler(gestureHandler);
+	static bool added = false;
+	if (Settings::getInstance().LEAP_USE_LISTENER && !added) {
+		leapController.addListener(*leapListener);
+		added = true;
+	}
+
+	// Preprocess renderer state
+	preProcessRenderer();
+
+	// Print some info
+	std::cout << info() << std::endl;
+
+	// ready to display opengl content
+	resetModelState();
+	ready = true;
+}
+
+void Viewer::placeObjectAndBuildKDTree (std::shared_ptr<Mesh> &m) {
+	BoundingBox3f &bbox = m->getBoundingBox();
+
+	// Calculate current bounding box diagonal length
+	float diag = (bbox.max - bbox.min).norm();
+	float factor = Settings::getInstance().MESH_DIAGONAL / diag;
+
+	// Translate to center
+	Matrix4f T = translate(Matrix4f::Identity(), Vector3f(-bbox.getCenter().x(), -bbox.getCenter().y(), -bbox.getCenter().z()));
+	
+	// Compute scaling matrix
+	Matrix4f S = scale(Matrix4f::Identity(), factor);
+
+	// Transform object outside of OpenGL such that the correct metric units and center position are right away passed into OpenGL
+	MatrixXf vertices = m->getVertexPositions();
+	MatrixXf newPos(3, vertices.cols());
+	Matrix4f transformMat = S * T;
+
+	KDTree &kdtree = m->getKDTree();
+
+	kdtree.clear();
+	kdtree.reserve(sizeof(Vector3f) * vertices.cols());
+	bbox.reset();
+
+	for (int i = 0; i < vertices.cols(); i++) {
+		Vector3f v = (transformMat * Vector4f(vertices.col(i).x(), vertices.col(i).y(), vertices.col(i).z(), 1.f)).head<3>();
+		newPos.col(i) = v;
+		bbox.expandBy(v);
+
+		GenericKDTreeNode<Point3f, Point3f> kdPoint(v, m->getVertexNormals().col(i));
+		kdtree.push_back(kdPoint);
+	}
+
+	m->setVertexPositions(newPos);
+
+	// Bounding sphere
+	sphereCenter = mesh->getBoundingBox().getCenter();
+	sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * 0.5f;
+
+	// Build kd-tree
+	kdtree.build();
+}
+
+void Viewer::calcAndAppendFPS () {
+	static float t0 = glfwGetTime();
+
+	// Get the current time in seconds since the program started (non-static, so executed every time)
+	double currentTime = glfwGetTime();
+
+	// Calculate and display the FPS
+	if ((currentTime - t0) > interval) {
+		// Calculate the FPS as the number of frames divided by the interval in seconds
+		fps = double(frameCount) / (currentTime - t0);
+
+		// Append to viewerGLFWwindow title
+		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
+		glfwSetWindowTitle(viewerGLFWwindow, newTitle.c_str());
+
+		// Reset the FPS frame counter and set the initial time to be now
+		frameCount = 0;
+		t0 = glfwGetTime();
+	} else {
+		frameCount++;
+	}
+}
+
+void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
+	leapListener = std::move(l);
+	leapListener->setHands(hands[0], hands[1]);
+}
+
+void Viewer::resetModelState () {
+	// Reset model state
+	translateMatrix.setIdentity();
+	scaleMatrix.setIdentity();
+	rotationMatrix.setIdentity();
+	arcball.setState(Quaternionf::Identity());
 }
 
 bool Viewer::keyboardEvent(int key, int scancode, bool action, int mods) {
@@ -482,6 +557,19 @@ void Viewer::framebufferSizeChanged () {
 
 	if (renderer)
 		renderer->updateFBSize(FBWidth, FBHeight);
+}
+
+void Viewer::preProcessRenderer () {
+	if (renderer == nullptr)
+		VRException("No renderer attached");
+
+	renderer->setController(leapController);
+	renderer->setHmd(hmd);
+	renderer->setMesh(mesh);
+	renderer->setHands(hands[0], hands[1]);
+	renderer->setWindow(viewerGLFWwindow);
+	renderer->updateFBSize(FBWidth, FBHeight);
+	renderer->preProcess();
 }
 
 bool Viewer::mouseButtonEvent (const Vector2i &p, int button, bool down, int modifiers) {
@@ -836,6 +924,77 @@ std::string Viewer::info () {
 	);
 }
 
+void Viewer::initShader(std::shared_ptr<GLShader> &shader) {
+	shader->init(
+		// Name
+		"std-shader",
+
+		// Vertex shader
+		std::string("#version 330") + "\n" +
+
+		"uniform mat4 mvp;" + "\n" +
+
+		"in vec3 position;" + "\n" +
+		"in vec3 normal;" + "\n" +
+
+		"out vec3 vertexNormal;" + "\n" +
+		"out vec3 vertexPosition;" + "\n" +
+
+		"void main () {" + "\n" +
+		"    // Pass through" + "\n" +
+		"    vertexNormal = normal;" + "\n" +
+		"    vertexPosition = position;" + "\n" +
+
+		"    gl_Position = mvp * vec4(position, 1.0);" + "\n" +
+		"}" + "\n",
+
+		// Fragment shader
+		std::string("#version 330") + "\n" +
+
+		"// Point light representation" + "\n" +
+		"struct Light {" + "\n" +
+		"    vec3 position;" + "\n" +
+		"    vec3 intensity;" + "\n" +
+		"};" + "\n" +
+
+		"uniform Light light;" + "\n" +
+		"uniform vec3 materialColor;" + "\n" +
+		"uniform mat4 modelMatrix;" + "\n" +
+		"uniform mat3 normalMatrix;" + "\n" +
+		"uniform float alpha;" + "\n" +
+		"uniform bool simpleColor = false;" + "\n" +
+
+		"in vec3 vertexNormal;" + "\n" +
+		"in vec3 vertexPosition;" + "\n" +
+
+		"out vec4 color;" + "\n" +
+
+		"void main () {" + "\n" +
+		"    // Without wireframe overlay" + "\n" +
+		"    if (!simpleColor) {" + "\n" +
+		"        // Transform normal" + "\n" +
+		"        vec3 normal = normalize(normalMatrix * vertexNormal);" + "\n" +
+
+		"        // Position of fragment in world coodinates" + "\n" +
+		"        vec3 position = vec3(modelMatrix * vec4(vertexPosition, 1.0));" + "\n" +
+
+		"        // Calculate the vector from surface to the light" + "\n" +
+		"        vec3 surfaceToLight = light.position - position;" + "\n" +
+
+		"        // Calculate the cosine of the angle of incidence = brightness" + "\n" +
+		"        float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));" + "\n" +
+		"        brightness = clamp(brightness, 0.0, 1.0);" + "\n" +
+
+		"        // Calculate final color of the pixel" + "\n" +
+		"        color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +
+		"    } else {" + "\n" +
+		"        // Draw all in simple colors" + "\n" +
+		"        color = vec4(materialColor, alpha);" + "\n" +
+		"    }" + "\n" +
+		"}" + "\n"
+	);
+}
+
 Arcball& Viewer::getArcball () {
 	return arcball;
 }
@@ -870,10 +1029,6 @@ std::vector<std::shared_ptr<Pin>> &Viewer::getAnnotations() {
 
 std::shared_ptr<Renderer> &Viewer::getRenderer () {
 	return renderer;
-}
-
-void Viewer::setRenderer (std::shared_ptr<Renderer> &r) {
-	renderer = r;
 }
 
 Viewer::~Viewer () {

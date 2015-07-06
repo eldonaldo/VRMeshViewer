@@ -38,7 +38,7 @@ public:
 	 * @brief Default destructor
 	 */
 	virtual ~Renderer () {
-		shader->free();
+
 	}
 
 	/**
