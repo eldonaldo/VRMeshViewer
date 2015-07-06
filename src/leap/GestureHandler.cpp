@@ -95,6 +95,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			midPoint = projectOnSphere(midPoint, center, radius);
 
 			// Rotation axis and angle
+			lastPos.normalize(); midPoint.normalize();
 			Vector3f axis = lastPos.cross(midPoint);
 			float sa = std::sqrt(axis.dot(axis));
 			float ca = lastPos.dot(midPoint);
@@ -102,11 +103,20 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			
 			// Compute rotation using quats
 			incr = Eigen::AngleAxisf(angle, axis.normalized());
+			if (!std::isfinite(incr.norm()))
+				incr = Quaternionf::Identity();
 
 			// Construct rotation matrix
 			Matrix4f result = Matrix4f::Identity();
 			result.block<3, 3>(0, 0) = (incr * quat).toRotationMatrix();
 			viewer->getRotationMatrix() = result;
+
+			// Fix to avoid "spinn around" when angle is goind near 180 deg
+			if (angle >= 150.f * DEG_TO_RAD) {
+				lastPos = projectOnSphere(midPoint, center, radius);
+				quat = (incr * quat).normalized();
+				incr = Quaternionf::Identity();
+			}
 
 			// Need to send a new packet
 			Settings::getInstance().NETWORK_NEW_DATA = true;

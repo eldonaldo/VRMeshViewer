@@ -192,7 +192,7 @@ Leap::Frame LeapListener::pollFrame(const Leap::Controller &controller) {
 			}
 			
 			currentHand->visible = false;
-			currentHand->confidence = 0.f;
+			currentHand->pinchStrength = currentHand->grabStrength = currentHand->confidence = 0.f;
 
 			for (auto &f : currentHand->finger)
 				f.extended = false;
@@ -220,8 +220,8 @@ void LeapListener::gesturesStateMachines() {
 	*/
 	unsigned int extendedCount = 0;
 	for (int i = 0; i < 5; i++) {
-		if ((leftHand->visible && (leftHand->finger[i].extended || (!leftHand->finger[i].extended && leftHand->grabStrength <= 0.8f))) &&
-			(rightHand->visible && (rightHand->finger[i].extended || (!rightHand->finger[i].extended && rightHand->grabStrength <= 0.8f))))
+		if ((leftHand->visible && (leftHand->finger[i].extended || (!leftHand->finger[i].extended && leftHand->grabStrength <= 0.6f))) &&
+			(rightHand->visible && (rightHand->finger[i].extended || (!rightHand->finger[i].extended && rightHand->grabStrength <= 0.6f))))
 			extendedCount++;
 	}
 
@@ -281,7 +281,6 @@ void LeapListener::gesturesStateMachines() {
 				extendedCount++;
 		}
 
-
 		// When the rotation is done, nothing else can be made
 		bool onlyRotationActive = gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[otherHand][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP;
 
@@ -312,7 +311,7 @@ void LeapListener::gesturesStateMachines() {
 			)
 			&& (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)
 		) {
-			//cout << !onlyRotationActive << !hand->visible << !handInside_LargeSphere << handInside_SmallSphere << (hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD) << endl;
+			cout << !onlyRotationActive << !hand->visible << !handInside_LargeSphere << handInside_SmallSphere << extendedCount << (hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD )<< endl;
 			//stopPinchGensture();
 			//stopZoomGesture();
 			
