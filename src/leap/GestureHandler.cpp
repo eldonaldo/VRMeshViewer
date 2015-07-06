@@ -75,6 +75,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 
 	switch (state) {
 		case GESTURE_STATES::START: {
+			//							Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
 			Settings::getInstance().SHOW_SPHERE = true;
 			center = mesh->getBoundingBox().getCenter();
 			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_MEDIUM_SCALE;
@@ -84,6 +85,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		}
 
 		case GESTURE_STATES::UPDATE: {
+			//							 Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
 			// Calculate distance to displayed sphere for visual assistance
 			float assistanceRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_VISUAL_SCALE;
 			Vector3f spherePoint = projectToSphere(midPoint, center, assistanceRadius);
@@ -122,6 +124,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		default: {
 			Settings::getInstance().MATERIAL_COLOR_ROTATION = Settings::getInstance().MATERIAL_COLOR;
 			Settings::getInstance().SHOW_SPHERE = false;
+			//		 Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}
 	}
@@ -130,6 +133,8 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&hands)[2]) {
 	auto &right = hands[0], &left = hands[1];
 	float distance = (right->palm.position - left->palm.position).norm();
+	float dotProd = right->palm.normal.normalized().dot(left->palm.normal.normalized());
+	float dotProdThreshold = -0.45f;
 
 	Vector3f midRight = (right->palm.position + right->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
 	Vector3f midLeft = (left->palm.position + left->finger[Finger::Type::TYPE_MIDDLE].position) * 0.5f;
@@ -140,26 +145,34 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 
 	switch (state) {
 		case GESTURE_STATES::START: {
-			diagStart = (mesh->getBoundingBox().max - mesh->getBoundingBox().min).norm();
-			initialScale = viewer->getScaleMatrix();
+			// Hands need to point together
+			if (dotProd <= dotProdThreshold) {
+				//Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+				diagStart = (mesh->getBoundingBox().max - mesh->getBoundingBox().min).norm();
+				initialScale = viewer->getScaleMatrix();
+			}
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			// We want that the bounding box fits our hands when scaling
-			BoundingBox3f bbox = mesh->getBoundingBox();
-			float diag = (bbox.max - bbox.min).norm();
-			float factor = (distance / diag);
+			// Hands need to point together
+			//Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+			if (dotProd <= dotProdThreshold) {
+				// We want that the bounding box fits our hands when scaling
+				BoundingBox3f bbox = mesh->getBoundingBox();
+				float diag = (bbox.max - bbox.min).norm();
+				float factor = (distance / diag);
 
-			// Compute scaling matrix
-			viewer->getScaleMatrix() = VR_NS::scale(initialScale, (factor * diag) / diagStart);
+				// Compute scaling matrix
+				viewer->getScaleMatrix() = VR_NS::scale(initialScale, (factor * diag) / diagStart);
 
-			// Need to send a new packet
-			Settings::getInstance().NETWORK_NEW_DATA = true;
-			
-			viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), handSphereCenter);
-				
-			// Need to send a new packet
-			Settings::getInstance().NETWORK_NEW_DATA = true;
+				// Need to send a new packet
+				Settings::getInstance().NETWORK_NEW_DATA = true;
+
+				viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), handSphereCenter);
+
+				// Need to send a new packet
+				Settings::getInstance().NETWORK_NEW_DATA = true;
+			}
 
 			break;
 		}
@@ -168,6 +181,7 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
+					// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}
 	}

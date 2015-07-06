@@ -51,7 +51,7 @@ void SkeletonHand::upload (std::shared_ptr<GLShader> &s) {
 void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	using namespace Leap;
 
-	//mesh.palm.draw(viewMatrix, projectionMatrix);
+	mesh.palm.draw(viewMatrix, projectionMatrix);
 	mesh.handJoint.draw(viewMatrix, projectionMatrix);
 
 	Vector3f color = Settings::getInstance().MATERIAL_COLOR;

@@ -395,6 +395,8 @@ void Viewer::placeObjectAndBuildKDTree (std::shared_ptr<Mesh> &m) {
 
 	// Build kd-tree
 	kdtree.build();
+
+	//glfwHideWindow(window);
 }
 
 void Viewer::attachLeap (std::unique_ptr<LeapListener> &l) {
