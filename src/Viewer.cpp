@@ -222,8 +222,6 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			glGetIntegerv(GL_VIEWPORT, viewport);
 			Vector2i viewPortSize(viewport[2], viewport[3]);
 
-			cout << viewport[2] << ", " <<viewport[3] << endl;
-
 			// Query cursor position and depth value at this position
 			double x, y; GLfloat z;
 			glfwGetCursorPos(window, &x, &y);
