@@ -79,15 +79,14 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		}
 
 		// Sphere blend
-		if (Settings::getInstance().SPHERE_ALPHA_BLEND < 0.3f) 
+		if (Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO && Settings::getInstance().SPHERE_ALPHA_BLEND < 0.3f)
 			Settings::getInstance().SPHERE_ALPHA_BLEND += 0.02f;
+		else
+			Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO = false;
 
 		Settings::getInstance().SPHERE_DISPLAY = true;
 	} else {
-		if (Settings::getInstance().SPHERE_ALPHA_BLEND > 0.f)
-			Settings::getInstance().SPHERE_ALPHA_BLEND -= 0.02f;
-		else
-			Settings::getInstance().SPHERE_DISPLAY = false;
+		Settings::getInstance().SPHERE_DISPLAY = false;
 	}
 
 	// BBox blend
@@ -117,6 +116,7 @@ void PerspectiveRenderer::draw() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
+	Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 	shader->setUniform("alpha", 1.f);
 	
@@ -135,10 +135,9 @@ void PerspectiveRenderer::draw() {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(0.8980f, 0.f, 0.16862f));
-		shader->setUniform("alpha", Settings::getInstance().BBOX_ALPHA_BLEND);
+		shader->setUniform("alpha", clamp(Settings::getInstance().BBOX_ALPHA_BLEND));
 
-		BoundingBox3f mbbox = mesh->getBoundingBox();
-		bbox.update(mbbox.min, mbbox.max);
+		bbox.update(mesh->getBoundingBox().min, mesh->getBoundingBox().max);
 		bbox.draw(getViewMatrix(), getProjectionMatrix());
 
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
@@ -155,7 +154,7 @@ void PerspectiveRenderer::draw() {
 		shader->setUniform("materialColor", Vector3f(0.28627f, 0.26666f, 0.26274f));
 		
 		// (Visual) Rotation sphere
-		shader->setUniform("alpha", Settings::getInstance().SPHERE_ALPHA_BLEND);
+		shader->setUniform("alpha", clamp(Settings::getInstance().SPHERE_ALPHA_BLEND));
 		sphere.draw(getViewMatrix(), getProjectionMatrix());
 		
 		// Debug spheres
@@ -191,7 +190,8 @@ void PerspectiveRenderer::draw() {
 
 	// Draw hands
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_HANDS) {
-		shader->setUniform("materialColor", Vector3f(0.8f, 0.8f, 0.8f));
+		Settings::getInstance().MATERIAL_COLOR = Vector3f(0.7843f, 0.72941f, 0.65098f);
+		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 		glDisable(GL_CULL_FACE);
 
 		if (leftHand->visible) {

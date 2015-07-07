@@ -73,13 +73,14 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 	static Vector3f center(0.f, 0.f, 0.f);
 	static float radius = 0.f;
 	static float lastPitch = 0.f;
+	float diameter = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm();
 
 	switch (state) {
 		case GESTURE_STATES::START: {
-			//							Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
+			// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
 			Settings::getInstance().SHOW_SPHERE = true;
 			center = mesh->getBoundingBox().getCenter();
-			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_MEDIUM_SCALE;
+			radius = diameter * Settings::getInstance().SPHERE_MEDIUM_SCALE;
 			lastPos = projectOnSphere(midPoint, center, radius);
 			quat = Quaternionf::Identity();
 			lastPitch = hands[hand]->palm.pitch;
@@ -87,14 +88,27 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		}
 
 		case GESTURE_STATES::UPDATE: {
-			//							 Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
+			// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
+			
 			// Calculate distance to displayed sphere for visual assistance
-			float assistanceRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_VISUAL_SCALE;
+			float assistanceRadius = diameter * Settings::getInstance().SPHERE_VISUAL_SCALE;
 			Vector3f spherePoint = projectToSphere(midPoint, center, assistanceRadius);
 			float distance = (spherePoint - midPoint).norm();
-			distance /= ((Settings::getInstance().SPHERE_VISUAL_SCALE - Settings::getInstance().SPHERE_SMALL_SCALE) * 0.5f);
-			Settings::getInstance().MATERIAL_COLOR_ROTATION = Vector3f(distance, 1.f - distance, 0.f);
-
+			float innerDistance = distance / clamp((Settings::getInstance().SPHERE_VISUAL_SCALE - Settings::getInstance().SPHERE_SMALL_SCALE) * 0.5f);
+			Settings::getInstance().MATERIAL_COLOR_ROTATION = Vector3f(innerDistance, 1.f - innerDistance, 0.f);
+			
+			// Sphere blend
+			if (!Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO) {
+				if (!insideSphere(midPoint, center, diameter * Settings::getInstance().SPHERE_MEDIUM_SCALE)) {
+					float l = diameter * Settings::getInstance().SPHERE_LARGE_SCALE;
+					Vector3f largeSpherePoint = projectToSphere(midPoint, center, l);
+					float outerDistance = (largeSpherePoint - spherePoint).norm();
+					Settings::getInstance().SPHERE_ALPHA_BLEND = 0.3f - 0.3f * clamp(distance / outerDistance);
+				} else {
+					Settings::getInstance().SPHERE_ALPHA_BLEND = 0.3f;
+				}
+			}
+			
 			// Project points on sphere around bbox center
 			midPoint = projectOnSphere(midPoint, center, radius);
 
@@ -135,7 +149,8 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		default: {
 			Settings::getInstance().MATERIAL_COLOR_ROTATION = Settings::getInstance().MATERIAL_COLOR;
 			Settings::getInstance().SHOW_SPHERE = false;
-			//		 Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO = true;
+			// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}
 	}

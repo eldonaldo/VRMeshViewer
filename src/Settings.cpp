@@ -24,7 +24,7 @@ Settings::Settings () :
 
 	// MATERIAL
 	MATERIAL_COLOR				(0.8f, 0.8f, 0.8f),
-	MATERIAL_COLOR_ROTATION		(0.8f, 0.8f, 0.8f),
+	MATERIAL_COLOR_ROTATION		(0.7843f, 0.72941f, 0.65098f),
 
 	// LIGHTNING
 	LIGHT_INTENSITY				(1.f, 1.f, 1.f),
@@ -75,7 +75,8 @@ Settings::Settings () :
 	SPHERE_VISUAL_SCALE			(0.4f),
 	SPHERE_LARGE_SCALE			(0.9f),
 	SPHERE_ALPHA_BLEND			(0.f),
-	SPHERE_DISPLAY				(false)
+	SPHERE_DISPLAY				(false),
+	SPHERE_ALPHA_BLEND_INTRO	(false)
 {}
 
 VR_NAMESPACE_END

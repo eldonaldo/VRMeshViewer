@@ -112,7 +112,8 @@ float clamp(float x) {
 		return 1.f;
 	else if (x < 0.f)
 		return 0.f;
-	else return x;
+	else 
+		return x;
 }
 
 void ppv(const Vector3f v) {
