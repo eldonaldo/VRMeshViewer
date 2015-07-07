@@ -100,6 +100,7 @@ Leap::Frame LeapListener::pollFrame(const Leap::Controller &controller) {
 			currentHand->pinchStrength = hand.pinchStrength();
 			currentHand->grabStrength = hand.grabStrength();
 			currentHand->visible = true;
+			currentHand->palm.velocity = hand.palmVelocity().toVector3<Vector3f>();
 
 			// Transform palm
 			const Vector3f palm = rotation * hand.palmPosition().toVector3<Vector3f>() + translation;
@@ -317,7 +318,6 @@ void LeapListener::gesturesStateMachines() {
 		{
 			static bool resetStart[2] = { true, true };
 			static bool resetEnd[2] = { false, false };
-			static Vector3f lastPostition;
 
 			if (onlyRotationActive
 				&& hand->visible && (handInside_MediumSphere && !handInside_SmallSphere && !fingerInside_SmallSphere) && (extendedCount >= 4 || (extendedCount <= 3 && hand->grabStrength <= rotationGrabStrenth))
@@ -328,8 +328,8 @@ void LeapListener::gesturesStateMachines() {
 					t0 = glfwGetTime();
 					resetStart[i] = false;
 				}
-				cout << (lastPostition - hand->palm.position).norm() << endl;
-				if (glfwGetTime() - t0 >= Settings::getInstance().GESTURES_ROTATION_TIME && (lastPostition - hand->palm.position).norm() <= 0.0005f) {
+
+				if (glfwGetTime() - t0 >= Settings::getInstance().GESTURES_ROTATION_TIME && hand->palm.velocity.norm() <= 10.f) {
 					stopPinchGensture();
 					//stopZoomGesture();
 
@@ -338,8 +338,6 @@ void LeapListener::gesturesStateMachines() {
 					gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
 					resetStart[i] = true;
 				}
-
-				lastPostition = hand->palm.position;
 			}
 			else if (onlyRotationActive
 				&& hand->visible && (handInside_LargeSphere) && (extendedCount >= 4 || (extendedCount <= 3 && hand->grabStrength <= rotationGrabStrenth))

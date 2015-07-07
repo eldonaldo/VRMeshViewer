@@ -33,10 +33,12 @@ Settings::Settings () :
 	MESH_DRAW					(true),
 	MESH_DIAGONAL				(0.35f),
 	MESH_DRAW_WIREFRAME			(false),
+	MESH_DISPLAY_BBOX			(false), 
 	MESH_DRAW_BBOX				(false),
 	SHOW_HANDS					(true),
 	SHOW_SPHERE					(false),
 	ENABLE_SPHERE				(true),
+	BBOX_ALPHA_BLEND			(0.f),
 
 	// LEAP, 1.f = 1 Unit = 1 millimeter
 	// PASSTHROUGH
@@ -71,7 +73,9 @@ Settings::Settings () :
 	SPHERE_SMALL_SCALE			(0.3f),
 	SPHERE_MEDIUM_SCALE			(0.6f),
 	SPHERE_VISUAL_SCALE			(0.4f),
-	SPHERE_LARGE_SCALE			(0.9f)
+	SPHERE_LARGE_SCALE			(0.9f),
+	SPHERE_ALPHA_BLEND			(0.f),
+	SPHERE_DISPLAY				(false)
 {}
 
 VR_NAMESPACE_END

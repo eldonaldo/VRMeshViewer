@@ -52,6 +52,7 @@ public:
 		Vector3f direction; ///< Palm direction
 		Vector3f side; /// Palm side
 		Vector3f normal; ///< Palm normal
+		Vector3f velocity;
 		float pitch, yaw, roll;
 	} palm;
 	

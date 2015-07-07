@@ -161,6 +161,7 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 				//Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
 				diagStart = (mesh->getBoundingBox().max - mesh->getBoundingBox().min).norm();
 				initialScale = viewer->getScaleMatrix();
+				Settings::getInstance().MESH_DRAW_BBOX = true;
 			}
 		}
 
@@ -193,6 +194,7 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 		case GESTURE_STATES::INVALID:
 		default: {
 					// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+					 Settings::getInstance().MESH_DRAW_BBOX = false;
 			break;
 		}
 	}

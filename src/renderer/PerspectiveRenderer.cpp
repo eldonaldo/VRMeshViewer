@@ -24,10 +24,8 @@ void PerspectiveRenderer::preProcess () {
 	sphere_small.upload(shader);
 
 	// Upload hands
-	if (Settings::getInstance().SHOW_HANDS) {
-		leftHand->upload(shader);
-		rightHand->upload(shader);
-	}
+	leftHand->upload(shader);
+	rightHand->upload(shader);
 
 	// Material intensity
 	shader->setUniform("materialColor", materialColor);
@@ -74,6 +72,30 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 			sphere_small.scale(Matrix4f::Identity(), sphereRadius_small, sphereRadius_small, sphereRadius_small);
 			sphere_small.setRotationMatrix(r);
 		}
+
+		// Sphere blend
+		if (Settings::getInstance().SPHERE_ALPHA_BLEND < 0.3f) 
+			Settings::getInstance().SPHERE_ALPHA_BLEND += 0.02f;
+
+		Settings::getInstance().SPHERE_DISPLAY = true;
+	} else {
+		if (Settings::getInstance().SPHERE_ALPHA_BLEND > 0.f)
+			Settings::getInstance().SPHERE_ALPHA_BLEND -= 0.02f;
+		else
+			Settings::getInstance().SPHERE_DISPLAY = false;
+	}
+
+	// BBox blend
+	if (Settings::getInstance().MESH_DRAW_BBOX) {
+		if (Settings::getInstance().BBOX_ALPHA_BLEND < 0.8f)
+			Settings::getInstance().BBOX_ALPHA_BLEND += 0.04f;
+
+		Settings::getInstance().MESH_DISPLAY_BBOX = true;
+	} else {
+		if (Settings::getInstance().BBOX_ALPHA_BLEND > 0.f)
+			Settings::getInstance().BBOX_ALPHA_BLEND -= 0.04f;
+		else
+			Settings::getInstance().MESH_DISPLAY_BBOX = false;
 	}
 
 	// Create virtual point light
@@ -108,12 +130,12 @@ void PerspectiveRenderer::draw() {
 	 * I don't have access to the entire mesh state.
 	 */
 	// Bounding box
-	if (Settings::getInstance().MESH_DRAW_BBOX) {
+	if (Settings::getInstance().MESH_DISPLAY_BBOX) {
 		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
-		shader->setUniform("materialColor", Vector3f(1.f, 0.f, 0.f));
-		shader->setUniform("alpha", 1.f);
+		shader->setUniform("materialColor", Vector3f(0.8980f, 0.f, 0.16862f));
+		shader->setUniform("alpha", Settings::getInstance().BBOX_ALPHA_BLEND);
 
 		BoundingBox3f mbbox = mesh->getBoundingBox();
 		bbox = Cube(mbbox.min, mbbox.max);
@@ -127,14 +149,14 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Rotation sphere
-	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_SPHERE && Settings::getInstance().ENABLE_SPHERE) {
+	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SPHERE_DISPLAY && Settings::getInstance().ENABLE_SPHERE) {
 		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
-		shader->setUniform("materialColor", Vector3f(0.3f, 0.3f, 0.3f));
+		shader->setUniform("materialColor", Vector3f(0.28627f, 0.26666f, 0.26274f));
 		
 		// (Visual) Rotation sphere
-		shader->setUniform("alpha", 0.3f);
+		shader->setUniform("alpha", Settings::getInstance().SPHERE_ALPHA_BLEND);
 		sphere.draw(getViewMatrix(), getProjectionMatrix());
 		
 		// Debug spheres
