@@ -32,7 +32,10 @@ void Pin::calculateLocalRotation(const Matrix3f &nm) {
 
 	Vector3f direction = (m_bbox.getCenter() - positionWorld);
 	Vector3f axis = direction.cross(normal).normalized();
-	float angle = std::acosf((direction.dot(normal)) / sqrtf(direction.squaredNorm() * normal.squaredNorm()));
+	direction.normalize();
+	normal.normalize();
+
+	float angle = std::acosf((direction.dot(normal)));
 
 	// Compute rotation
 	Quaternionf q;

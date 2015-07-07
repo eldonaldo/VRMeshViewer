@@ -195,6 +195,7 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 				// Need to send a new packet
 				Settings::getInstance().NETWORK_NEW_DATA = true;
 
+				// Translate
 				viewer->getTranslateMatrix() = VR_NS::translate(Matrix4f::Identity(), handSphereCenter);
 
 				// Need to send a new packet
@@ -208,8 +209,8 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 		case GESTURE_STATES::STOP:
 		case GESTURE_STATES::INVALID:
 		default: {
-					// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
-					 Settings::getInstance().MESH_DRAW_BBOX = false;
+			// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
+			Settings::getInstance().MESH_DRAW_BBOX = false;
 			break;
 		}
 	}
@@ -241,9 +242,7 @@ Vector3f GestureHandler::projectOnSphere(const Vector3f &v, const Vector3f &sphe
 }
 
 Vector3f GestureHandler::projectToSphere(const Vector3f &v, const Vector3f &sphereCenter, float sphereRadius) {
-	Vector3f r = v - sphereCenter;
-	Vector3f projectedR = (sphereRadius / r.norm()) * r;
-	return projectedR + sphereCenter;
+	return projectOnSphere(v, sphereCenter, sphereRadius) + sphereCenter;
 }
 
 Vector2f GestureHandler::normalize(const Vector3f &v) {
