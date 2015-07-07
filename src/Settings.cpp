@@ -48,13 +48,13 @@ Settings::Settings () :
 	LEAP_CAMERA_SHIFT_Z			(-0.08f),
 	LEAP_USE_LISTENER			(false),
 
-	// GESTURES
+	// GESTURES, 1.f = 1 Unit = 1 Second
 	GESTURES_SCALE_TIME			(0.6f),
 	GESTURES_ROTATION_TIME		(0.7f),
 	GESTURES_PINCH_THRESHOLD	(0.95f),
 	GESTURES_GRAB_THRESHOLD		(1.f),
 	GESTURES_RELATIVE_TRANSLATE	(true),
-	ANNOTATION_SEACH_RADIUS		(0.005f),
+	ANNOTATION_SEACH_RADIUS		(0.005f), // Meter
 
 	// NETWORKING, 1 length unit = 1 millimeter, 1 size unit = 1 byte
 	NETWORK_ENABLED				(false),
