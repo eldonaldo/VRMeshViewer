@@ -117,6 +117,7 @@ add_executable(VRMeshViewer
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
 	include/network/UDPSocket.hpp
+	include/renderer/rgbe.h
 	
 	# Source code files
 	src/main.cpp
@@ -136,6 +137,7 @@ add_executable(VRMeshViewer
 	src/leap/SkeletonHand.cpp
 	src/leap/GestureHandler.cpp
 	src/network/UDPSocket.cpp
+	src/renderer/rgbe.c
 )
 
 # Make sure to build in the right order
