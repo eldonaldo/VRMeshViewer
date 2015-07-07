@@ -37,7 +37,7 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 				// Perform search
 				std::vector<uint32_t> results;
 				kdtree.search(localTipPosition, Settings::getInstance().ANNOTATION_SEACH_RADIUS, results);
-
+				
 				// If there is a hit upload a pin
 				if (!results.empty()) {
 

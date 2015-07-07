@@ -265,7 +265,7 @@ void LeapListener::gesturesStateMachines() {
 				resetEnd = false;
 			}
 
-			if (glfwGetTime() - t0 >= Settings::getInstance().GESTURES_SCALE_TIME) {
+			if (glfwGetTime() - t0 >= Settings::getInstance().GESTURES_SCALE_TIME * 0.5f) {
 				stopRotationGesture();
 				stopPinchGensture();
 
@@ -295,7 +295,7 @@ void LeapListener::gesturesStateMachines() {
 		Vector3f pinchMidPoint = (hand->finger[Finger::Type::TYPE_INDEX].position + hand->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
 		
 		// Check whats is inside the spheres and what not
-		bool pinchInsideSphere = insideSphere(pinchMidPoint, sphereCenter, sphereRadius_Medium);
+		bool pinchInsideSphere = insideSphere(pinchMidPoint, sphereCenter, sphereRadius_Small);
 		bool handInside_SmallSphere = insideSphere(hand->palm.position, sphereCenter, sphereRadius_Small);
 		bool handInside_MediumSphere = insideSphere(hand->palm.position, sphereCenter, sphereRadius_Medium);
 		bool handInside_LargeSphere = insideSphere(hand->palm.position, sphereCenter, sphereRadius_Large);
@@ -364,7 +364,7 @@ void LeapListener::gesturesStateMachines() {
 					resetEnd[i] = false;
 				}
 
-				if (glfwGetTime() - t0 >= Settings::getInstance().GESTURES_ROTATION_TIME * 0.5f) {
+				if (glfwGetTime() - t0 >= Settings::getInstance().GESTURES_ROTATION_TIME * 0.2f) {
 					//stopPinchGensture();
 					//stopZoomGesture();
 

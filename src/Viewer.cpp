@@ -239,14 +239,14 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 				KDTree kdtree = __cbref->getMesh()->getKDTree();
 
 				// Perform search
-				std::vector<uint32_t> results;
-				kdtree.search(unprojectedPos, Settings::getInstance().ANNOTATION_SEACH_RADIUS, results);
+				KDTree::SearchResult result[2];
+				size_t resultCount = kdtree.nnSearch(unprojectedPos, 1, result);
 
 				// If there is a hit upload a pin
-				if (!results.empty()) {
+				if (resultCount == 1) {
 
 					// We take the first hit
-					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[results[0]];
+					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[result[0].index];
 
 					// Notify the viewer
 					__cbref->uploadAnnotation = true;
