@@ -48,8 +48,8 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		//window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	}

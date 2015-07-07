@@ -72,6 +72,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 	
 	static Vector3f center(0.f, 0.f, 0.f);
 	static float radius = 0.f;
+	static float lastPitch = 0.f;
 
 	switch (state) {
 		case GESTURE_STATES::START: {
@@ -81,6 +82,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			radius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_MEDIUM_SCALE;
 			lastPos = projectOnSphere(midPoint, center, radius);
 			quat = Quaternionf::Identity();
+			lastPitch = hands[hand]->palm.pitch;
 			break;
 		}
 
@@ -105,9 +107,18 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			if (!std::isfinite(quat.norm()))
 				quat = Quaternionf::Identity();
 
+			// Pitch rotation
+			Quaternionf pitch = Quaternionf::Identity();
+			//float pitchAngle = hands[hand]->palm.pitch - lastPitch;
+			//if (!hands[hand]->isRight)
+			//	pitchAngle *= -1.f;
+
+			//pitch = Eigen::AngleAxisf(pitchAngle, hands[hand]->palm.normal.normalized());
+			//lastPitch = hands[hand]->palm.pitch;
+
 			// Construct rotation matrix
 			Matrix4f result = Matrix4f::Identity();
-			result.block<3, 3>(0, 0) = quat.toRotationMatrix();
+			result.block<3, 3>(0, 0) = (pitch * quat).toRotationMatrix();
 			viewer->getRotationMatrix() = result * viewer->getRotationMatrix();
 
 			// Reset tracking state
