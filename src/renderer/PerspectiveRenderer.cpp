@@ -22,6 +22,11 @@ void PerspectiveRenderer::preProcess () {
 	sphere.upload(shader);
 	sphere_large.upload(shader);
 	sphere_small.upload(shader);
+	
+	// BBox
+	BoundingBox3f mbbox = mesh->getBoundingBox();
+	bbox = Cube(mbbox.min, mbbox.max);
+	bbox.upload(shader);
 
 	// Upload hands
 	leftHand->upload(shader);
@@ -124,11 +129,6 @@ void PerspectiveRenderer::draw() {
 		for (auto &p : *pinList)
 			p->draw(getViewMatrix(), getProjectionMatrix());
 
-	/**
-	 * I know this is far from optimal but since the bbox is only
-	 * for debugging purposes i upload the data every draw because
-	 * I don't have access to the entire mesh state.
-	 */
 	// Bounding box
 	if (Settings::getInstance().MESH_DISPLAY_BBOX) {
 		glDisable(GL_CULL_FACE);
@@ -138,8 +138,7 @@ void PerspectiveRenderer::draw() {
 		shader->setUniform("alpha", Settings::getInstance().BBOX_ALPHA_BLEND);
 
 		BoundingBox3f mbbox = mesh->getBoundingBox();
-		bbox = Cube(mbbox.min, mbbox.max);
-		bbox.upload(shader);
+		bbox.update(mbbox.min, mbbox.max);
 		bbox.draw(getViewMatrix(), getProjectionMatrix());
 
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);

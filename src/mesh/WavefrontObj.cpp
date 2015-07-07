@@ -13,7 +13,6 @@ void WavefrontOBJ::loadFromString(std::istream &is) {
 	std::vector<Vector2f>   texcoords;
 	std::vector<Vector3f>   normals;
 	std::vector<uint32_t>   indices;
-	std::vector<OBJVertex>  vertices;
 	VertexMap vertexMap;
 
 	// Acceleration data structure to calculate per vertex normal

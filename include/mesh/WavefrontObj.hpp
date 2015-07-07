@@ -57,6 +57,8 @@ protected:
             return hash;
         }
     };
+
+	std::vector<OBJVertex>  vertices;
 };
 
 VR_NAMESPACE_END
