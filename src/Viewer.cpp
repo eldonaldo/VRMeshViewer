@@ -135,15 +135,15 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 				break;
 			}
 
-			//// Draw wireframe overlay
-			//case GLFW_KEY_B: {
-			//	static bool disable = true;
-			//	if (action == GLFW_PRESS) {
-			//		Settings::getInstance().MESH_DRAW_BBOX = disable;
-			//		disable = !disable;
-			//	}
-			//	break;
-			//}
+			// Draw wireframe overlay
+			case GLFW_KEY_B: {
+				static bool disable = true;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().MESH_DRAW_BBOX = disable;
+					disable = !disable;
+				}
+				break;
+			}
 
 			// Draw mesh or not?
 			case GLFW_KEY_M: {
@@ -213,7 +213,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			}
 
 			// Enable/disable background
-			case GLFW_KEY_B: {
+			case GLFW_KEY_G: {
 				static bool disable = false;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().GI_ENABLED = disable;
@@ -349,7 +349,7 @@ void Viewer::calcAndAppendFPS () {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
 
-		//cout << fps << endl;
+		cout << fps << endl;
 
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);

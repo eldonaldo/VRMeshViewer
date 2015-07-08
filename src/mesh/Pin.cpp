@@ -7,8 +7,8 @@ void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 
 	// Update the model matrix of the pin
 	Matrix4f m = mm * localRotation;
-	Matrix4f mvp = projectionMatrix * viewMatrix * m;
 	Matrix4f mv = viewMatrix * m;
+	Matrix4f mvp = projectionMatrix * mv;
 	
 	// Transform bounding box (only two points)
 	m_bbox.transformAxisAligned(m);

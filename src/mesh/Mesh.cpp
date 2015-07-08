@@ -45,8 +45,8 @@ Matrix3f Mesh::getNormalMatrix() {
 
 void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	Matrix4f mm = getModelMatrix();
-	Matrix4f mvp = projectionMatrix * viewMatrix * mm;
 	Matrix4f mv = viewMatrix * mm;
+	Matrix4f mvp = projectionMatrix * mv;
 
 	// Transform bounding box (only two points)
 	m_bbox.transformAxisAligned(mm);

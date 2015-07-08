@@ -67,7 +67,7 @@ int main (int argc, char *argv[]) {
 		// Load mesh
 //		Settings::getInstance().MODEL = "resources/models/dragon/dragon.obj";
 //		Settings::getInstance().MODEL = "resources/models/ironman/ironman.obj";
-		Settings::getInstance().MODEL = "resources/models/muro/muro.obj";
+//		Settings::getInstance().MODEL = "resources/models/muro/muro.obj";
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>(Settings::getInstance().MODEL);
 
 		// Create Leap listener
@@ -184,6 +184,8 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"uniform float alpha;" + "\n" +
 		"uniform bool simpleColor = false;" + "\n" +
 		"uniform bool textureOnly = false;" + "\n" +
+		"uniform bool enableGI = false;" + "\n" +
+		"uniform bool specular = false;" + "\n" +
 
 		"in vec3 vertexNormal;" + "\n" +
 		"in vec3 vertexPosition;" + "\n" +
@@ -208,11 +210,16 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"        float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));" + "\n" +
 		"        brightness = clamp(brightness, 0.0, 1.0);" + "\n" +
 
-		"        // Fake GI" + "\n" +
-		"        vec3 GI = texture(envDiffuse, uvGI).rgb;" + "\n" +
+		"		 // Fake global illumination" + "\n" +
+		"		 if (enableGI) {" + "\n" +
+		"			vec3 gi = (specular ? 0.6 * texture(env, uvGI).rgb : texture(envDiffuse, uvGI).rgb);" + "\n" +
 
-		"        // Calculate final color of the pixel" + "\n" +
-		"        color = vec4(GI * brightness * light.intensity, alpha);" + "\n" +
+		"			 // Calculate final color of the pixel" + "\n" +
+		"			float diffuseCoefficient = max(0.0, dot(normal, surfaceToLight));" + "\n" +
+		"			color = vec4(diffuseCoefficient * materialColor * brightness * light.intensity + gi * brightness * light.intensity, alpha);" + "\n" +
+		"		 } else {" + "\n" +
+		"			color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +
+		"		 }" + "\n" +
 		"    } else if (textureOnly) {" + "\n" +
 		"        // No shading, only textures" + "\n" +
 		"        color = texture(env, uv.xy);" + "\n" +

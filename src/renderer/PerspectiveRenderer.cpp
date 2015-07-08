@@ -155,6 +155,7 @@ void PerspectiveRenderer::draw() {
 	Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 	shader->setUniform("alpha", 1.f);
+	shader->setUniform("enableGI", Settings::getInstance().USE_RIFT && Settings::getInstance().GI_ENABLED);
 	
 	// Draw the mesh
 	if (Settings::getInstance().MESH_DRAW)
@@ -241,6 +242,7 @@ void PerspectiveRenderer::draw() {
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_HANDS) {
 		Settings::getInstance().MATERIAL_COLOR = Vector3f(0.7843f, 0.72941f, 0.65098f);
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
+		shader->setUniform("specular", true);
 		glDisable(GL_CULL_FACE);
 
 		if (leftHand->visible) {
@@ -258,7 +260,7 @@ void PerspectiveRenderer::draw() {
 			else
 				rightHand->draw(getViewMatrix(), getProjectionMatrix());
 		}
-
+		shader->setUniform("specular", false);
 		glEnable(GL_CULL_FACE);
 	}
 }
