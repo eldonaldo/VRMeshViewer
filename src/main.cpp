@@ -67,7 +67,7 @@ int main (int argc, char *argv[]) {
 		// Load mesh
 //		Settings::getInstance().MODEL = "resources/models/dragon/dragon.obj";
 //		Settings::getInstance().MODEL = "resources/models/ironman/ironman.obj";
-//		Settings::getInstance().MODEL = "resources/models/muro/muro.obj";
+		Settings::getInstance().MODEL = "resources/models/muro/muro.obj";
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>(Settings::getInstance().MODEL);
 
 		// Create Leap listener
@@ -140,12 +140,15 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 
 		"in vec3 position;" + "\n" +
 		"in vec3 normal;" + "\n" +
+		"in vec2 tex;" + "\n" +
 
 		"out vec3 vertexNormal;" + "\n" +
 		"out vec3 vertexPosition;" + "\n" +
+		"out vec2 uv;" + "\n" +
 
 		"void main () {" + "\n" +
 		"    // Pass through" + "\n" +
+		"    uv = tex;" + "\n" +
 		"    vertexNormal = normal;" + "\n" +
 		"    vertexPosition = position;" + "\n" +
 
@@ -161,21 +164,25 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"    vec3 intensity;" + "\n" +
 		"};" + "\n" +
 
+		"uniform sampler2D env;" + "\n" +
+		"uniform sampler2D envDiffuse;" + "\n" +
 		"uniform Light light;" + "\n" +
 		"uniform vec3 materialColor;" + "\n" +
 		"uniform mat4 modelMatrix;" + "\n" +
 		"uniform mat3 normalMatrix;" + "\n" +
 		"uniform float alpha;" + "\n" +
 		"uniform bool simpleColor = false;" + "\n" +
+		"uniform bool textureOnly = false;" + "\n" +
 
 		"in vec3 vertexNormal;" + "\n" +
 		"in vec3 vertexPosition;" + "\n" +
+		"in vec2 uv;" + "\n" +
 
 		"out vec4 color;" + "\n" +
 
 		"void main () {" + "\n" +
-		"    // Without wireframe overlay" + "\n" +
-		"    if (!simpleColor) {" + "\n" +
+		"    // Shading" + "\n" +
+		"    if (!simpleColor && !textureOnly) {" + "\n" +
 		"        // Transform normal" + "\n" +
 		"        vec3 normal = normalize(normalMatrix * vertexNormal);" + "\n" +
 
@@ -191,6 +198,9 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 
 		"        // Calculate final color of the pixel" + "\n" +
 		"        color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +
+		"    } else if (textureOnly) {" + "\n" +
+		"        // No shading, only textures" + "\n" +
+		"        color = texture(env, uv.xy);" + "\n" +
 		"    } else {" + "\n" +
 		"        // Draw all in simple colors" + "\n" +
 		"        color = vec4(materialColor, alpha);" + "\n" +

@@ -22,7 +22,6 @@ void PerspectiveRenderer::preProcess () {
 	sphere.upload(shader);
 	sphere_large.upload(shader);
 	sphere_small.upload(shader);
-	GISphere.upload(shader);
 	
 	// BBox
 	BoundingBox3f mbbox = mesh->getBoundingBox();
@@ -39,14 +38,40 @@ void PerspectiveRenderer::preProcess () {
 	// Create virtual point light
 	shader->setUniform("light.intensity", lightIntensity);
 
-	// Load Enviornment HDR
-	int width, height;
-	auto f = fopen(Settings::getInstance().GI_FILE.c_str(), "rb");
-	RGBE_ReadHeader(f, &width, &height, NULL);
-	float* image = (float *) malloc(sizeof(float) * 3 * width * height);
-	RGBE_ReadPixels_RLE(f, image, width, height);
-	fclose(f);
-	environment = std::shared_ptr<float>(image);
+	// Fake global illumination
+	preProcessGI();
+}
+
+void PerspectiveRenderer::preProcessGI() {
+	shader->bind();
+	GISphere.upload(shader);
+
+	// Load environment HDR
+	HDRLoaderResult result, resultDiffuse;
+	HDRLoader::load(Settings::getInstance().GI_FILE.c_str(), result);
+	HDRLoader::load(Settings::getInstance().GI_DIFFUSE_FILE.c_str(), resultDiffuse);
+	environment = std::shared_ptr<float>(result.cols);
+	environmentDiffuse = std::shared_ptr<float>(resultDiffuse.cols);
+
+	// Texture uniforms
+	envTexture = GLFramebuffer::createTexture();
+	envDiffuseTexture = GLFramebuffer::createTexture();
+
+	// Upload env
+	glBindTexture(GL_TEXTURE_2D, envTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, result.width, result.height, 0, GL_RGB, GL_FLOAT, environment.get());
+
+	// Upload env Diffuse 
+	glBindTexture(GL_TEXTURE_2D, envDiffuseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, resultDiffuse.width, resultDiffuse.height, 0, GL_RGB, GL_FLOAT, environmentDiffuse.get());
+
+	// Pass to shader
+	glBindVertexArray(GISphere.getVAO());
+	GLuint env = glGetUniformLocation(shader->getId(), "env");
+	GLuint envDiffuse = glGetUniformLocation(shader->getId(), "envDiffuse");
+	glUniform1i(env, /*GL_TEXTURE*/0);
+	glUniform1i(envDiffuse,/*GL_TEXTURE*/1);
+	glBindVertexArray(0);
 }
 
 void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
@@ -137,8 +162,21 @@ void PerspectiveRenderer::draw() {
 
 	// Draw global illumination sphere
 	glDisable(GL_CULL_FACE);
-	shader->setUniform("materialColor", Vector3f(0.8f, 0.f, 0.f));
+	
+
+	shader->setUniform("textureOnly", true);
+	shader->setUniform("materialColor", Vector3f(0.0f, 0.8f, 0.f));
+	
+	glBindVertexArray(GISphere.getVAO());
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, envTexture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, envDiffuseTexture);
+
 	GISphere.draw(getViewMatrix(), getProjectionMatrix());
+
+	shader->setUniform("textureOnly", false);
+
 	glEnable(GL_CULL_FACE);
 
 	// Draw annotations

@@ -16,6 +16,14 @@ public:
 	Sphere(float radius, unsigned int rings, unsigned int sectors, bool invertNormals = false);
 	virtual ~Sphere() = default;
 	float radius;
+
+	GLuint getVAO() {
+		return vao;
+	}
+
+protected:
+
+	Vector2f getUV(const Vector3f &v);
 };
 
 VR_NAMESPACE_END

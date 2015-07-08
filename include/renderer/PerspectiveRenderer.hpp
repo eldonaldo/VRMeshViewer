@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.hpp"
-#include "rgbe.hpp"
+#include "hdrloader.h"
 #include "renderer/Renderer.hpp"
 #include "mesh/Sphere.hpp"
 #include "GLUtil.hpp"
@@ -84,6 +84,13 @@ public:
 
 protected:
 
+	/**
+	* @brief Pre process global illumination
+	*/
+	void preProcessGI ();
+
+protected:
+
 	float fov; ///> Field of view
 	float width, height; ///< Width and height
 	float aspectRatio; ///< Width / height
@@ -97,6 +104,8 @@ protected:
 	Sphere GISphere; /// Fake Global Illumination sphere
 	std::shared_ptr<float> environment; /// Map
 	std::shared_ptr<float> environmentDiffuse; /// Diffuse map
+	GLuint envTexture; /// OpenGL Texture handles
+	GLuint envDiffuseTexture; /// OpenGL Texture handles
 };
 
 VR_NAMESPACE_END

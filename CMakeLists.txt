@@ -89,10 +89,9 @@ include_directories(
 	ext/leap/include
 	ext/leap/util
 	ext/asio/asio/include
-	ext/rgbe
+	ext/hdrloader
 	include
 	${CMAKE_BINARY_DIR}
-	${CMAKE_BINARY_DIR}/RGE_LIB.dir/Release
 )
 
 # The following lines build the main executable
@@ -138,7 +137,7 @@ add_executable(VRMeshViewer
 	src/leap/SkeletonHand.cpp
 	src/leap/GestureHandler.cpp
 	src/network/UDPSocket.cpp
-	ext/rgbe/rgbe.cpp
+	ext/hdrloader/hdrloader.cpp
 )
 
 # Make sure to build in the right order

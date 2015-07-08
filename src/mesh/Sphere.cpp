@@ -11,6 +11,7 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors, bool inve
 	float const S = 1.f / (float) (sectors - 1);
 
 	m_V.resize(3, rings * sectors);
+	m_UV.resize(2, rings * sectors);
 	m_N.resize(3, rings * sectors);
 
 	unsigned int i = 0;
@@ -25,6 +26,8 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors, bool inve
 				m_N.col(i) = -Vector3f(x, y, z);
 			else
 				m_N.col(i) = Vector3f(x, y, z);
+
+			m_UV.col(i) = getUV(m_V.col(i));
 			i++;
 		}
 	}
@@ -37,6 +40,14 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors, bool inve
 			m_F.col(++i) = Vector3ui(r * sectors + (s + 1), (r + 1) * sectors + s, (r + 1) * sectors + (s + 1));
 		}
 	}
+}
+
+Vector2f Sphere::getUV(const Vector3f &v) {
+	//uv.x is the latitude, uv.y is the longitude of the vertex
+	Vector2f uv;
+	uv.x() = 0.5f - atan2(v.z(), v.x()) / (float)(2.0f * M_PI);
+	uv.y() = 0.5f - (0.2f * asin(v.y()) / (float)2.0f * M_PI);
+	return uv;
 }
 
 VR_NAMESPACE_END
