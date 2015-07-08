@@ -13,7 +13,7 @@ class Sphere : public Mesh {
 public:
 	
 	Sphere();
-	Sphere(float radius, unsigned int rings, unsigned int sectors);
+	Sphere(float radius, unsigned int rings, unsigned int sectors, bool invertNormals = false);
 	virtual ~Sphere() = default;
 	float radius;
 };

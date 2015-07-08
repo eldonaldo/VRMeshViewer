@@ -1,5 +1,8 @@
 #ifndef _H_RGBE
 #define _H_RGBE
+
+
+
 /* THIS CODE CARRIES NO GUARANTEE OF USABILITY OR FITNESS FOR ANY PURPOSE.
  * WHILE THE AUTHORS HAVE TRIED TO ENSURE THE PROGRAM WORKS CORRECTLY,
  * IT IS STRICTLY USE AT YOUR OWN RISK.  */
@@ -9,6 +12,7 @@
 */
 
 #include <stdio.h>
+
 
 typedef struct {
   int valid;            /* indicate which fields are valid */
@@ -46,6 +50,7 @@ int RGBE_WritePixels_RLE(FILE *fp, float *data, int scanline_width,
 			 int num_scanlines);
 int RGBE_ReadPixels_RLE(FILE *fp, float *data, int scanline_width,
 			int num_scanlines);
+
 
 #endif /* _H_RGBE */
 

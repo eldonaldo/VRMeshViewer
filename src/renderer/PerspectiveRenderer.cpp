@@ -7,7 +7,7 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio), lightIntensity(Settings::getInstance().LIGHT_INTENSITY)
 	, materialColor(Settings::getInstance().MATERIAL_COLOR), headsUp(Settings::getInstance().CAMERA_HEADS_UP)
 	, lookAtPosition(Settings::getInstance().CAMERA_LOOK_AT)
-	, cameraPosition(Settings::getInstance().CAMERA_OFFSET) {
+	, cameraPosition(Settings::getInstance().CAMERA_OFFSET), GISphere(2.f, 24, 24, true) {
 
 	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 	setViewMatrix(lookAt(cameraPosition, lookAtPosition, headsUp));
@@ -22,6 +22,7 @@ void PerspectiveRenderer::preProcess () {
 	sphere.upload(shader);
 	sphere_large.upload(shader);
 	sphere_small.upload(shader);
+	GISphere.upload(shader);
 	
 	// BBox
 	BoundingBox3f mbbox = mesh->getBoundingBox();
@@ -37,6 +38,15 @@ void PerspectiveRenderer::preProcess () {
 
 	// Create virtual point light
 	shader->setUniform("light.intensity", lightIntensity);
+
+	// Load Enviornment HDR
+	int width, height;
+	auto f = fopen(Settings::getInstance().GI_FILE.c_str(), "rb");
+	RGBE_ReadHeader(f, &width, &height, NULL);
+	float* image = (float *) malloc(sizeof(float) * 3 * width * height);
+	RGBE_ReadPixels_RLE(f, image, width, height);
+	fclose(f);
+	environment = std::shared_ptr<float>(image);
 }
 
 void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
@@ -116,6 +126,7 @@ void PerspectiveRenderer::draw() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
+	// Shader settings
 	Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 	shader->setUniform("alpha", 1.f);
@@ -123,6 +134,12 @@ void PerspectiveRenderer::draw() {
 	// Draw the mesh
 	if (Settings::getInstance().MESH_DRAW)
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
+
+	// Draw global illumination sphere
+	glDisable(GL_CULL_FACE);
+	shader->setUniform("materialColor", Vector3f(0.8f, 0.f, 0.f));
+	GISphere.draw(getViewMatrix(), getProjectionMatrix());
+	glEnable(GL_CULL_FACE);
 
 	// Draw annotations
 	if (pinList != nullptr && !pinList->empty())

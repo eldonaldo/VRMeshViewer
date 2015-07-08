@@ -1,7 +1,9 @@
 #pragma once
 
 #include "common.hpp"
+#include "rgbe.hpp"
 #include "renderer/Renderer.hpp"
+#include "mesh/Sphere.hpp"
 #include "GLUtil.hpp"
 
 VR_NAMESPACE_BEGIN
@@ -92,6 +94,9 @@ protected:
 	Vector3f &lookAtPosition; ///< Look at position
 	Vector3f &headsUp; ///< Camera heads up
 	Vector3f &lightIntensity; ///< Light intensity
+	Sphere GISphere; /// Fake Global Illumination sphere
+	std::shared_ptr<float> environment; /// Map
+	std::shared_ptr<float> environmentDiffuse; /// Diffuse map
 };
 
 VR_NAMESPACE_END

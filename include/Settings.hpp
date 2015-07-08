@@ -101,6 +101,10 @@ public:
 	bool SPHERE_DISPLAY;
 	float SPHERE_ALPHA_BLEND;
 	bool SPHERE_ALPHA_BLEND_INTRO;
+
+	bool GI_ENABLED;
+	std::string GI_FILE;
+	std::string GI_DIFFUSE_FILE;
 };
 
 VR_NAMESPACE_END

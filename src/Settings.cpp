@@ -10,8 +10,8 @@ Settings::Settings () :
 	ANNOTATIONS					("none"),
 
 	// WINDOW
-	WINDOW_WIDTH				(1000),
-	WINDOW_HEIGHT				(700),
+	WINDOW_WIDTH				(1200),
+	WINDOW_HEIGHT				(900),
 	FOV							(60.f),
 	Z_NEAR						(0.001f),
 	Z_FAR						(10.f),
@@ -76,7 +76,12 @@ Settings::Settings () :
 	SPHERE_LARGE_SCALE			(0.9f),
 	SPHERE_ALPHA_BLEND			(0.f),
 	SPHERE_DISPLAY				(false),
-	SPHERE_ALPHA_BLEND_INTRO	(false)
+	SPHERE_ALPHA_BLEND_INTRO	(false),
+
+	// GLOBAL ILLUMINATION
+	GI_ENABLED					(true),
+	GI_FILE						("resources/hdr/museum_big.hdr"),
+	GI_DIFFUSE_FILE				("resources/hdr/museum_diffuse.hdr")
 {}
 
 VR_NAMESPACE_END

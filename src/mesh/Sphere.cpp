@@ -6,7 +6,7 @@ Sphere::Sphere() : Sphere(1.f, 16, 16) {
 
 }
 
-Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors) : Mesh(), radius(radius) {
+Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors, bool invertNormals) : Mesh(), radius(radius) {
 	float const R = 1.f / (float) (rings - 1);
 	float const S = 1.f / (float) (sectors - 1);
 
@@ -21,7 +21,10 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors) : Mesh(),
 			float z = sinf(2 * M_PI * s * S) * sinf(M_PI * r * R);
 
 			m_V.col(i) = Vector3f(x * radius, y * radius, z * radius);
-			m_N.col(i) = Vector3f(x, y, z);
+			if (invertNormals)
+				m_N.col(i) = -Vector3f(x, y, z);
+			else
+				m_N.col(i) = Vector3f(x, y, z);
 			i++;
 		}
 	}
