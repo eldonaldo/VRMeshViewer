@@ -137,6 +137,8 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		std::string("#version 330") + "\n" +
 
 		"uniform mat4 mvp;" + "\n" +
+		"uniform mat4 modelViewMatrix;" + "\n" +
+		"uniform mat3 normalMatrix;" + "\n" +
 
 		"in vec3 position;" + "\n" +
 		"in vec3 normal;" + "\n" +
@@ -145,12 +147,21 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"out vec3 vertexNormal;" + "\n" +
 		"out vec3 vertexPosition;" + "\n" +
 		"out vec2 uv;" + "\n" +
+		"out vec2 uvGI;" + "\n" +
 
 		"void main () {" + "\n" +
 		"    // Pass through" + "\n" +
 		"    uv = tex;" + "\n" +
 		"    vertexNormal = normal;" + "\n" +
 		"    vertexPosition = position;" + "\n" +
+
+		"    // GI" + "\n" +
+		"    vec3 e = normalize(vec3(modelViewMatrix * vec4(position, 1.0)));" + "\n" +
+		"    vec3 n = normalize(normalMatrix * normal);" + "\n" +
+
+		"    vec3 r = reflect(e, n);" + "\n" +
+		"    float m = 2.0 * sqrt(pow(r.x, 2.0) + pow(r.y, 2.0) + pow(r.z + 1.0, 2.0));" + "\n" +
+		"    uvGI = r.xy / m + .5;" + "\n" +
 
 		"    gl_Position = mvp * vec4(position, 1.0);" + "\n" +
 		"}" + "\n",
@@ -177,6 +188,7 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"in vec3 vertexNormal;" + "\n" +
 		"in vec3 vertexPosition;" + "\n" +
 		"in vec2 uv;" + "\n" +
+		"in vec2 uvGI;" + "\n" +
 
 		"out vec4 color;" + "\n" +
 
@@ -196,8 +208,11 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"        float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));" + "\n" +
 		"        brightness = clamp(brightness, 0.0, 1.0);" + "\n" +
 
+		"        // Fake GI" + "\n" +
+		"        vec3 GI = texture(envDiffuse, uvGI).rgb;" + "\n" +
+
 		"        // Calculate final color of the pixel" + "\n" +
-		"        color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +
+		"        color = vec4(GI * brightness * light.intensity, alpha);" + "\n" +
 		"    } else if (textureOnly) {" + "\n" +
 		"        // No shading, only textures" + "\n" +
 		"        color = texture(env, uv.xy);" + "\n" +

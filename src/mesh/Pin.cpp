@@ -8,6 +8,7 @@ void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	// Update the model matrix of the pin
 	Matrix4f m = mm * localRotation;
 	Matrix4f mvp = projectionMatrix * viewMatrix * m;
+	Matrix4f mv = viewMatrix * m;
 	
 	// Transform bounding box (only two points)
 	m_bbox.transformAxisAligned(m);
@@ -16,6 +17,7 @@ void Pin::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	shader->bind();
 	shader->setUniform("materialColor", color);
 	shader->setUniform("modelMatrix", m);
+	shader->setUniform("modelViewMatrix", mv);
 	shader->setUniform("normalMatrix", getNormalMatrix());
 	shader->setUniform("mvp", mvp);
 

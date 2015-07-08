@@ -48,8 +48,8 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		//window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	}
@@ -135,15 +135,15 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 				break;
 			}
 
-			// Draw wireframe overlay
-			case GLFW_KEY_B: {
-				static bool disable = true;
-				if (action == GLFW_PRESS) {
-					Settings::getInstance().MESH_DRAW_BBOX = disable;
-					disable = !disable;
-				}
-				break;
-			}
+			//// Draw wireframe overlay
+			//case GLFW_KEY_B: {
+			//	static bool disable = true;
+			//	if (action == GLFW_PRESS) {
+			//		Settings::getInstance().MESH_DRAW_BBOX = disable;
+			//		disable = !disable;
+			//	}
+			//	break;
+			//}
 
 			// Draw mesh or not?
 			case GLFW_KEY_M: {
@@ -206,6 +206,17 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 				static bool disable = true;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().USE_LEAP = disable && __cbref->leapController.isConnected();
+					disable = !disable;
+				}
+
+				break;
+			}
+
+			// Enable/disable background
+			case GLFW_KEY_B: {
+				static bool disable = false;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().GI_ENABLED = disable;
 					disable = !disable;
 				}
 

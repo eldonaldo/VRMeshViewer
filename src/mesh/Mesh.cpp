@@ -46,12 +46,14 @@ Matrix3f Mesh::getNormalMatrix() {
 void Mesh::draw(const Matrix4f &viewMatrix, const Matrix4f &projectionMatrix) {
 	Matrix4f mm = getModelMatrix();
 	Matrix4f mvp = projectionMatrix * viewMatrix * mm;
+	Matrix4f mv = viewMatrix * mm;
 
 	// Transform bounding box (only two points)
 	m_bbox.transformAxisAligned(mm);
 
 	shader->bind();
 	shader->setUniform("modelMatrix", mm);
+	shader->setUniform("modelViewMatrix", mv);
 	shader->setUniform("normalMatrix", getNormalMatrix());
 	shader->setUniform("mvp", mvp);
 

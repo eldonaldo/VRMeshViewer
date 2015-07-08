@@ -161,23 +161,17 @@ void PerspectiveRenderer::draw() {
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
 
 	// Draw global illumination sphere
-	glDisable(GL_CULL_FACE);
-	
-
-	shader->setUniform("textureOnly", true);
-	shader->setUniform("materialColor", Vector3f(0.0f, 0.8f, 0.f));
-	
-	glBindVertexArray(GISphere.getVAO());
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, envTexture);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, envDiffuseTexture);
-
-	GISphere.draw(getViewMatrix(), getProjectionMatrix());
-
-	shader->setUniform("textureOnly", false);
-
-	glEnable(GL_CULL_FACE);
+	if (Settings::getInstance().USE_RIFT && Settings::getInstance().GI_ENABLED) {
+		glDisable(GL_CULL_FACE);
+		shader->setUniform("textureOnly", true);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, envTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, envDiffuseTexture);
+		GISphere.draw(getViewMatrix(), getProjectionMatrix());
+		shader->setUniform("textureOnly", false);
+		glEnable(GL_CULL_FACE);
+	}
 
 	// Draw annotations
 	if (pinList != nullptr && !pinList->empty())

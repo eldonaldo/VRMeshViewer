@@ -80,8 +80,8 @@ Settings::Settings () :
 
 	// GLOBAL ILLUMINATION
 	GI_ENABLED					(true),
-	GI_FILE						("resources/hdr/museum_big.hdr"),
-	GI_DIFFUSE_FILE				("resources/hdr/museum_diffuse.hdr")
+	GI_FILE						("resources/hdr/loft.hdr"),
+	GI_DIFFUSE_FILE				("resources/hdr/loft_diffuse.hdr")
 {}
 
 VR_NAMESPACE_END

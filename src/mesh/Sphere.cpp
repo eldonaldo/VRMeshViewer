@@ -10,9 +10,9 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors, bool inve
 	float const R = 1.f / (float) (rings - 1);
 	float const S = 1.f / (float) (sectors - 1);
 
-	m_V.resize(3, rings * sectors);
-	m_UV.resize(2, rings * sectors);
-	m_N.resize(3, rings * sectors);
+	m_V.resize(3, rings * sectors + sectors);
+	m_UV.resize(2, rings * sectors + sectors);
+	m_N.resize(3, rings * sectors + sectors);
 
 	unsigned int i = 0;
 	for (unsigned int r = 0; r < rings; r++) {
@@ -27,7 +27,7 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors, bool inve
 			else
 				m_N.col(i) = Vector3f(x, y, z);
 
-			m_UV.col(i) = getUV(m_V.col(i));
+			m_UV.col(i) = getUV(m_V.col(i).normalized());
 			i++;
 		}
 	}
@@ -45,8 +45,8 @@ Sphere::Sphere(float radius, unsigned int rings, unsigned int sectors, bool inve
 Vector2f Sphere::getUV(const Vector3f &v) {
 	//uv.x is the latitude, uv.y is the longitude of the vertex
 	Vector2f uv;
-	uv.x() = 0.5f - atan2(v.z(), v.x()) / (float)(2.0f * M_PI);
-	uv.y() = 0.5f - (0.2f * asin(v.y()) / (float)2.0f * M_PI);
+	uv.x() = 0.5f + atan2f(v.z(), v.x()) / float(2.f * M_PI);
+	uv.y() = 0.5f - asinf(v.y()) / float(M_PI);
 	return uv;
 }
 
