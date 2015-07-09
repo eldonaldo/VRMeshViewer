@@ -149,7 +149,6 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		default: {
 			Settings::getInstance().MATERIAL_COLOR_ROTATION = Settings::getInstance().MATERIAL_COLOR;
 			Settings::getInstance().SHOW_SPHERE = false;
-			Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO = true;
 			// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}

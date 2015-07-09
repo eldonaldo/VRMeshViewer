@@ -102,6 +102,8 @@ public:
 	bool SPHERE_DISPLAY;
 	float SPHERE_ALPHA_BLEND;
 	bool SPHERE_ALPHA_BLEND_INTRO;
+	bool SPHERE_VISUAL_HINT;
+	Eigen::Vector3f SPHERE_VISUAL_HINT_COLOR;
 
 	bool GI_ENABLED;
 	std::string GI_FILE;

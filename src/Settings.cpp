@@ -78,6 +78,8 @@ Settings::Settings () :
 	SPHERE_ALPHA_BLEND			(0.f),
 	SPHERE_DISPLAY				(false),
 	SPHERE_ALPHA_BLEND_INTRO	(false),
+	SPHERE_VISUAL_HINT			(false),
+	SPHERE_VISUAL_HINT_COLOR	(0.6f, 0.f, 0.f),
 
 	// GLOBAL ILLUMINATION
 	GI_ENABLED					(true),

@@ -92,7 +92,7 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	}
 
 	// Bounding sphere
-	if (Settings::getInstance().SHOW_SPHERE) {
+	if (Settings::getInstance().SHOW_SPHERE || Settings::getInstance().SPHERE_VISUAL_HINT) {
 		sphereCenter = mesh->getBoundingBox().getCenter();
 		sphereRadius = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm() * Settings::getInstance().SPHERE_VISUAL_SCALE;
 
@@ -116,14 +116,17 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		}
 
 		// Sphere blend
-		if (Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO && Settings::getInstance().SPHERE_ALPHA_BLEND < 0.3f)
-			Settings::getInstance().SPHERE_ALPHA_BLEND += 0.02f;
-		else
-			Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO = false;
+		if (Settings::getInstance().SHOW_SPHERE)
+			if (Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO && Settings::getInstance().SPHERE_ALPHA_BLEND < 0.3f)
+				Settings::getInstance().SPHERE_ALPHA_BLEND += 0.02f;
+			else
+				Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO = false;
 
 		Settings::getInstance().SPHERE_DISPLAY = true;
 	} else {
 		Settings::getInstance().SPHERE_DISPLAY = false;
+		if (!Settings::getInstance().SPHERE_VISUAL_HINT)
+			Settings::getInstance().SPHERE_ALPHA_BLEND = 0.f;
 	}
 
 	// BBox blend
@@ -160,7 +163,7 @@ void PerspectiveRenderer::draw() {
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 	shader->setUniform("alpha", 1.f);
 	shader->setUniform("enableGI", Settings::getInstance().USE_RIFT && Settings::getInstance().GI_ENABLED);
-	
+
 	// Draw the mesh
 	if (Settings::getInstance().MESH_DRAW)
 		mesh->draw(getViewMatrix(), getProjectionMatrix());
@@ -203,12 +206,14 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Rotation sphere
-	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SPHERE_DISPLAY && Settings::getInstance().ENABLE_SPHERE) {
+	if ((Settings::getInstance().USE_LEAP && Settings::getInstance().SPHERE_DISPLAY && Settings::getInstance().ENABLE_SPHERE) || Settings::getInstance().SPHERE_VISUAL_HINT) {
 		glDisable(GL_CULL_FACE);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(0.28627f, 0.26666f, 0.26274f));
-		
+		if (Settings::getInstance().SPHERE_VISUAL_HINT)
+			shader->setUniform("materialColor", Settings::getInstance().SPHERE_VISUAL_HINT_COLOR);
+
 		// (Visual) Rotation sphere
 		shader->setUniform("alpha", clamp(Settings::getInstance().SPHERE_ALPHA_BLEND));
 		sphere.draw(getViewMatrix(), getProjectionMatrix());

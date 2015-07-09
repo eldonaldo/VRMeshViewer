@@ -48,8 +48,8 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		//window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	}
@@ -350,7 +350,7 @@ void Viewer::calcAndAppendFPS () {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
 
-		cout << fps << endl;
+		//cout << fps << endl;
 
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);

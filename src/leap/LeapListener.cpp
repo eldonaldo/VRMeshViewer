@@ -292,9 +292,9 @@ void LeapListener::gesturesStateMachines() {
 		float sphereRadius_Small = diameter * Settings::getInstance().SPHERE_SMALL_SCALE;
 		float sphereRadius_Medium = diameter * Settings::getInstance().SPHERE_MEDIUM_SCALE;
 		float sphereRadius_Large = diameter * Settings::getInstance().SPHERE_LARGE_SCALE;
-		
+
 		Vector3f pinchMidPoint = (hand->finger[Finger::Type::TYPE_INDEX].position + hand->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
-		
+
 		// Check whats is inside the spheres and what not
 		bool pinchInsideSphere = insideSphere(pinchMidPoint, sphereCenter, sphereRadius_Small);
 		bool handInside_SmallSphere = insideSphere(hand->palm.position, sphereCenter, sphereRadius_Small);
@@ -357,7 +357,7 @@ void LeapListener::gesturesStateMachines() {
 				&& (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)
 				) {
 				cout << !onlyRotationActive << !hand->visible << !handInside_LargeSphere << extendedCount << (extendedCount == 0 && hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD) << endl;
-				
+
 				static double t0 = glfwGetTime();
 				if (resetEnd[i]) {
 					t0 = glfwGetTime();
@@ -372,7 +372,7 @@ void LeapListener::gesturesStateMachines() {
 					gestures[i][GESTURES::ROTATION] = GESTURE_STATES::STOP;
 					gestureHandler->rotate(gestures[i][GESTURES::ROTATION], (HANDS)i, skeletonHands);
 					resetEnd[i] = true;
-				}				
+				}
 			}
 			else {
 				resetStart[i] = true;
@@ -387,10 +387,10 @@ void LeapListener::gesturesStateMachines() {
 		if (hand->visible && pinchInsideSphere && hand->pinchStrength >= pinchThreshold && gestures[i][GESTURES::PINCH] == GESTURE_STATES::STOP) {
 			stopRotationGesture();
 			//stopZoomGesture();
-			
+
 			// Start
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::START;
-			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
+			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS)i, skeletonHands);
 		}
 		else if (hand->visible && pinchInsideSphere && hand->pinchStrength >= pinchThreshold && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
 			stopRotationGesture();
@@ -398,7 +398,7 @@ void LeapListener::gesturesStateMachines() {
 
 			// Update
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::UPDATE;
-			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
+			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS)i, skeletonHands);
 
 		}
 		else if ((!pinchInsideSphere || !hand->visible || hand->pinchStrength < pinchThreshold) && (gestures[i][GESTURES::PINCH] == GESTURE_STATES::START || gestures[i][GESTURES::PINCH] == GESTURE_STATES::UPDATE)) {
@@ -407,8 +407,9 @@ void LeapListener::gesturesStateMachines() {
 
 			// Stop
 			gestures[i][GESTURES::PINCH] = GESTURE_STATES::STOP;
-			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS) i, skeletonHands);
+			gestureHandler->pinch(gestures[i][GESTURES::PINCH], (HANDS)i, skeletonHands);
 		}
+
 
 		///**
 		//* Grab state machine
@@ -429,6 +430,40 @@ void LeapListener::gesturesStateMachines() {
 		//	gestures[i][GESTURES::GRAB] = GESTURE_STATES::STOP;
 		//	gestureHandler->grab(gestures[i][GESTURES::GRAB], (HANDS)i, skeletonHands);
 		//}
+
+
+		// Visual rotation aid: Blinking sphere to show where to grab
+		static double t0[2] = { glfwGetTime(), glfwGetTime() };
+		static bool increasing[2] = { true, true };
+		static bool hint[2] = { false, false };
+		bool state[2] = {
+			gestures[0][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[0][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP,
+			gestures[1][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[1][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP
+		};
+		
+		if (state[i] && hand->visible && hand->palm.velocity.norm() <= 50.f && extendedCount >= 4) {
+			if (glfwGetTime() - t0[i] >= 0.75f) {
+				hint[i] = true;
+				
+				if (Settings::getInstance().SPHERE_ALPHA_BLEND < 0.3f && increasing[i])
+					Settings::getInstance().SPHERE_ALPHA_BLEND += 0.04f;
+				
+				if (Settings::getInstance().SPHERE_ALPHA_BLEND >= 0.3f && increasing[i])
+					increasing[i] = false;
+				
+				if (Settings::getInstance().SPHERE_ALPHA_BLEND > 0.f && !increasing[i])
+					Settings::getInstance().SPHERE_ALPHA_BLEND -= 0.04f;
+				
+				if (Settings::getInstance().SPHERE_ALPHA_BLEND <= 0.f && !increasing[i])
+					increasing[i] = true;
+
+			}
+		} else {
+			hint[i] = false;
+			t0[i] = glfwGetTime();
+		}
+
+		Settings::getInstance().SPHERE_VISUAL_HINT = hint[0] || hint[1];
 	}
 }
 

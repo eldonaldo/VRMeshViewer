@@ -68,6 +68,7 @@ int main (int argc, char *argv[]) {
 //		Settings::getInstance().MODEL = "resources/models/dragon/dragon.obj";
 //		Settings::getInstance().MODEL = "resources/models/ironman/ironman.obj";
 //		Settings::getInstance().MODEL = "resources/models/muro/muro.obj";
+//		Settings::getInstance().MODEL = "C:/Users/pnico/Downloads/Ajax_Jotero_com.obj";
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>(Settings::getInstance().MODEL);
 
 		// Create Leap listener
