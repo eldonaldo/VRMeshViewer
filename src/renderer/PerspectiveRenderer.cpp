@@ -122,11 +122,12 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		}
 
 		// Sphere blend
-		if (Settings::getInstance().SHOW_SPHERE)
+		if (Settings::getInstance().SHOW_SPHERE) {
 			if (Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO && Settings::getInstance().SPHERE_ALPHA_BLEND < 0.3f)
 				Settings::getInstance().SPHERE_ALPHA_BLEND += 0.02f;
 			else
 				Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO = false;
+		}
 
 		Settings::getInstance().SPHERE_DISPLAY = true;
 	} else {
@@ -149,8 +150,11 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	}
 
 	// Create virtual point light
-	Vector3f cf = (cameraPosition + Vector3f(0.4f, 0.2f, 0.5f));
-	shader->setUniform("light.position", cf);
+	Vector3f cp = cameraPosition;
+	if (Settings::getInstance().USE_RIFT)
+		cp += Vector3f(0.4f, 0.2f, 0.5f);
+
+	shader->setUniform("light.position", cp);
 	shader->setUniform("cameraPosition", cameraPosition);
 
 	// Default no wireframe and bbox overlay
@@ -286,7 +290,7 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Draw the anchor point
-	if (Settings::getInstance().SHOW_SOCKEL) {
+	if (Settings::getInstance().SHOW_SOCKEL && Settings::getInstance().USE_RIFT) {
 		glDisable(GL_CULL_FACE);
 		if ((pedestal.getBoundingBox().overlaps(mesh->getBoundingBox()) || 
 			rightHand->containsBBox(pedestal.getBoundingBox()) || 
