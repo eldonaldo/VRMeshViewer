@@ -48,8 +48,8 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	if (Settings::getInstance().USE_RIFT || fullscreen) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		//window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		//window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	} else {
 		window = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 	}
@@ -218,6 +218,17 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 				static bool disable = false;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().GI_ENABLED = disable;
+					disable = !disable;
+				}
+
+				break;
+			}
+
+			// Enable/disable sockel
+			case GLFW_KEY_F: {
+				static bool disable = false;
+				if (action == GLFW_PRESS) {
+					Settings::getInstance().SHOW_SOCKEL = disable;
 					disable = !disable;
 				}
 

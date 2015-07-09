@@ -356,7 +356,8 @@ void LeapListener::gesturesStateMachines() {
 				)
 				&& (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)
 				) {
-				cout << !onlyRotationActive << !hand->visible << !handInside_LargeSphere << extendedCount << (extendedCount == 0 && hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD) << endl;
+				
+				//cout << !onlyRotationActive << !hand->visible << !handInside_LargeSphere << extendedCount << (extendedCount == 0 && hand->grabStrength >= Settings::getInstance().GESTURES_GRAB_THRESHOLD) << endl;
 
 				static double t0 = glfwGetTime();
 				if (resetEnd[i]) {
@@ -441,7 +442,7 @@ void LeapListener::gesturesStateMachines() {
 			gestures[1][GESTURES::PINCH] == GESTURE_STATES::STOP && gestures[1][GESTURES::ROTATION] == GESTURE_STATES::STOP && gestureZoom == GESTURE_STATES::STOP
 		};
 		
-		if (state[i] && hand->visible && hand->palm.velocity.norm() <= 50.f && extendedCount >= 4) {
+		if (state[i] && hand->visible && hand->palm.velocity.norm() <= 60.f && extendedCount >= 4) {
 			if (glfwGetTime() - t0[i] >= 0.75f) {
 				hint[i] = true;
 				

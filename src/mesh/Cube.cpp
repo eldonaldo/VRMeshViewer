@@ -20,12 +20,14 @@ void Cube::update(const Vector3f &min, const Vector3f &max) {
 	std::istringstream is(v);
 	std::string line_str;
 	std::vector<Vector3f> newPos;
+	m_bbox.reset();
 	while (std::getline(is, line_str)) {
 		std::istringstream line(line_str);
 		
 		Point3f p;
 		line >> p.x() >> p.y() >> p.z();
 		newPos.push_back(p);
+		m_bbox.expandBy(p);
 	}
 
 	for (uint32_t i = 0; i < m_V.cols(); ++i)

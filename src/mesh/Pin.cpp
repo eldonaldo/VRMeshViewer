@@ -56,7 +56,8 @@ std::string Pin::serialize() {
 }
 
 Matrix4f Pin::getModelMatrix() {
-	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * VR_NS::scale(Matrix4f::Identity(), 0.0015f, 0.0015f, 0.0015f);
+	static Matrix4f localScale = VR_NS::scale(Matrix4f::Identity(), 0.0030f, 0.0030f, 0.0030f);
+	return transMat * rotateMat * scaleMat * VR_NS::translate(Matrix4f::Identity(), position) * localScale;
 }
 
 const Vector3f& Pin::getPosition() const {

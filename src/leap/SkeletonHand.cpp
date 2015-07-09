@@ -112,4 +112,22 @@ void SkeletonHand::translate(float x, float y, float z) {
 			mesh.joints[i][j].translate(x, y, z);
 }
 
+bool SkeletonHand::containsBBox(const BoundingBox3f &b) {
+	if (b.contains(palm.position))
+		return true;
+
+	if (b.contains(handJointPosition))
+		return true;
+	
+	for (int i = 0; i < 5; i++) {
+		if (b.contains(finger[i].position))
+			return true;
+		for (int j = 0; j < mesh.nrOfJoints; j++)
+				if (b.contains(finger[i].jointPositions[j]))
+				return true;
+	}
+
+	return false;
+}
+
 VR_NAMESPACE_END

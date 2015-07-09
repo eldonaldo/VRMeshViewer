@@ -32,15 +32,21 @@ void PerspectiveRenderer::preProcess () {
 	leftHand->upload(shader);
 	rightHand->upload(shader);
 
+	// Fake global illumination
+	preProcessGI();
+
+	// Anchor point on which tha model stands
+	pedestal.update(mesh->getBoundingBox().min, mesh->getBoundingBox().max);
+	pedestal.scale(0.7f, 20.f, 0.7f);
+	pedestal.translate(0.f, 10.6f * (mesh->getBoundingBox().min.y() - mesh->getBoundingBox().max.y()) + 0.005f, 0.f);
+	pedestal.upload(shader);
+
 	// Material intensity
 	shader->setUniform("materialColor", materialColor);
 
 	// Create virtual point light
 	shader->setUniform("light.intensity", lightIntensity);
 	shader->setUniform("light.ambientCoefficient", Settings::getInstance().LIGHT_AMBIENT);
-
-	// Fake global illumination
-	preProcessGI();
 }
 
 void PerspectiveRenderer::preProcessGI() {
@@ -143,7 +149,7 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	}
 
 	// Create virtual point light
-	Vector3f cf = (cameraPosition + Vector3f(0.5f, 0.2f, 0.5f));
+	Vector3f cf = (cameraPosition + Vector3f(0.4f, 0.2f, 0.5f));
 	shader->setUniform("light.position", cf);
 	shader->setUniform("cameraPosition", cameraPosition);
 
@@ -253,7 +259,8 @@ void PerspectiveRenderer::draw() {
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_HANDS) {
 		Settings::getInstance().MATERIAL_COLOR = Vector3f(1.f, 1.f, 1.f);
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
-		shader->setUniform("light.ambientCoefficient", Vector3f(0.2f, 0.2f, 0.2f));
+		float ambient = Settings::getInstance().LIGHT_AMBIENT;
+		shader->setUniform("light.ambientCoefficient", 0.05f);
 		shader->setUniform("specular", true);
 		glDisable(GL_CULL_FACE);
 
@@ -273,7 +280,24 @@ void PerspectiveRenderer::draw() {
 				rightHand->draw(getViewMatrix(), getProjectionMatrix());
 		}
 
+		shader->setUniform("light.ambientCoefficient", ambient);
 		shader->setUniform("specular", false);
+		glEnable(GL_CULL_FACE);
+	}
+
+	// Draw the anchor point
+	if (Settings::getInstance().SHOW_SOCKEL) {
+		glDisable(GL_CULL_FACE);
+		if ((pedestal.getBoundingBox().overlaps(mesh->getBoundingBox()) || 
+			rightHand->containsBBox(pedestal.getBoundingBox()) || 
+			leftHand->containsBBox(pedestal.getBoundingBox())) && Settings::getInstance().SOCKEL_ALPHA_BLEND > 0.f)
+			
+			Settings::getInstance().SOCKEL_ALPHA_BLEND -= 0.02f;
+		else if (Settings::getInstance().SOCKEL_ALPHA_BLEND <= 1.f)
+			Settings::getInstance().SOCKEL_ALPHA_BLEND += 0.02f;
+
+		shader->setUniform("alpha", clamp(Settings::getInstance().SOCKEL_ALPHA_BLEND));
+		pedestal.draw(getViewMatrix(), getProjectionMatrix());
 		glEnable(GL_CULL_FACE);
 	}
 }

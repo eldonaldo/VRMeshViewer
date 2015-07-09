@@ -32,7 +32,7 @@ Settings::Settings () :
 
 	// MESH, 1.f = 1 Unit = 1 meter
 	MESH_DRAW					(true),
-	MESH_DIAGONAL				(0.35f),
+	MESH_DIAGONAL				(0.60f),
 	MESH_DRAW_WIREFRAME			(false),
 	MESH_DISPLAY_BBOX			(false), 
 	MESH_DRAW_BBOX				(false),
@@ -40,6 +40,8 @@ Settings::Settings () :
 	SHOW_SPHERE					(false),
 	ENABLE_SPHERE				(true),
 	BBOX_ALPHA_BLEND			(0.f),
+	SHOW_SOCKEL					(true),
+	SOCKEL_ALPHA_BLEND			(1.f),
 
 	// LEAP, 1.f = 1 Unit = 1 millimeter
 	// PASSTHROUGH

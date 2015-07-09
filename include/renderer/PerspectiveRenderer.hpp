@@ -107,6 +107,7 @@ protected:
 	std::shared_ptr<float> environmentDiffuse; /// Diffuse map
 	GLuint envTexture; /// OpenGL Texture handles
 	GLuint envDiffuseTexture; /// OpenGL Texture handles
+	Cube pedestal; /// Anchor point for model
 };
 
 VR_NAMESPACE_END

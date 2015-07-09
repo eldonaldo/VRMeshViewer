@@ -69,6 +69,8 @@ public:
 	bool SHOW_HANDS;
 	bool SHOW_SPHERE;
 	bool ENABLE_SPHERE;
+	bool SHOW_SOCKEL;
+	float SOCKEL_ALPHA_BLEND;
 
 	bool USE_LEAP;
 	bool LEAP_USE_PASSTHROUGH;

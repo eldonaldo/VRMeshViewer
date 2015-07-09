@@ -78,6 +78,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 	switch (state) {
 		case GESTURE_STATES::START: {
 			// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.f, 0.f);
+			Settings::getInstance().SPHERE_ALPHA_BLEND_INTRO = true;
 			Settings::getInstance().SHOW_SPHERE = true;
 			center = mesh->getBoundingBox().getCenter();
 			radius = diameter * Settings::getInstance().SPHERE_MEDIUM_SCALE;

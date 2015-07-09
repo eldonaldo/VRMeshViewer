@@ -35,6 +35,11 @@ public:
 	 */
 	void translate (float x, float y, float z);
 
+	/**
+	* @brief BBox containing check
+	*/
+	bool containsBBox(const BoundingBox3f &b);
+
 public:
 
 	int id; ///< Leap hand id

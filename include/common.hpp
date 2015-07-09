@@ -250,4 +250,5 @@ inline bool insideSphere(const Vector3f &v, const Vector3f &sphereCenter, float 
 	const Vector3f p = v - sphereCenter;
 	return powf((p.x()), 2.f) + powf((p.y()), 2.f) + powf((p.z()), 2.f) <= powf((sphereRadius), 2.f);
 }
+
 VR_NAMESPACE_END
