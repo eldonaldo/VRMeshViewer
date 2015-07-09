@@ -286,29 +286,20 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-//		if (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
-//			return;
-//
-//		float scaleFactor = 0.05f;
-//#if defined(PLATFORM_WINDOWS)
-//		scaleFactor = 0.45f;
-//#endif
-//		if (y >= 0)
-//			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
-//		else
-//			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
-//
-//		// Need to send a new packet
-//		Settings::getInstance().NETWORK_NEW_DATA = true;
+		if (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
+			return;
 
-		float scaleFactor = 0.002f;
-
+		float scaleFactor = 0.05f;
+#if defined(PLATFORM_WINDOWS)
+		scaleFactor = 0.45f;
+#endif
 		if (y >= 0)
-			Settings::getInstance().LIGHT_AMBIENT += scaleFactor;
+			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
 		else
-			Settings::getInstance().LIGHT_AMBIENT -= scaleFactor;
+			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
 
-		cout << Settings::getInstance().LIGHT_AMBIENT << endl;
+		// Need to send a new packet
+		Settings::getInstance().NETWORK_NEW_DATA = true;
 	});
 
 	/* Window size callback */

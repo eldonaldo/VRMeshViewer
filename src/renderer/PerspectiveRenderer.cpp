@@ -140,9 +140,9 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	}
 
 	// Create virtual point light
-	shader->setUniform("light.position", cameraPosition);
+	Vector3f cf = (cameraPosition + Vector3f(0.5f, 0.2f, 0.5f));
+	shader->setUniform("light.position", cf);
 	shader->setUniform("cameraPosition", cameraPosition);
-	shader->setUniform("light.ambientCoefficient", Settings::getInstance().LIGHT_AMBIENT);
 
 	// Default no wireframe and bbox overlay
 	shader->setUniform("simpleColor", false);
@@ -179,9 +179,11 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Draw annotations
+	shader->setUniform("enableGI", false);
 	if (pinList != nullptr && !pinList->empty())
 		for (auto &p : *pinList)
 			p->draw(getViewMatrix(), getProjectionMatrix());
+	shader->setUniform("enableGI", true);
 
 	// Bounding box
 	if (Settings::getInstance().MESH_DISPLAY_BBOX) {
@@ -244,8 +246,9 @@ void PerspectiveRenderer::draw() {
 
 	// Draw hands
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_HANDS) {
-		Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8980f, 0.7254f, 0.55682f);
+		Settings::getInstance().MATERIAL_COLOR = Vector3f(1.f, 1.f, 1.f);
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
+		shader->setUniform("light.ambientCoefficient", Vector3f(0.2f, 0.2f, 0.2f));
 		shader->setUniform("specular", true);
 		glDisable(GL_CULL_FACE);
 

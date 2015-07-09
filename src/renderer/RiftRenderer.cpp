@@ -180,7 +180,7 @@ void RiftRenderer::draw() {
 
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
-
+		
 		// Copy to Eigen matrices (we need column major -> transpose)
 		setProjectionMatrix(eye == ovrEyeType::ovrEye_Left ? pL : pR);
 		setViewMatrix(Eigen::Map<Matrix4f>((float *)view.Transposed().M));
@@ -204,7 +204,6 @@ void RiftRenderer::draw() {
 			leapShader->setUniform("mvp", getProjectionMatrix());
 			drawOnCube(eye);
 		}
-
 		// Draw the mesh for each eye
 		PerspectiveRenderer::draw();
 	}

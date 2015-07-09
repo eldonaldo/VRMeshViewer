@@ -217,7 +217,7 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 
 		"		 // Lightning" + "\n" +
 		"		 if (enableGI) {" + "\n" +
-		"			vec3 gi = (specular ? 0.6 * texture(env, uvGI).rgb : texture(envDiffuse, uvGI).rgb);" + "\n" +
+		"			vec3 gi = (specular ? texture(env, uvGI).rgb : texture(envDiffuse, uvGI).rgb);" + "\n" +
 
 		"			// Ambient" + "\n" +
 		"			vec3 ambient = vec3(light.ambientCoefficient * materialColor * light.intensity);" + "\n" +
@@ -231,12 +231,12 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"			if (brightness > 0.0)" + "\n" +
 		"				specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), materialShininess);" + "\n" +
 		
-		"			vec3 specular = specularCoefficient * materialColor * light.intensity;" + "\n" +
+		"			vec3 specularC = specularCoefficient * materialColor * light.intensity;" + "\n" +
 
 		"			float k = 0.2;" + "\n" +
 		"			float attenuation = 1.0 / (1.0 + k * pow(length(surfaceToLight), 2));" + "\n" +
 
-		"			color = vec4(ambient + attenuation * (diffuse + specular), alpha);" + "\n" +
+		"			color = vec4(ambient + attenuation * (diffuse + specularC), alpha);" + "\n" +
 
 		"		 } else {" + "\n" +
 		"			color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +

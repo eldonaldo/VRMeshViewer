@@ -64,6 +64,10 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	for (int i = 0; i < 5; i++)
 		for (int j = 0; j < mesh.nrOfJoints; j++)
 			mesh.joints[i][j].draw(viewMatrix, projectionMatrix);
+	
+	shader->setUniform("materialColor", Vector3f(0.8f, 0.8f, 0.8f));
+	shader->setUniform("simpleColor", true);
+
 	/**
 	 * This not efficient at all to do it that way - but since a line consists
 	 * only of two points its feasible.
@@ -88,10 +92,14 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	mesh.handBones[4].update(finger[Finger::Type::TYPE_PINKY].jointPositions[0], handJointPosition);
 	mesh.handBones[5].update(finger[Finger::Type::TYPE_THUMB].jointPositions[0], handJointPosition);
 
+	
 	for (int i = 0; i < mesh.nrOfhandBones; i++) {
 		mesh.handBones[i].upload(shader);
 		mesh.handBones[i].draw(viewMatrix, projectionMatrix);
 	}
+
+	shader->setUniform("materialColor", color);
+	shader->setUniform("simpleColor", false);
 }
 
 void SkeletonHand::translate(float x, float y, float z) {
