@@ -1,8 +1,7 @@
 #?RADIANCE
-# Made with FreeImage 3.9.3
+# Made with 100% pure HDR Shop
 FORMAT=32-bit_rle_rgbe
-GAMMA=1
-EXPOSURE=0
+EXPOSURE=          1.0000000000000
 
 -Y 800 +X 1600
 @ŽŸ“ Œ¡“¢…£¢Š£‘¤‘¥“¦ˆ¥¦—¥•¤œ£¢£££ž¢„£°¢®¡„ §¡‹¢±¡† ’¡Ï ‡Ÿ‡ Ÿ Ÿ… ‰ŸŽ ¡¡   ¡¢¡¢‰£¤‘¥„¦§ˆ¨Š§„¨‰§†¨”§Ž¦Ž¥ˆ¤Œ£ÿ¢…¢»¡´  Ÿœž°ˆœ¬ŒžŠŸ‚ …ŸŠ ¡¡  Š¡¢•£…¤¨£•¢‡¡ ¡¡‹ Ÿžžž³‹œœœœŒ‰œ¥ž†ŸKŽL‘M—N‘OßPON—M¨L¡K…J…KƒJÔKJKKK¨JÄIH…I‚H„I­HŒIH“IJJI–J”K’LM‘N¤O”PˆO›NšMLLMMMôLªK°L·K²J¤I‚H„I³H•I–J£K¾L‚KˆLK„LŸKJIŒJÞI¨JK•ž£Ç˜ÞÿÙ‚–Œ’™‹Â«ŒŠŸÀ¡„ˆ„º‚†§šŠ–øØ £‰ƒ¥Ÿ§ÿšÿ~ÿ~ÿ~ÿ~ÿ~ÿ~ÿ~ÿ~ÿ~ÿ~ÿ~ÿ~Ì~@œ ‹Ÿ” ‰¡†¢„£…¤„¥‚¦ˆ§¨Š§†¦¥¤¤¤„£¢¢¢¡¡¡  ŸŸŸžžœœœ›››†š„™…˜ˆ—‘–ˆ•–³•””“‹’œ“”…“…”Š•„–†—„˜‡™‡šŒ›Œœ‰žŽŸ Š¡Œ ŸŸ   ¤ŸŠ „¡†¢…£‰¤’¥‹¤…£„¢„¡   ŸŸ†ž„ƒœˆ›‰š–™ŠšŠ›œ…›œ…ˆœƒœ“›ŽœŒž„Ÿ„žŸŸžžŸŸŸž‚…ž‡žŒˆœˆ›•š…›š›››œœ›…œ…„žŸžž‡Ÿ„ ‰¡›¢“¡¢¡‰¢Ž£†¤‡¥…¦„§†¨©©¨¨Ž©—¨‹§„¦„§„¦

@@ -122,7 +122,9 @@ public:
 	/// Rotation around roll, pitch and yaw in radiants
 	virtual void rotate(float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy);
 
+	/// Rotation round axis of angle radians
 	virtual void rotate(float angle, Vector3f axis);
+
 protected:
     std::string m_name;                  ///< Identifying name
     MatrixXf      m_V;                   ///< Vertex positions

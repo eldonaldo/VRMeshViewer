@@ -180,6 +180,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 				static bool disable = true;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().LEAP_USE_PASSTHROUGH = disable;
+					Settings::getInstance().GI_ENABLED = !disable;
 					disable = !disable;
 				}
 				break;
@@ -285,20 +286,29 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 
 	/* Mouse wheel callback */
 	glfwSetScrollCallback(window, [] (GLFWwindow *window, double x, double y) {
-		if (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
-			return;
+//		if (Settings::getInstance().NETWORK_ENABLED && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
+//			return;
+//
+//		float scaleFactor = 0.05f;
+//#if defined(PLATFORM_WINDOWS)
+//		scaleFactor = 0.45f;
+//#endif
+//		if (y >= 0)
+//			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
+//		else
+//			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
+//
+//		// Need to send a new packet
+//		Settings::getInstance().NETWORK_NEW_DATA = true;
 
-		float scaleFactor = 0.05f;
-#if defined(PLATFORM_WINDOWS)
-		scaleFactor = 0.45f;
-#endif
+		float scaleFactor = 0.002f;
+
 		if (y >= 0)
-			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f + scaleFactor);
+			Settings::getInstance().LIGHT_AMBIENT += scaleFactor;
 		else
-			__cbref->scaleMatrix = scale(__cbref->scaleMatrix, 1.f - scaleFactor);
+			Settings::getInstance().LIGHT_AMBIENT -= scaleFactor;
 
-		// Need to send a new packet
-		Settings::getInstance().NETWORK_NEW_DATA = true;
+		cout << Settings::getInstance().LIGHT_AMBIENT << endl;
 	});
 
 	/* Window size callback */

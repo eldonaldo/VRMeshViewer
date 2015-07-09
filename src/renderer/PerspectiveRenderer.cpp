@@ -37,6 +37,7 @@ void PerspectiveRenderer::preProcess () {
 
 	// Create virtual point light
 	shader->setUniform("light.intensity", lightIntensity);
+	shader->setUniform("light.ambientCoefficient", Settings::getInstance().LIGHT_AMBIENT);
 
 	// Fake global illumination
 	preProcessGI();
@@ -45,7 +46,6 @@ void PerspectiveRenderer::preProcess () {
 void PerspectiveRenderer::preProcessGI() {
 	shader->bind();
 	GISphere.scale(0.2f, 0.2f, 0.2f);
-	GISphere.rotate(degToRad(180.f), Vector3f::UnitY());
 	GISphere.upload(shader);
 
 	// Load environment HDR
@@ -141,6 +141,8 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 
 	// Create virtual point light
 	shader->setUniform("light.position", cameraPosition);
+	shader->setUniform("cameraPosition", cameraPosition);
+	shader->setUniform("light.ambientCoefficient", Settings::getInstance().LIGHT_AMBIENT);
 
 	// Default no wireframe and bbox overlay
 	shader->setUniform("simpleColor", false);

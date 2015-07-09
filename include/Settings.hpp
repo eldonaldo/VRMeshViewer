@@ -58,6 +58,7 @@ public:
 	Eigen::Vector3f MATERIAL_COLOR;
 	Eigen::Vector3f MATERIAL_COLOR_ROTATION;
 	Eigen::Vector3f LIGHT_INTENSITY;
+	float LIGHT_AMBIENT;
 
 	bool MESH_DRAW;
 	float MESH_DIAGONAL;

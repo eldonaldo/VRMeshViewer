@@ -27,7 +27,8 @@ Settings::Settings () :
 	MATERIAL_COLOR_ROTATION		(0.7843f, 0.72941f, 0.65098f),
 
 	// LIGHTNING
-	LIGHT_INTENSITY				(1.f, 1.f, 1.f),
+	LIGHT_INTENSITY				(0.9f, 0.9f, 0.9f),
+	LIGHT_AMBIENT				(0.005f),
 
 	// MESH, 1.f = 1 Unit = 1 meter
 	MESH_DRAW					(true),

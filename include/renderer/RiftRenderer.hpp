@@ -113,10 +113,11 @@ protected:
 	ovrEyeRenderDesc eyeRenderDesc[2]; ///< Render structure
 	ovrGLConfig cfg; ///< Oculus config
 	ovrGLTexture eyeTexture[2]; ///< OVR textures for distortion rendering
-	OVR::Matrix4f rollPitchYaw;
-	OVR::Vector3f camPosition;
-	OVR::Matrix4f projectionL, projectionR;
-	Matrix4f pL, pR;
+	OVR::Matrix4f rollPitchYaw; /// HEad pose
+	OVR::Vector3f camPosition; /// OVR cam pos
+	OVR::Matrix4f projectionL, projectionR;/// Left and right projection OVR matrices 
+	Matrix4f pL, pR; /// Left and right projection Eigen matrices 
+	
 	/**
 	* Leap passthrough
 	*/
@@ -125,7 +126,6 @@ protected:
 	std::shared_ptr<GLShader> leapShader; ///< Leap passthrough shader
 	GLuint leapRawTexture[2]; ///< Distorted passthrough textures
 	GLuint leapDistortionTexture[2];///< Passthrough textures
-
 	int rawWidth = 640, rawHeight = 240; ///< Leap texture sizes
 	int distWidth = 64, distHeight = 64; ///< Leap texture sizes
 };

@@ -150,7 +150,7 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"out vec2 uvGI;" + "\n" +
 
 		"void main () {" + "\n" +
-		"    // Pass through" + "\n" +
+		"    // Pass" + "\n" +
 		"    uv = tex;" + "\n" +
 		"    vertexNormal = normal;" + "\n" +
 		"    vertexPosition = position;" + "\n" +
@@ -173,6 +173,7 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"struct Light {" + "\n" +
 		"    vec3 position;" + "\n" +
 		"    vec3 intensity;" + "\n" +
+		"	 float ambientCoefficient;" + "\n" +
 		"};" + "\n" +
 
 		"uniform sampler2D env;" + "\n" +
@@ -186,6 +187,7 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"uniform bool textureOnly = false;" + "\n" +
 		"uniform bool enableGI = false;" + "\n" +
 		"uniform bool specular = false;" + "\n" +
+		"uniform vec3 cameraPosition;" + "\n" +
 
 		"in vec3 vertexNormal;" + "\n" +
 		"in vec3 vertexPosition;" + "\n" +
@@ -195,8 +197,10 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"out vec4 color;" + "\n" +
 
 		"void main () {" + "\n" +
+	
 		"    // Shading" + "\n" +
 		"    if (!simpleColor && !textureOnly) {" + "\n" +
+	
 		"        // Transform normal" + "\n" +
 		"        vec3 normal = normalize(normalMatrix * vertexNormal);" + "\n" +
 
@@ -205,18 +209,35 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 
 		"        // Calculate the vector from surface to the light" + "\n" +
 		"        vec3 surfaceToLight = light.position - position;" + "\n" +
+		"        vec3 surfaceToCamera = light.position - cameraPosition;" + "\n" +
 
 		"        // Calculate the cosine of the angle of incidence = brightness" + "\n" +
 		"        float brightness = dot(normal, surfaceToLight) / (length(surfaceToLight) * length(normal));" + "\n" +
 		"        brightness = clamp(brightness, 0.0, 1.0);" + "\n" +
 
-		"		 // Fake global illumination" + "\n" +
+		"		 // Lightning" + "\n" +
 		"		 if (enableGI) {" + "\n" +
 		"			vec3 gi = (specular ? 0.6 * texture(env, uvGI).rgb : texture(envDiffuse, uvGI).rgb);" + "\n" +
 
-		"			 // Calculate final color of the pixel" + "\n" +
-		"			float diffuseCoefficient = max(0.0, dot(normal, surfaceToLight));" + "\n" +
-		"			color = vec4(diffuseCoefficient * materialColor * brightness * light.intensity + gi * brightness * light.intensity, alpha);" + "\n" +
+		"			// Ambient" + "\n" +
+		"			vec3 ambient = vec3(light.ambientCoefficient * materialColor * light.intensity);" + "\n" +
+
+		"			// Diffuse" + "\n" +
+		"			vec3 diffuse = vec3(gi * brightness * light.intensity);" + "\n" +
+
+		"			// Specular" + "\n" +
+		"			float specularCoefficient = 0.0;" + "\n" +
+		"			float materialShininess = 1.5;" + "\n" +
+		"			if (brightness > 0.0)" + "\n" +
+		"				specularCoefficient = pow(max(0.0, dot(surfaceToCamera, reflect(-surfaceToLight, normal))), materialShininess);" + "\n" +
+		
+		"			vec3 specular = specularCoefficient * materialColor * light.intensity;" + "\n" +
+
+		"			float k = 0.2;" + "\n" +
+		"			float attenuation = 1.0 / (1.0 + k * pow(length(surfaceToLight), 2));" + "\n" +
+
+		"			color = vec4(ambient + attenuation * (diffuse + specular), alpha);" + "\n" +
+
 		"		 } else {" + "\n" +
 		"			color = vec4(materialColor * brightness * light.intensity, alpha);" + "\n" +
 		"		 }" + "\n" +
