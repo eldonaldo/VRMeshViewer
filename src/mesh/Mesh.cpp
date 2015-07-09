@@ -143,7 +143,14 @@ void Mesh::rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw,
 
 	Quaternionf q = rollAngle * yawAngle * pitchAngle;
 	rotateMat = Matrix4f::Identity();
-	rotateMat.block<3, 3>(0, 0) = q.matrix();
+	rotateMat.block<3, 3>(0, 0) = q.toRotationMatrix();
 }
 
+void Mesh::rotate(float angle, Vector3f axis) {
+	Eigen::AngleAxisf r = Eigen::AngleAxisf(angle, axis.normalized());
+	Quaternionf q;
+	q = r;
+	rotateMat = Matrix4f::Identity();
+	rotateMat.block<3, 3>(0, 0) = q.toRotationMatrix();
+}
 VR_NAMESPACE_END

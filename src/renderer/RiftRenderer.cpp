@@ -107,6 +107,17 @@ void RiftRenderer::preProcess() {
 
 	// Upload geometry
 	uploadBackgroundCube();
+
+	// Heads yaw angle
+	static float yaw = 0.f;
+	rollPitchYaw = OVR::Matrix4f::RotationY(yaw);
+
+	// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
+	camPosition = OVR::Vector3f(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
+	projectionL = ovrMatrix4f_Projection(hmd->DefaultEyeFov[ovrEyeType::ovrEye_Left], zNear, zFar, ovrProjection_RightHanded);
+	projectionR = ovrMatrix4f_Projection(hmd->DefaultEyeFov[ovrEyeType::ovrEye_Right], zNear, zFar, ovrProjection_RightHanded);
+	pL = Eigen::Map<Matrix4f>((float *)projectionL.Transposed().M);
+	pR = Eigen::Map<Matrix4f>((float *)projectionR.Transposed().M);
 }
 
 void RiftRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
@@ -146,14 +157,8 @@ void RiftRenderer::clear(Vector3f background) {
 }
 
 void RiftRenderer::draw() {
-	// Heads yaw angle
-	static float yaw = 0.f;
-
 	// Begin distortion rendering
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
-
-	// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
-	OVR::Vector3f camPosition(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
 
 	// Get eye poses, feeding in correct IPD offset
 	ovrVector3f viewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset };
@@ -168,7 +173,6 @@ void RiftRenderer::draw() {
 		frameBuffer[eye].bind();
 
 		// Use data from rift sensors
-		OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(yaw);
 		OVR::Matrix4f finalRollPitchYaw = rollPitchYaw * OVR::Matrix4f(eyeRenderPose[eye].Orientation);
 		OVR::Vector3f up = finalRollPitchYaw.Transform(OVR::Vector3f(0, 1, 0));
 		OVR::Vector3f forward = finalRollPitchYaw.Transform(OVR::Vector3f(0, 0, -1));
@@ -176,15 +180,10 @@ void RiftRenderer::draw() {
 
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
-		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
 
 		// Copy to Eigen matrices (we need column major -> transpose)
-		Matrix4f v = Eigen::Map<Matrix4f>((float *)view.Transposed().M);
-		Matrix4f p = Eigen::Map<Matrix4f>((float *)projection.Transposed().M);
-
-		// Update matrices
-		setProjectionMatrix(p);
-		setViewMatrix(v);
+		setProjectionMatrix(eye == ovrEyeType::ovrEye_Left ? pL : pR);
+		setViewMatrix(Eigen::Map<Matrix4f>((float *)view.Transposed().M));
 
 		// Leap passthrough
 		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
@@ -209,10 +208,7 @@ void RiftRenderer::draw() {
 		// Draw the mesh for each eye
 		PerspectiveRenderer::draw();
 	}
-
-	// Bind "the" framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	
 	// End SDK distortion mode
 	ovrHmd_EndFrame(hmd, eyeRenderPose, &eyeTexture[0].Texture);
 }

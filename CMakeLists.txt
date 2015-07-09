@@ -118,7 +118,8 @@ add_executable(VRMeshViewer
 	include/leap/SkeletonHand.hpp
 	include/leap/GestureHandler.hpp
 	include/network/UDPSocket.hpp
-	
+	include/mesh/Environment.hpp
+
 	# Source code files
 	src/main.cpp
 	src/common.cpp
@@ -137,6 +138,9 @@ add_executable(VRMeshViewer
 	src/leap/SkeletonHand.cpp
 	src/leap/GestureHandler.cpp
 	src/network/UDPSocket.cpp
+	src/mesh/Environment.cpp
+
+	# Est source code files
 	ext/hdrloader/hdrloader.cpp
 )
 

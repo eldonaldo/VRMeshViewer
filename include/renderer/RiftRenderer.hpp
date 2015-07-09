@@ -113,7 +113,10 @@ protected:
 	ovrEyeRenderDesc eyeRenderDesc[2]; ///< Render structure
 	ovrGLConfig cfg; ///< Oculus config
 	ovrGLTexture eyeTexture[2]; ///< OVR textures for distortion rendering
-
+	OVR::Matrix4f rollPitchYaw;
+	OVR::Vector3f camPosition;
+	OVR::Matrix4f projectionL, projectionR;
+	Matrix4f pL, pR;
 	/**
 	* Leap passthrough
 	*/

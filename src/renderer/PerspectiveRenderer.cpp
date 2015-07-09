@@ -7,7 +7,7 @@ PerspectiveRenderer::PerspectiveRenderer (std::shared_ptr<GLShader> &shader, flo
 	, fH(tan(fov / 360 * M_PI) * zNear), fW(fH * aspectRatio), lightIntensity(Settings::getInstance().LIGHT_INTENSITY)
 	, materialColor(Settings::getInstance().MATERIAL_COLOR), headsUp(Settings::getInstance().CAMERA_HEADS_UP)
 	, lookAtPosition(Settings::getInstance().CAMERA_LOOK_AT)
-	, cameraPosition(Settings::getInstance().CAMERA_OFFSET), GISphere(2.f, 24, 24, true) {
+	, cameraPosition(Settings::getInstance().CAMERA_OFFSET), GISphere(true) {
 
 	setProjectionMatrix(frustum(-fW, fW, -fH, fH, zNear, zFar));
 	setViewMatrix(lookAt(cameraPosition, lookAtPosition, headsUp));
@@ -44,6 +44,8 @@ void PerspectiveRenderer::preProcess () {
 
 void PerspectiveRenderer::preProcessGI() {
 	shader->bind();
+	GISphere.scale(0.2f, 0.2f, 0.2f);
+	GISphere.rotate(degToRad(180.f), Vector3f::UnitY());
 	GISphere.upload(shader);
 
 	// Load environment HDR
@@ -163,7 +165,7 @@ void PerspectiveRenderer::draw() {
 
 	// Draw global illumination sphere
 	if (Settings::getInstance().USE_RIFT && Settings::getInstance().GI_ENABLED) {
-		glDisable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 		shader->setUniform("textureOnly", true);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, envTexture);
@@ -171,7 +173,7 @@ void PerspectiveRenderer::draw() {
 		glBindTexture(GL_TEXTURE_2D, envDiffuseTexture);
 		GISphere.draw(getViewMatrix(), getProjectionMatrix());
 		shader->setUniform("textureOnly", false);
-		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 	}
 
 	// Draw annotations
@@ -240,7 +242,7 @@ void PerspectiveRenderer::draw() {
 
 	// Draw hands
 	if (Settings::getInstance().USE_LEAP && Settings::getInstance().SHOW_HANDS) {
-		Settings::getInstance().MATERIAL_COLOR = Vector3f(0.7843f, 0.72941f, 0.65098f);
+		Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8980f, 0.7254f, 0.55682f);
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 		shader->setUniform("specular", true);
 		glDisable(GL_CULL_FACE);
@@ -260,6 +262,7 @@ void PerspectiveRenderer::draw() {
 			else
 				rightHand->draw(getViewMatrix(), getProjectionMatrix());
 		}
+
 		shader->setUniform("specular", false);
 		glEnable(GL_CULL_FACE);
 	}

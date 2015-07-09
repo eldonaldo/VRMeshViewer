@@ -14,7 +14,7 @@ Settings::Settings () :
 	WINDOW_HEIGHT				(900),
 	FOV							(60.f),
 	Z_NEAR						(0.001f),
-	Z_FAR						(10.f),
+	Z_FAR						(12.f),
 
 	// CAMERA, 1.f = 1 Unit = 1 meter
 	USE_RIFT					(false),
