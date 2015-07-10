@@ -111,13 +111,7 @@ void RiftRenderer::preProcess() {
 	// Heads yaw angle
 	static float yaw = 0.f;
 	rollPitchYaw = OVR::Matrix4f::RotationY(yaw);
-
-	// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
 	camPosition = OVR::Vector3f(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
-	projectionL = ovrMatrix4f_Projection(hmd->DefaultEyeFov[ovrEyeType::ovrEye_Left], zNear, zFar, ovrProjection_RightHanded);
-	projectionR = ovrMatrix4f_Projection(hmd->DefaultEyeFov[ovrEyeType::ovrEye_Right], zNear, zFar, ovrProjection_RightHanded);
-	pL = Eigen::Map<Matrix4f>((float *)projectionL.Transposed().M);
-	pR = Eigen::Map<Matrix4f>((float *)projectionR.Transposed().M);
 }
 
 void RiftRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
@@ -194,11 +188,14 @@ void RiftRenderer::draw() {
 		OVR::Vector3f forward = finalRollPitchYaw.Transform(OVR::Vector3f(0, 0, -1));
 		OVR::Vector3f shiftedEyePos = camPosition + rollPitchYaw.Transform(eyeRenderPose[eye].Position);
 
+		// Adjust camera height to person's height, if available and copy to OVR Vector to calculate projection matrix
+		OVR::Matrix4f projection = ovrMatrix4f_Projection(hmd->DefaultEyeFov[eye], zNear, zFar, ovrProjection_RightHanded);
+
 		// Calculate view and projection matrices
 		OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + forward, up);
 		
 		// Copy to Eigen matrices (we need column major -> transpose)
-		setProjectionMatrix(eye == ovrEyeType::ovrEye_Left ? pL : pR);
+		setProjectionMatrix(Eigen::Map<Matrix4f>((float *)projection.Transposed().M));
 		setViewMatrix(Eigen::Map<Matrix4f>((float *)view.Transposed().M));
 
 		// Leap passthrough

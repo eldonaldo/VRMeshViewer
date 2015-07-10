@@ -69,7 +69,6 @@
 	#include <GLFW/glfw3native.h>
 #endif
 #include "OVR.h"
-#include "OVR_CAPI.h"
 #include "OVR_CAPI_GL.h"
 #include "OVR_Math.h"
 #include "tinyformat.h"

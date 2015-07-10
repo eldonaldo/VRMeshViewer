@@ -171,13 +171,10 @@ void GestureHandler::scale(GESTURE_STATES state, std::shared_ptr<SkeletonHand>(&
 
 	switch (state) {
 		case GESTURE_STATES::START: {
-			// Hands need to point together
-			if (dotProd <= dotProdThreshold) {
-				//Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
-				diagStart = (mesh->getBoundingBox().max - mesh->getBoundingBox().min).norm();
-				initialScale = viewer->getScaleMatrix();
-				Settings::getInstance().MESH_DRAW_BBOX = true;
-			}
+			//Settings::getInstance().MATERIAL_COLOR = Vector3f(0.f, 0.8f, 0.f);
+			diagStart = (mesh->getBoundingBox().max - mesh->getBoundingBox().min).norm();
+			initialScale = viewer->getScaleMatrix();
+			Settings::getInstance().MESH_DRAW_BBOX = true;
 		}
 
 		case GESTURE_STATES::UPDATE: {

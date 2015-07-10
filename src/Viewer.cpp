@@ -225,7 +225,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			}
 
 			// Enable/disable sockel
-			case GLFW_KEY_F: {
+			case GLFW_KEY_E: {
 				static bool disable = false;
 				if (action == GLFW_PRESS) {
 					Settings::getInstance().SHOW_SOCKEL = disable;
@@ -361,7 +361,7 @@ void Viewer::calcAndAppendFPS () {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
 
-		//cout << fps << endl;
+		cout << fps << endl;
 
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
@@ -470,13 +470,15 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 	long lastTime = glfwGetTime() * 1000;
 
 	// Render loop
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 	while (!glfwWindowShouldClose(window)) {
-		// Bind the default framebuffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Poll for events to process
 		glfwPollEvents();
+
+		// Swap framebuffer, only if the rift is not attached
+		if (renderer->getClassType() != EHMDRenderer)
+			glfwSwapBuffers(window);
 
 		// Get a new leap frame if no listener is used
 		if (!Settings::getInstance().LEAP_USE_LISTENER) {
@@ -502,7 +504,7 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 
 		// Draw using attached renderer
 		renderer->draw();
-
+		
 		// Calc fps
 		if (appFPS)
 			calcAndAppendFPS();
@@ -512,10 +514,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 			addAnnotation(annotationTarget, annotationNormal);
 			uploadAnnotation = false;
 		}
-
-		// Swap framebuffer, only if the rift is not attached
-		if (renderer->getClassType() != EHMDRenderer)
-			glfwSwapBuffers(window);
 
 		// Networking
 		if (Settings::getInstance().NETWORK_ENABLED && (long(glfwGetTime() * 1000) - lastTime) >= Settings::getInstance().NETWORK_SEND_RATE) {

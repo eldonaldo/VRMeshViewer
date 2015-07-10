@@ -4,7 +4,8 @@ VR_NAMESPACE_BEGIN
 
 Mesh::Mesh()
 	: glPositionName("position"), glNormalName("normal"), glTexName("tex")
-	, transMat(Matrix4f::Identity()), scaleMat(Matrix4f::Identity()), rotateMat(Matrix4f::Identity()) {
+	, transMat(Matrix4f::Identity()), scaleMat(Matrix4f::Identity()), rotateMat(Matrix4f::Identity())
+	, mmCache(Matrix4f::Identity()), mmChanged(false) {
 
 	// Initialize standard values
 	vbo[VERTEX_BUFFER] = 0;
@@ -32,7 +33,12 @@ void Mesh::releaseBuffers () {
 }
 
 Matrix4f Mesh::getModelMatrix() {
-	return transMat * rotateMat * scaleMat;
+	if (mmChanged) {
+		mmCache = transMat * rotateMat * scaleMat;
+		mmChanged = false;
+	}
+
+	return mmCache;
 }
 
 Matrix3f Mesh::getNormalMatrix() {
@@ -110,30 +116,44 @@ void Mesh::upload(std::shared_ptr<GLShader> &s) {
 	glBindVertexArray(0);
 }
 
-void Mesh::setTranslateMatrix (Matrix4f &t) { transMat = t; }
+void Mesh::setTranslateMatrix(Matrix4f &t) { 
+	transMat = t; 
+	mmChanged = true; 
+}
 
-void Mesh::setScaleMatrix (Matrix4f &t) { scaleMat = t; }
+void Mesh::setScaleMatrix(Matrix4f &t) { 
+	scaleMat = t; 
+	mmChanged = true; 
+}
 
-void Mesh::setRotationMatrix (Matrix4f &t) { rotateMat = t; }
+void Mesh::setRotationMatrix(Matrix4f &t) { 
+	rotateMat = t; 
+	mmChanged = true; 
+}
 
 void Mesh::translate (float x, float y, float z) {
 	transMat = VR_NS::translate(Matrix4f::Identity(), Vector3f(x, y, z));
+	mmChanged = true;
 }
 
 void Mesh::scale (float s){
 	scaleMat = VR_NS::scale(scaleMat, s);
+	mmChanged = true;
 }
 
 void Mesh::scale (float x, float y, float z){
 	scaleMat = VR_NS::scale(scaleMat, x, y, z);
+	mmChanged = true;
 }
 
 void Mesh::scale(Matrix4f mat, float x, float y, float z){
 	scaleMat = VR_NS::scale(mat, x, y, z);
+	mmChanged = true;
 }
 
 void Mesh::rotate (float roll, float pitch, float yaw) {
 	rotate(roll, Vector3f::UnitX(), pitch, Vector3f::UnitY(), yaw, Vector3f::UnitZ());
+	mmChanged = true;
 }
 
 void Mesh::rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw, Vector3f vy) {
@@ -144,6 +164,7 @@ void Mesh::rotate (float roll, Vector3f vr, float pitch, Vector3f vp, float yaw,
 	Quaternionf q = rollAngle * yawAngle * pitchAngle;
 	rotateMat = Matrix4f::Identity();
 	rotateMat.block<3, 3>(0, 0) = q.toRotationMatrix();
+	mmChanged = true;
 }
 
 void Mesh::rotate(float angle, Vector3f axis) {
@@ -152,5 +173,6 @@ void Mesh::rotate(float angle, Vector3f axis) {
 	q = r;
 	rotateMat = Matrix4f::Identity();
 	rotateMat.block<3, 3>(0, 0) = q.toRotationMatrix();
+	mmChanged = true;
 }
 VR_NAMESPACE_END

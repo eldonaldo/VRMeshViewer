@@ -115,8 +115,6 @@ protected:
 	ovrGLTexture eyeTexture[2]; ///< OVR textures for distortion rendering
 	OVR::Matrix4f rollPitchYaw; /// HEad pose
 	OVR::Vector3f camPosition; /// OVR cam pos
-	OVR::Matrix4f projectionL, projectionR;/// Left and right projection OVR matrices 
-	Matrix4f pL, pR; /// Left and right projection Eigen matrices 
 	
 	/**
 	* Leap passthrough

@@ -51,7 +51,7 @@ void PerspectiveRenderer::preProcess () {
 
 void PerspectiveRenderer::preProcessGI() {
 	shader->bind();
-	GISphere.scale(0.2f, 0.2f, 0.2f);
+	GISphere.scale(0.08f, 0.08f, 0.08f);
 	GISphere.upload(shader);
 
 	// Load environment HDR
@@ -192,11 +192,12 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Draw annotations
-	shader->setUniform("enableGI", false);
-	if (pinList != nullptr && !pinList->empty())
+	if (pinList != nullptr && !pinList->empty()) {
+		shader->setUniform("enableGI", false);
 		for (auto &p : *pinList)
 			p->draw(getViewMatrix(), getProjectionMatrix());
-	shader->setUniform("enableGI", true);
+		shader->setUniform("enableGI", true);
+	}
 
 	// Bounding box
 	if (Settings::getInstance().MESH_DISPLAY_BBOX) {
