@@ -264,9 +264,13 @@ void PerspectiveRenderer::draw() {
 		Settings::getInstance().MATERIAL_COLOR = Vector3f(1.f, 1.f, 1.f);
 		shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 		float ambient = Settings::getInstance().LIGHT_AMBIENT;
-		shader->setUniform("light.ambientCoefficient", 0.05f);
-		shader->setUniform("specular", true);
 		glDisable(GL_CULL_FACE);
+		shader->setUniform("enableGI", false);
+		if (Settings::getInstance().GI_ENABLED) {
+			shader->setUniform("light.ambientCoefficient", 0.05f);
+			shader->setUniform("specular", true);
+			shader->setUniform("enableGI", true);
+		}
 
 		if (leftHand->visible) {
 			shader->setUniform("alpha", leftHand->confidence * Settings::getInstance().LEAP_ALPHA_SCALE);
@@ -290,7 +294,7 @@ void PerspectiveRenderer::draw() {
 	}
 
 	// Draw the anchor point
-	if (Settings::getInstance().SHOW_SOCKEL && Settings::getInstance().USE_RIFT) {
+ 	if (Settings::getInstance().SHOW_SOCKEL && Settings::getInstance().USE_RIFT && Settings::getInstance().GI_ENABLED) {
 		glDisable(GL_CULL_FACE);
 		if ((pedestal.getBoundingBox().overlaps(mesh->getBoundingBox()) || 
 			rightHand->containsBBox(pedestal.getBoundingBox()) || 
