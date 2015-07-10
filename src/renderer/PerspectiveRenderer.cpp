@@ -62,8 +62,8 @@ void PerspectiveRenderer::preProcessGI() {
 	environmentDiffuse = std::shared_ptr<float>(resultDiffuse.cols);
 
 	// Texture uniforms
-	envTexture = GLFramebuffer::createTexture();
-	envDiffuseTexture = GLFramebuffer::createTexture();
+	envTexture = GLFramebuffer::createTexture(result.width, result.height);
+	envDiffuseTexture = GLFramebuffer::createTexture(resultDiffuse.width, resultDiffuse.height);
 
 	// Upload env
 	glBindTexture(GL_TEXTURE_2D, envTexture);

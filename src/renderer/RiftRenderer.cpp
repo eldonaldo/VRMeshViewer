@@ -98,12 +98,12 @@ void RiftRenderer::preProcess() {
 
 	// Leap image textures
 	// Left
-	leapRawTexture[0] = GLFramebuffer::createTexture();
-	leapDistortionTexture[0] = GLFramebuffer::createTexture();
+	leapRawTexture[0] = GLFramebuffer::createTexture(640, 240);
+	leapDistortionTexture[0] = GLFramebuffer::createTexture(64, 64, false);
 
 	// Right
-	leapRawTexture[1] = GLFramebuffer::createTexture();
-	leapDistortionTexture[1] = GLFramebuffer::createTexture();
+	leapRawTexture[1] = GLFramebuffer::createTexture(640, 240);
+	leapDistortionTexture[1] = GLFramebuffer::createTexture(64, 64, false);
 
 	// Upload geometry
 	uploadBackgroundCube();
@@ -129,24 +129,40 @@ void RiftRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 		if (Settings::getInstance().LEAP_USE_LISTENER)
 			frame = leapController.frame();
 		
+		static int lastWidthRight = 0, lastHeightRight = 0;
+		static int lastWidthLeft = 0, lastHeightLeft = 0;
+
 		if (frame.isValid()) {
 			Leap::Image left = frame.images()[0], right = frame.images()[1];
 
 			// Single channel 8bit map = GL_RED
 			glBindTexture(GL_TEXTURE_2D, leapRawTexture[0]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
+			if (lastWidthLeft == left.width() && lastHeightLeft == left.height()) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, left.width(), left.height(), GL_RED, GL_UNSIGNED_BYTE, left.data());
+			}else {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, left.width(), left.height(), 0, GL_RED, GL_UNSIGNED_BYTE, left.data());
+				lastWidthLeft = left.width();
+				lastHeightLeft = left.height();
+			}
 
 			// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
 			glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[0]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, left.distortionWidth() / 2, left.distortionHeight(), 0, GL_RG, GL_FLOAT, left.distortion());
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, left.distortionWidth() / 2, left.distortionHeight(), GL_RG, GL_FLOAT, left.distortion());
 
 			// Single channel 8bit map = GL_RED
 			glBindTexture(GL_TEXTURE_2D, leapRawTexture[1]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, right.data());
+			if (lastWidthRight == right.width() && lastHeightRight == right.height()) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, right.width(), right.height(), GL_RED, GL_UNSIGNED_BYTE, right.data());
+			}
+			else {
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, right.width(), right.height(), 0, GL_RED, GL_UNSIGNED_BYTE, right.data());
+				lastWidthRight = right.width();
+				lastHeightRight = right.height();
+			}
 
 			// 2 * 32bit (= 2 * 8bytes) = GL_RG32F for distortion calibration map
 			glBindTexture(GL_TEXTURE_2D, leapDistortionTexture[1]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, right.distortionWidth() / 2, right.distortionHeight(), 0, GL_RG, GL_FLOAT, right.distortion());
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, right.distortionWidth() / 2, right.distortionHeight(), GL_RG, GL_FLOAT, right.distortion());
 		}
 	}
 }
