@@ -249,19 +249,16 @@ void Viewer::initGUI () {
 			if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
 				listenPort--;
 
-			cout << (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER ? "Server" : "Client") << endl;
-			cout << Settings::getInstance().NETWORK_IP << endl;
-			cout << listenPort << endl;
-
 			netSocket.reset(new UDPSocket(io_service, listenPort));
 
 			// Run the network listener in a separate thread
 			static bool started = false;
 			if (!started) {
-			netThread = std::unique_ptr<std::thread>(new std::thread([&] {
-			    io_service.run();
-			}));started = true;
+				netThread = std::unique_ptr<std::thread>(new std::thread([&] {
+				    io_service.run();
+				}));
 
+				started = true;
 			}
 
 	        Settings::getInstance().NETWORK_ENABLED = pressed = true;
