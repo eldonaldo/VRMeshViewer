@@ -98,45 +98,40 @@ void Viewer::initGUI () {
 
 	b = new Button(window, "Start Oculus Rift");
 	b->setCallback([&] {
-//		nanogui::leave();
 		ready = false;
-//		Settings::getInstance().USE_RIFT = true;
+		Settings::getInstance().USE_RIFT = Settings::getInstance().USE_LEAP = true;
 
 		// Reconfigure settings if the target is the Rift
 		width = hmd->Resolution.w;
 		height = hmd->Resolution.h;
 
-		// Make a new GLFW context for fullscreen mode
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-//		viewerGLFWwindow = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-		GLFWwindow *w = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		GLFWwindow *w = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+//		GLFWwindow *w = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
 		glfwDestroyWindow(viewerGLFWwindow);
 		viewerGLFWwindow = w;
 		glfwMakeContextCurrent(viewerGLFWwindow);
+
 		setGlfwWindow(viewerGLFWwindow);
+		swapBuffers(false);
 
 		// Reset keyboard callback
 		glfwSetKeyCallback(viewerGLFWwindow, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
 			__cbptr->keyboardEvent(key, scancode, action, mods);
 		});
-
-		glfwSetCursorPosCallback(viewerGLFWwindow, [](GLFWwindow *w, double x, double y) {
-			Vector2i p(x, y);
-			__cbptr->mouseMotionEvent(p, p, !GLFW_KEY_LEFT_CONTROL, 0);
-		});
-
-		glfwSetMouseButtonCallback(viewerGLFWwindow, [](GLFWwindow *w, int button, int action, int modifiers) {
-			double x, y;
-			glfwGetCursorPos(w, &x, &y);
-			Vector2i p(x, y);
-			__cbptr->mouseButtonEvent(p, button, action == GLFW_PRESS, modifiers);
-		});
+//
+//		glfwSetCursorPosCallback(viewerGLFWwindow, [](GLFWwindow *w, double x, double y) {
+//			Vector2i p(x, y);
+//			__cbptr->mouseMotionEvent(p, p, !GLFW_KEY_LEFT_CONTROL, 0);
+//		});
+//
+//		glfwSetMouseButtonCallback(viewerGLFWwindow, [](GLFWwindow *w, int button, int action, int modifiers) {
+//			double x, y;
+//			glfwGetCursorPos(w, &x, &y);
+//			Vector2i p(x, y);
+//			__cbptr->mouseButtonEvent(p, button, action == GLFW_PRESS, modifiers);
+//		});
 
 		// Recompile the shader
 		shader->free();
@@ -152,30 +147,18 @@ void Viewer::initGUI () {
 				Settings::getInstance().Z_NEAR,
 				Settings::getInstance().Z_FAR
 		);
-		// Change renderer and delete old one
-//		renderer = std::make_shared<PerspectiveRenderer>(
-//				shader,
-//				Settings::getInstance().FOV,
-//				width,
-//				height,
-//				Settings::getInstance().Z_NEAR,
-//				Settings::getInstance().Z_FAR
-//		);
 
 		glViewport(0, 0, width, height);
 
-		// Preprocess renderer state
-		preProcessRenderer();
-		std::cout << info() << std::endl;
+		// Upload again
+		upload(mesh);
 
 		// Save a pointer to the old mesh to delete it later
-		upload(mesh);
 
 		glfwShowWindow(viewerGLFWwindow);
 		performLayout(mNVGContext);
 		setVisible(true);
 		ready = true;
-//		nanogui::mainloop();
 	});
 
 	// Annotations window
