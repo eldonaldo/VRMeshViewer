@@ -24,9 +24,7 @@ void initOVR (ovrHmd &hmd) {
 int main (int argc, char *argv[]) {
 
 	// Settings
-	std::string title = Settings::getInstance().TITLE;
-	int width = Settings::getInstance().WINDOW_WIDTH;
-	int height = Settings::getInstance().WINDOW_HEIGHT;
+	Settings &config = Settings::getInstance();
 
 	// LibOVR need to be initialized before GLFW
 	ovrHmd hmd;
@@ -37,52 +35,11 @@ int main (int argc, char *argv[]) {
 		// Nanogui init
 		nanogui::init();
 
-		// This sets up the OpenGL context
-		Viewer *viewer = new Viewer(title, width, height, hmd);
+		// OpenGL context
+		Viewer *viewer = new Viewer(config.TITLE, config.WINDOW_WIDTH, config.WINDOW_HEIGHT, hmd);
 
-		// Networking
-//		std::unique_ptr<std::thread> netThread;
-//		asio::io_service io_service;
-//		asio::io_service::work work(io_service);
-
-//		/**
-//		 * If we're the server we need to choose another port.
-//		 * This is for debugging purposes only to run the application twice
-//		 * on the same machine and connect them together.
-//		 */
-//		short listenPort = Settings::getInstance().NETWORK_PORT;
-//		if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
-//			listenPort = Settings::getInstance().NETWORK_PORT - 1;
-//		UDPSocket socket(io_service, listenPort);
-
-		// Setup networking
-		if (Settings::getInstance().NETWORK_ENABLED) {
-
-//			// Print info
-//			std::cout << "Network[\n" <<
-//			"  Mode: " << (Settings::getInstance().NETWORK_MODE == 0 ? "Server" : "Client") << ",\n" <<
-//			"  Endpoint: " << Settings::getInstance().NETWORK_IP << ":" << Settings::getInstance().NETWORK_PORT << "\n" <<
-//			"]" << std::endl;
-
-//			// Run the network listener in a separate thread
-//			netThread = std::unique_ptr<std::thread>(new std::thread([&] {
-//				io_service.run();
-//			}));
-
-//			viewer->attachSocket(socket);
-		}
-
-//		// Load annotations, if any, and run
-//		if (Settings::getInstance().ANNOTATIONS != "none")
-//			viewer->loadAnnotations(Settings::getInstance().ANNOTATIONS);
-
+		// Render loop
 		nanogui::mainloop();
-
-//		// Stop networking and join to main thread
-//		if (Settings::getInstance().NETWORK_ENABLED) {
-//			io_service.stop();
-//			netThread->join();
-//		}
 
 		delete viewer;
 

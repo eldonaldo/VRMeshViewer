@@ -15,12 +15,17 @@ public:
 	 * @brief Inits with an asio::io_service and a port number to listen
 	 */
 	UDPSocket(asio::io_service& io_service, short listen_port);
-	virtual ~UDPSocket() = default;
+	virtual ~UDPSocket();
 
 	/**
 	 * @brief Async receive
 	 */
 	void receive ();
+
+	/**
+	 * @brief Close socket
+	 */
+	void close ();
 
 	/**
 	 * @brief Async send

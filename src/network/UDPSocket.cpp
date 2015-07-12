@@ -11,6 +11,16 @@ UDPSocket::UDPSocket (asio::io_service& io_service, short listen_port)
 	data = new char[max_length];
 }
 
+UDPSocket::~UDPSocket () {
+	if (socket.is_open())
+		close();
+}
+
+void UDPSocket::close () {
+	socket.cancel();
+	socket.close();
+}
+
 void UDPSocket::receive () {
 	Settings::getInstance().NETWORK_LISTEN = false;
 	socket.async_receive_from(asio::buffer(data, max_length), endpoint, [this] (std::error_code ec, std::size_t bytes_recvd) {
@@ -18,15 +28,15 @@ void UDPSocket::receive () {
 			current_length = bytes_recvd;
 			bufferChanged = true;
 		}
-		
+
 		Settings::getInstance().NETWORK_LISTEN = true;
 	});
 }
 
 void UDPSocket::send (const std::string &msg, const std::string &ip_address, short port) {
 	std::size_t length = copyToBuffer(msg);
-
 	endpoint = udp::endpoint(asio::ip::address::from_string(ip_address), port);
+
 	socket.async_send_to(asio::buffer(data, length), endpoint, [this] (std::error_code ec, std::size_t bytes_sent) {
 		/*if (!ec && bytes_sent > 0) {
 			std::cout << "Sent: '" << bytes_sent << "'\n";

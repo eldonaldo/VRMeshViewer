@@ -188,11 +188,6 @@ public:
 protected:
 
 	/**
-	 * @brief Init networking
-	 */
-	void initNetworking ();
-
-	/**
 	 * @brief Places the object in the world coordindate system and scales it for the immersion effect and builds the kd-tree
 	 */
 	virtual void placeObjectAndBuildKDTree (std::shared_ptr<Mesh> &m);
@@ -302,10 +297,11 @@ protected:
 	std::vector<Pin> pinListDelete; ///< List of annotations to delete for client
 	bool loadAnnotationsFlag; ///< Load annotations on start up
 	std::string annotationsLoadPath; ///< File to load from
-	std::unique_ptr<UDPSocket> netSocket; ///< UDP Socket
 	unsigned long sequenceNr; ///< UDP Packet sequence nr
+	std::unique_ptr<UDPSocket> netSocket; ///< UDP Socket
 	asio::io_service io_service; /// asio service
 	std::unique_ptr<std::thread> netThread; /// Networking thread
+	asio::io_service::work work;
 };
 
 VR_NAMESPACE_END

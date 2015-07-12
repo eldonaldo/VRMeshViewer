@@ -9,7 +9,7 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
 	, hmd(hmd), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0)
-	, ready(false), nanogui::Screen(Vector2i(width, height), title, true, Settings::getInstance().USE_RIFT || Settings::getInstance().FULLSCREEN) {
+	, ready(false), work(io_service), nanogui::Screen(Vector2i(width, height), title, true, Settings::getInstance().USE_RIFT || Settings::getInstance().FULLSCREEN) {
 
 	// Setup arcball
     arcball.setSize(Vector2i(width, height));
@@ -62,14 +62,6 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	performLayout(mNVGContext);
 	drawAll();
 	setVisible(true);
-
-	// Networking
-	initNetworking();
-}
-
-
-void Viewer::initNetworking () {
-
 }
 
 void Viewer::initGUI () {
@@ -249,36 +241,42 @@ void Viewer::initGUI () {
 			/**
 			 * If we're the server we need to choose another port.
 			 * This is for debugging purposes only to run the application twice
-			 * on the same machine and connect them together.
+			 * on the same machine.
 			 */
+			Settings::getInstance().NETWORK_IP = ip->value();
 			Settings::getInstance().NETWORK_PORT = std::atoi(port->value().c_str());
 			short listenPort = Settings::getInstance().NETWORK_PORT;
 			if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
 				listenPort--;
 
-			Settings::getInstance().NETWORK_IP = ip->value();
+			cout << (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER ? "Server" : "Client") << endl;
+			cout << Settings::getInstance().NETWORK_IP << endl;
+			cout << listenPort << endl;
 
 			netSocket.reset(new UDPSocket(io_service, listenPort));
 
 			// Run the network listener in a separate thread
+			static bool started = false;
+			if (!started) {
 			netThread = std::unique_ptr<std::thread>(new std::thread([&] {
-				asio::io_service::work work(io_service);
 			    io_service.run();
-			}));
+			}));started = true;
 
-	        Settings::getInstance().NETWORK_ENABLED = true;
-			pressed = true;
+			}
+
+	        Settings::getInstance().NETWORK_ENABLED = pressed = true;
+	        if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
+		        Settings::getInstance().NETWORK_LISTEN = true;
 		} else {
 			cbo->setEnabled(true);
 
 			// Stop networking and join to main thread
-			if (pressed) {
-				netThread->join();
-				io_service.reset();
-			}
+			if (pressed)
+				netSocket->close();
 
-			Settings::getInstance().NETWORK_ENABLED = false;
-			pressed = false;
+			Settings::getInstance().NETWORK_ENABLED = pressed = false;
+			if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT)
+				Settings::getInstance().NETWORK_LISTEN = false;
 		}
 	});
 }
@@ -689,7 +687,7 @@ void Viewer::processNetworking () {
 
 		// Increase sequence nr
 		sequenceNr = (sequenceNr + 1) % std::numeric_limits<long>::max();
-	} else if (Settings::getInstance().NETWORK_LISTEN) {
+	} else if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT && Settings::getInstance().NETWORK_LISTEN) {
 		netSocket->receive();
 	}
 
@@ -1066,8 +1064,9 @@ Viewer::~Viewer () {
 
 	// Stop networking and join to main thread
 	if (Settings::getInstance().NETWORK_ENABLED) {
-		netThread->join();
 		io_service.stop();
+		netThread->join();
+		netSocket->close();
 	}
 
 	// Remove leap listeners if any
