@@ -11,8 +11,8 @@ Settings::Settings () :
 
 	// WINDOW
 	TITLE						("Virtual Reality Mesh Viewer"),
-	WINDOW_WIDTH				(1200),
-	WINDOW_HEIGHT				(900),
+	WINDOW_WIDTH				(1000),
+	WINDOW_HEIGHT				(700),
 	FULLSCREEN					(false),
 	FOV							(60.f),
 	Z_NEAR						(0.001f),

@@ -8,7 +8,7 @@ Viewer *__cbptr;
 Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(hmd), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr)
+	, hmd(hmd), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0)
 	, ready(false), nanogui::Screen(Vector2i(width, height), title, true, Settings::getInstance().USE_RIFT || Settings::getInstance().FULLSCREEN) {
 
 	// Setup arcball
@@ -23,7 +23,7 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
 
 	// Default leap listener
-	std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
+	std::unique_ptr<LeapListener> leap(new LeapListener());
 	attachLeap(leap);
 
 	// Create gesture handler
@@ -62,6 +62,14 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	performLayout(mNVGContext);
 	drawAll();
 	setVisible(true);
+
+	// Networking
+	initNetworking();
+}
+
+
+void Viewer::initNetworking () {
+
 }
 
 void Viewer::initGUI () {
@@ -138,7 +146,7 @@ void Viewer::initGUI () {
 		shader.reset(new GLShader());
 		initShader(shader);
 
-//		// Change renderer and delete old one
+		// Change renderer and delete old one
 		renderer = std::make_shared<RiftRenderer>(
 				shader,
 				Settings::getInstance().FOV,
@@ -150,10 +158,12 @@ void Viewer::initGUI () {
 
 		glViewport(0, 0, width, height);
 
+		// Preprocess renderer state
+		preProcessRenderer();
+		std::cout << info() << std::endl;
+
 		// Upload again
 		upload(mesh);
-
-		// Save a pointer to the old mesh to delete it later
 
 		glfwShowWindow(viewerGLFWwindow);
 		performLayout(mNVGContext);
@@ -205,32 +215,72 @@ void Viewer::initGUI () {
 	window->setLayout(new GroupLayout());
 
 	// Networking
-	TextBox *textBox = new TextBox(window);
-	textBox->setFixedSize(Vector2i(115, 25));
-	textBox->setValue("IP-Address");
+	TextBox *ip = new TextBox(window);
+	ip->setFixedSize(Vector2i(115, 25));
+	ip->setValue("127.0.0.1");
 
-	textBox = new TextBox(window);
-	textBox->setFixedSize(Vector2i(115, 25));
-	textBox->setValue("Port");
+	TextBox *port = new TextBox(window);
+	port->setFixedSize(Vector2i(115, 25));
+	port->setValue("8888");
 
-	new ComboBox(window, {"Visitor", "Presenter"});
+	ComboBox *cbo = new ComboBox(window, {"Visitor", "Presenter"});
 
 	Button *tb = new Button(window, "Start");
 	tb->setButtonFlags(Button::ToggleButton);
-	tb->setChangeCallback([&] (bool state) {
+	tb->setChangeCallback([&, tb, cbo, ip, port] (bool state) {
+		static bool pressed = false;
 
+		// Caption
+		if (tb->caption() == "Start")
+			tb->setCaption("Stop");
+		else
+			tb->setCaption("Start");
+
+		// Start/Stop network processing
+		if (state) {
+			cbo->setEnabled(false);
+
+			// Network mode
+			if (cbo->caption() == "Presenter")
+				Settings::getInstance().NETWORK_MODE = NETWORK_MODES::SERVER;
+			else
+				Settings::getInstance().NETWORK_MODE = NETWORK_MODES::CLIENT;
+
+			/**
+			 * If we're the server we need to choose another port.
+			 * This is for debugging purposes only to run the application twice
+			 * on the same machine and connect them together.
+			 */
+			Settings::getInstance().NETWORK_PORT = std::atoi(port->value().c_str());
+			short listenPort = Settings::getInstance().NETWORK_PORT;
+			if (Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER)
+				listenPort--;
+
+			Settings::getInstance().NETWORK_IP = ip->value();
+
+			netSocket.reset(new UDPSocket(io_service, listenPort));
+
+			// Run the network listener in a separate thread
+			netThread = std::unique_ptr<std::thread>(new std::thread([&] {
+				asio::io_service::work work(io_service);
+			    io_service.run();
+			}));
+
+	        Settings::getInstance().NETWORK_ENABLED = true;
+			pressed = true;
+		} else {
+			cbo->setEnabled(true);
+
+			// Stop networking and join to main thread
+			if (pressed) {
+				netThread->join();
+				io_service.reset();
+			}
+
+			Settings::getInstance().NETWORK_ENABLED = false;
+			pressed = false;
+		}
 	});
-
-//	// Misc
-//	window = new Window(this, "Miscellaneous");
-//	window->setPosition(Vector2i(15, 575));
-//	window->setLayout(new GroupLayout());
-//
-//	// Material
-//	ColorWheel *cw = new ColorWheel(window);
-//	cw->setCallback([] (const Vector3f &color) {
-//		Settings::getInstance().MATERIAL_COLOR = color;
-//	});
 }
 
 void Viewer::drawContents () {
@@ -742,10 +792,6 @@ std::string Viewer::serializeTransformationState () {
 	return state;
 }
 
-void Viewer::attachSocket(UDPSocket &s) {
-	netSocket = &s;
-}
-
 std::string Viewer::serializeAnnotations(std::vector<Pin> &list) {
 	std::string	output;
 	for (auto &p : list)
@@ -1018,12 +1064,15 @@ Viewer::~Viewer () {
 	// Renderer cleanup
 	renderer->cleanUp();
 
+	// Stop networking and join to main thread
+	if (Settings::getInstance().NETWORK_ENABLED) {
+		netThread->join();
+		io_service.stop();
+	}
+
 	// Remove leap listeners if any
 	if (Settings::getInstance().LEAP_USE_LISTENER)
 		leapController.removeListener(*leapListener);
-
-//	glfwDestroyWindow(viewerGLFWwindow);
-//	glfwTerminate();
 
 	// Destroy the rift. Needs to be called after glfwTerminate
 	if (hmd) {

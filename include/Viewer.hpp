@@ -22,6 +22,7 @@
 #include "nanogui/combobox.h"
 #include "nanogui/messagedialog.h"
 #include "nanogui/colorwheel.h"
+#include <thread>
 
 VR_NAMESPACE_BEGIN
 
@@ -135,11 +136,6 @@ public:
 	std::shared_ptr<Renderer> &getRenderer ();
 
 	/**
-	 * @brief Attaches a UDP socket
-	 */
-	void attachSocket (UDPSocket &s);
-
-	/**
 	* @brief Delete the pin if we hit it
 	*/
 	bool deletePinIfHit(Vector3f &position);
@@ -190,6 +186,11 @@ public:
 	bool keyboardEvent(int key, int scancode, bool action, int mods);
 
 protected:
+
+	/**
+	 * @brief Init networking
+	 */
+	void initNetworking ();
 
 	/**
 	 * @brief Places the object in the world coordindate system and scales it for the immersion effect and builds the kd-tree
@@ -301,8 +302,10 @@ protected:
 	std::vector<Pin> pinListDelete; ///< List of annotations to delete for client
 	bool loadAnnotationsFlag; ///< Load annotations on start up
 	std::string annotationsLoadPath; ///< File to load from
-	UDPSocket *netSocket; ///< UDP Socket
+	std::unique_ptr<UDPSocket> netSocket; ///< UDP Socket
 	unsigned long sequenceNr; ///< UDP Packet sequence nr
+	asio::io_service io_service; /// asio service
+	std::unique_ptr<std::thread> netThread; /// Networking thread
 };
 
 VR_NAMESPACE_END
