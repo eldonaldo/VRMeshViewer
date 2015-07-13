@@ -54,83 +54,93 @@ void RiftRenderer::preProcess () {
 	// Upload mesh and set uniforms in shader
 	PerspectiveRenderer::preProcess();
 
-	if (hmd == nullptr)
-		throw new VRException("HMD not set! Can't do pre necessary processing for the Rift");
+	static bool processed = false;
+	if (!processed) {
+		if (hmd == nullptr)
+			throw new VRException("HMD not set! Can't do pre necessary processing for the Rift");
 
-	// Generate framebuffers for left and right eye
-	OVR::Sizei texLeft = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, hmd->DefaultEyeFov[ovrEye_Left], 1.0f);
-	frameBuffer[ovrEye_Left].init(Vector2i(texLeft.w, texLeft.h), 0, true);
-	frameBuffer[ovrEye_Left].release();
+		// Generate framebuffers for left and right eye
+		OVR::Sizei texLeft = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, hmd->DefaultEyeFov[ovrEye_Left], 1.0f);
+		frameBuffer[ovrEye_Left].init(Vector2i(texLeft.w, texLeft.h), 0, true);
+		frameBuffer[ovrEye_Left].release();
 
-	OVR::Sizei texRight = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, hmd->DefaultEyeFov[ovrEye_Right], 1.0f);
-	frameBuffer[ovrEye_Right].init(Vector2i(texRight.w, texRight.h), 0, true);
-	frameBuffer[ovrEye_Right].release();
+		OVR::Sizei texRight = ovrHmd_GetFovTextureSize(hmd, ovrEye_Right, hmd->DefaultEyeFov[ovrEye_Right], 1.0f);
+		frameBuffer[ovrEye_Right].init(Vector2i(texRight.w, texRight.h), 0, true);
+		frameBuffer[ovrEye_Right].release();
 
-	// Configure the Rift to use OpenGL
-	cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
-	cfg.OGL.Header.BackBufferSize = hmd->Resolution;
-	cfg.OGL.Header.Multisample = 0;
+		// Configure the Rift to use OpenGL
+		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
+		cfg.OGL.Header.BackBufferSize = hmd->Resolution;
+		cfg.OGL.Header.Multisample = 0;
+	
 #if defined(PLATFORM_WINDOWS)
-	// Need to attach viewerGLFWwindow for direct rendering (only supported on windows)
-	cfg.OGL.Window = glfwGetWin32Window(window);
-	cfg.OGL.DC = GetDC(cfg.OGL.Window);
+		// Need to attach viewerGLFWwindow for direct rendering (only supported on windows)
+		cfg.OGL.Window = glfwGetWin32Window(window);
+		cfg.OGL.DC = GetDC(cfg.OGL.Window);
+		//ovrHmd_AttachToWindow(hmd, glfwGetWin32Window(window), NULL, NULL);
+		//HWND hw = glfwGetWin32Window(window);
+		//cfg.OGL.Window = hw;
+		//cfg.OGL.DC = GetDC(hw);
 #endif
 
-	// We use SDK distortion rendering
-	ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Vignette | ovrDistortionCap_TimeWarp | ovrDistortionCap_Overdrive, hmd->DefaultEyeFov, eyeRenderDesc);
-	ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
-	ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0);
+		// We use SDK distortion rendering
+		ovrHmd_ConfigureRendering(hmd, &cfg.Config, ovrDistortionCap_Vignette | ovrDistortionCap_TimeWarp | ovrDistortionCap_Overdrive, hmd->DefaultEyeFov, eyeRenderDesc);
+		ovrHmd_SetEnabledCaps(hmd, ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction);
+		ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0);
 
-	// Do distortion rendering, Present and flush/sync
-	for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
-		ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
-		OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
-		eyeTexture[eye].OGL.Header.API = ovrRenderAPI_OpenGL;
-		eyeTexture[eye].OGL.Header.TextureSize = size;
-		eyeTexture[eye].OGL.Header.RenderViewport.Pos = OVR::Vector2i(0, 0);
-		eyeTexture[eye].OGL.Header.RenderViewport.Size = size;
-		eyeTexture[eye].OGL.TexId = frameBuffer[eye].getColor();
-	}
+		// Do distortion rendering, Present and flush/sync
+		for (int eyeIndex = 0; eyeIndex < ovrEye_Count; eyeIndex++) {
+			ovrEyeType eye = hmd->EyeRenderOrder[eyeIndex];
+			OVR::Sizei size(frameBuffer[eye].mSize.x(), frameBuffer[eye].mSize.y());
+			eyeTexture[eye].OGL.Header.API = ovrRenderAPI_OpenGL;
+			eyeTexture[eye].OGL.Header.TextureSize = size;
+			eyeTexture[eye].OGL.Header.RenderViewport.Pos = OVR::Vector2i(0, 0);
+			eyeTexture[eye].OGL.Header.RenderViewport.Size = size;
+			eyeTexture[eye].OGL.TexId = frameBuffer[eye].getColor();
+		}
 
-	// Dismiss warning
-	ovrHmd_DismissHSWDisplay(hmd);
+		// Dismiss warning
+		ovrHmd_DismissHSWDisplay(hmd);
 	
-	// Upload leap shader data
-	if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
-		if (!leapController.isConnected())
-			throw VRException("Passthrough enabled but Leap not connected");
+		// Upload leap shader data
+		if (Settings::getInstance().LEAP_USE_PASSTHROUGH) {
+			if (!leapController.isConnected())
+				throw VRException("Passthrough enabled but Leap not connected");
 
-		leapShader->bind();
+			leapShader->bind();
 
-		// Leap image textures
-		// Left
-		std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
-		leapRawTexture[0] = std::get<0>(t0);
+			// Leap image textures
+			// Left
+			std::tuple<GLuint, GLuint, GLuint> t0 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
+			leapRawTexture[0] = std::get<0>(t0);
 
-		std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
-		leapDistortionTexture[0] = std::get<0>(t1);
+			std::tuple<GLuint, GLuint, GLuint> t1 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
+			leapDistortionTexture[0] = std::get<0>(t1);
 
-		// Right
-		std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
-		leapRawTexture[1] = std::get<0>(t2);
+			// Right
+			std::tuple<GLuint, GLuint, GLuint> t2 = GLFramebuffer::createPBOTexture(rawWidth, rawHeight, 1, 1);
+			leapRawTexture[1] = std::get<0>(t2);
 		
-		std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
-		leapDistortionTexture[1] = std::get<0>(t3);
+			std::tuple<GLuint, GLuint, GLuint> t3 = GLFramebuffer::createPBOTexture(distWidth, distHeight, 1, 8, false);
+			leapDistortionTexture[1] = std::get<0>(t3);
 
-		// Left PBOs
-		leap_PBO[0][0][0] = std::get<1>(t0);
-		leap_PBO[0][0][1] = std::get<1>(t1);
-		leap_PBO[0][1][0] = std::get<2>(t0);
-		leap_PBO[0][1][1] = std::get<2>(t1);
+			// Left PBOs
+			leap_PBO[0][0][0] = std::get<1>(t0);
+			leap_PBO[0][0][1] = std::get<1>(t1);
+			leap_PBO[0][1][0] = std::get<2>(t0);
+			leap_PBO[0][1][1] = std::get<2>(t1);
 
-		// Right PBOs
-		leap_PBO[1][0][0] = std::get<1>(t2);
-		leap_PBO[1][0][1] = std::get<1>(t3);
-		leap_PBO[1][1][0] = std::get<2>(t2);
-		leap_PBO[1][1][1] = std::get<2>(t3);
+			// Right PBOs
+			leap_PBO[1][0][0] = std::get<1>(t2);
+			leap_PBO[1][0][1] = std::get<1>(t3);
+			leap_PBO[1][1][0] = std::get<2>(t2);
+			leap_PBO[1][1][1] = std::get<2>(t3);
 
-		// Upload geometry
-		uploadBackgroundCube();
+			// Upload geometry
+			uploadBackgroundCube();
+		}
+
+		processed = true;
 	}
 }
 

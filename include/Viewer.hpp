@@ -39,7 +39,7 @@ public:
 	/**
 	 * @brief Default constructor
 	 */
-	Viewer(const std::string &title, int width, int height, ovrHmd &hmd);
+	Viewer(const std::string &title, int width, int height);
 
 	/**
 	 * @brief Default constructor
@@ -275,7 +275,6 @@ protected:
 	bool ready; ///< True when all geometry is uploaded to the GPU on the startup
 	std::shared_ptr<Renderer> renderer; ///< Bounded renderer
 	ovrHmd hmd; ///< Head mounted device
-	GLFWwindow *viewerGLFWwindow; ///< GLFW viewerGLFWwindow pointer
 	std::string title; ///< Window title
 	Color3f background; ///< Background color
 	const float interval; ///< Interval to refresh FPS in seconds

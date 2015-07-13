@@ -208,6 +208,16 @@ public:
 		pinList = &pl;
 	}
 
+	void attachToHMD(GLFWwindow *w) {
+#if defined(PLATFORM_WINDOWS)
+		// Need to attach viewerGLFWwindow for direct rendering (only supported on windows)
+		cfg.OGL.Window = glfwGetWin32Window(w);
+		cfg.OGL.DC = GetDC(cfg.OGL.Window);
+		ovrHmd_AttachToWindow(hmd, glfwGetWin32Window(window), NULL, NULL);
+#endif
+	}
+
+
 protected:
 
 	std::shared_ptr<GLShader> shader; ///< Bounded shader
@@ -224,6 +234,7 @@ protected:
 	float sphereRadius; ///< Sphere radius
 	Leap::Frame frame; ///< Leap motion frame
 	std::vector<std::shared_ptr<Pin>> *pinList = nullptr; ///< List of pins
+	ovrGLConfig cfg; ///< Oculus config
 
 private:
 

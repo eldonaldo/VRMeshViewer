@@ -5,11 +5,19 @@ VR_NAMESPACE_BEGIN
 // Used inside callback functions to access the viewer's stat
 Viewer *__cbptr;
 
-Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
-	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
+Viewer::Viewer(const std::string &title, int width, int height)
+	: nanogui::Screen(Vector2i(width, height), title, true, false), title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(hmd), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0)
-	, ready(false), work(io_service), nanogui::Screen(Vector2i(width, height), title, true, Settings::getInstance().USE_RIFT || Settings::getInstance().FULLSCREEN) {
+	, uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0)
+	, ready(false), work(io_service) {
+
+	__cbptr = this;
+
+	// Init GUI elements
+	initGUI();	
+
+	// Init gui
+	performLayout(mNVGContext);
 
 	// Setup arcball
     arcball.setSize(Vector2i(width, height));
@@ -33,6 +41,23 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 	// Seed rnd generator
 	srand(glfwGetTime());
 
+	// Init OVR
+	ovr_Initialize();
+	hmd = ovrHmd_Create(0);
+
+	// Create debug hmd
+	if (!hmd) {
+		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+		cout << "RIFT IN DEBUG MODE" << endl;
+	}
+
+	if (!hmd)
+		throw VRException("Could not start the Rift");
+
+	// Configure which sensors we need to have
+	if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
+		throw VRException("The Rift does not support all of the necessary sensors");
+
 	// Create shader and renderer
 	shader = std::make_shared<GLShader>();
 	initShader(shader);
@@ -45,23 +70,13 @@ Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &hmd)
 		Settings::getInstance().Z_FAR
 	);
 
-	// Calc fps at startup
-	if (!Settings::getInstance().USE_RIFT && appFPS)
-		calcAndAppendFPS();
-
-	// Set pointer to GLFW viewerGLFWwindow
-	viewerGLFWwindow = glfwWindow();
-
-	// Init GUI elements
-	initGUI();
-
+	// OpenGL Settings
 	setBackground(Vector3f(0.8f, 0.8f, 0.8f));
-	__cbptr = this;
-
-	// Init nanogui
-	performLayout(mNVGContext);
-	drawAll();
-	setVisible(true);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void Viewer::initGUI () {
@@ -77,7 +92,14 @@ void Viewer::initGUI () {
 	tools->setLayout(new BoxLayout(BoxLayout::Horizontal, BoxLayout::Middle, 0, 6));
 	Button *b = new Button(tools, "Load");
 	b->setCallback([&] {
-		std::string path = file_dialog({{"obj", "Wavefront OBJ"}, {"txt", "Text file"}}, false);
+#if defined(PLATFORM_WINDOWS)
+		const std::vector<std::pair<std::string, std::string>> filetypes = { { "*.obj", "Wavefront OBJ" }, { "*.txt", "Text file" } };
+#elif
+		const std::vector<std::pair<std::string, std::string>> filetypes = {{"obj", "Wavefront OBJ"}, {"txt", "Text file"}};
+#endif
+		std::string path = file_dialog(filetypes, false);
+		path = "D:/Dev/VRMeshViewer/resources/models/muro/muro.obj";
+		cout << path << endl;
 		if (!path.empty()) {
 			// Save a pointer to the old mesh to delete it later
 			std::shared_ptr<Mesh> oldMesh = mesh;
@@ -98,69 +120,81 @@ void Viewer::initGUI () {
 
 	b = new Button(window, "Start Oculus Rift");
 	b->setCallback([&] {
-		ready = false;
-		Settings::getInstance().USE_RIFT = Settings::getInstance().USE_LEAP = true;
+		setVisible(false);
+		nanogui::leave();
+		shader->free();
 
 		// Reconfigure settings if the target is the Rift
+		Settings::getInstance().USE_RIFT = Settings::getInstance().USE_LEAP = true;
 		width = hmd->Resolution.w;
 		height = hmd->Resolution.h;
 
+		/* Request a forward compatible OpenGL 3.3 core profile context */
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+		/* Request a RGBA8 buffer without MSAA */
+		glfwWindowHint(GLFW_SAMPLES, 0);
+		glfwWindowHint(GLFW_RED_BITS, 8);
+		glfwWindowHint(GLFW_GREEN_BITS, 8);
+		glfwWindowHint(GLFW_BLUE_BITS, 8);
+		glfwWindowHint(GLFW_ALPHA_BITS, 8);
+		glfwWindowHint(GLFW_STENCIL_BITS, 8);
+		glfwWindowHint(GLFW_DEPTH_BITS, 24);
+		
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
-		GLFWwindow *w = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
-//		GLFWwindow *w = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
-		glfwDestroyWindow(viewerGLFWwindow);
-		viewerGLFWwindow = w;
-		glfwMakeContextCurrent(viewerGLFWwindow);
+		glfwDestroyWindow(mGLFWWindow);
+//		viewerGLFWwindow = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
+		GLFWwindow *w = glfwCreateWindow(width, height, this->title.c_str(), nullptr, nullptr);
+		setGlfwWindow(w);
 
-		setGlfwWindow(viewerGLFWwindow);
-		swapBuffers(false);
+		glfwMakeContextCurrent(mGLFWWindow);
+		glfwSetWindowSize(mGLFWWindow, width, height);
+		glfwGetFramebufferSize(mGLFWWindow, &FBWidth, &FBHeight);
 
+		ovrHmd_AttachToWindow(hmd, glfwGetWin32Window(mGLFWWindow), NULL, NULL);
+		
 		// Reset keyboard callback
-		glfwSetKeyCallback(viewerGLFWwindow, [] (GLFWwindow *w, int key, int scancode, int action, int mods) {
+		glfwSetKeyCallback(mGLFWWindow, [](GLFWwindow *w, int key, int scancode, int action, int mods) {
 			__cbptr->keyboardEvent(key, scancode, action, mods);
 		});
-//
-//		glfwSetCursorPosCallback(viewerGLFWwindow, [](GLFWwindow *w, double x, double y) {
-//			Vector2i p(x, y);
-//			__cbptr->mouseMotionEvent(p, p, !GLFW_KEY_LEFT_CONTROL, 0);
-//		});
-//
-//		glfwSetMouseButtonCallback(viewerGLFWwindow, [](GLFWwindow *w, int button, int action, int modifiers) {
-//			double x, y;
-//			glfwGetCursorPos(w, &x, &y);
-//			Vector2i p(x, y);
-//			__cbptr->mouseButtonEvent(p, button, action == GLFW_PRESS, modifiers);
-//		});
 
 		// Recompile the shader
-		shader->free();
-		shader.reset(new GLShader());
 		initShader(shader);
 
 		// Change renderer and delete old one
+		auto oldRenderer = renderer;
 		renderer = std::make_shared<RiftRenderer>(
-				shader,
-				Settings::getInstance().FOV,
-				width,
-				height,
-				Settings::getInstance().Z_NEAR,
-				Settings::getInstance().Z_FAR
+			shader,
+			Settings::getInstance().FOV,
+			width,
+			height,
+			Settings::getInstance().Z_NEAR,
+			Settings::getInstance().Z_FAR
 		);
 
-		glViewport(0, 0, width, height);
+		renderer->setWindow(mGLFWWindow);
+		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
 
 		// Preprocess renderer state
 		preProcessRenderer();
-		std::cout << info() << std::endl;
-
+		
 		// Upload again
 		upload(mesh);
 
-		glfwShowWindow(viewerGLFWwindow);
-		performLayout(mNVGContext);
+		swapBuffers(false);
+		setBackground(Vector3f(1.f, 0.f, 0.f));
 		setVisible(true);
-		ready = true;
+		setSize(Vector2i(width, height));
+		drawAll();
+
+		//renderer->attachToHMD(mGLFWWindow);
+
+		nanogui::pollEvents();
+		nanogui::mainloop();
 	});
 
 	// Annotations window
@@ -174,7 +208,7 @@ void Viewer::initGUI () {
 	b = new Button(tools, "Load");
 	b->setCallback([&] {
 		if (mesh) {
-			std::string annotations = file_dialog({{"txt", "Text file"} }, false);
+			std::string annotations = file_dialog({ { "txt", "Text file" } }, false);
 			if (!annotations.empty()) {
 				loadAnnotations(annotations);
 				loadAnnotationsDelayed();
@@ -279,13 +313,12 @@ void Viewer::initGUI () {
 }
 
 void Viewer::drawContents () {
+	
 	// Wait for the uploads to complete
 	if (ready) {
+		
 		// t0
 		static long lastTime = glfwGetTime() * 1000;
-
-		// Bind the default framebuffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Get a new leap frame if no listener is used
 		if (!Settings::getInstance().LEAP_USE_LISTENER) {
@@ -337,7 +370,7 @@ void Viewer::drawContents () {
 void Viewer::renderLoop () {
 	// Render loop
 	glfwSwapInterval(0);
-	while (!glfwWindowShouldClose(viewerGLFWwindow)) {
+	while (!glfwWindowShouldClose(mGLFWWindow)) {
 		// Poll for events to process
 		glfwPollEvents();
 
@@ -351,18 +384,23 @@ void Viewer::upload(std::shared_ptr<Mesh> &m) {
 	ready = false;
 	mesh = m;
 
-	// Place object in world for immersion
-	placeObjectAndBuildKDTree(mesh);
-	gestureHandler->setMesh(mesh);
-
 	// Share the HMD and Leap
-	leapListener->setHmd(hmd);
-	leapListener->setMesh(mesh);
-	leapListener->setGestureHandler(gestureHandler);
 	static bool added = false;
-	if (Settings::getInstance().LEAP_USE_LISTENER && !added) {
-		leapController.addListener(*leapListener);
+	if (!added) {
+		// Place object in world for immersion
+		placeObjectAndBuildKDTree(mesh);
+
+		gestureHandler->setMesh(mesh);
+
+		leapListener->setHmd(hmd);
+		leapListener->setMesh(mesh);
+		leapListener->setGestureHandler(gestureHandler);
+		
+		if (Settings::getInstance().LEAP_USE_LISTENER)
+			leapController.addListener(*leapListener);
+		
 		added = true;
+	
 	}
 
 	// Preprocess renderer state
@@ -432,7 +470,7 @@ void Viewer::calcAndAppendFPS () {
 
 		// Append to viewerGLFWwindow title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);
-		glfwSetWindowTitle(viewerGLFWwindow, newTitle.c_str());
+		glfwSetWindowTitle(mGLFWWindow, newTitle.c_str());
 
 		// Reset the FPS frame counter and set the initial time to be now
 		frameCount = 0;
@@ -575,7 +613,7 @@ void Viewer::framebufferSizeChanged () {
 
 	// Get the window size, not framebuffer size
 	int Wwidth, Wheight;
-	glfwGetWindowSize(viewerGLFWwindow, &Wwidth, &Wheight);
+	glfwGetWindowSize(mGLFWWindow, &Wwidth, &Wheight);
 	glViewport(0, 0, Wwidth, Wheight);
 	getArcball().setSize(Vector2i(Wwidth, Wheight));
 
@@ -595,13 +633,14 @@ void Viewer::preProcessRenderer () {
 	renderer->setHmd(hmd);
 	renderer->setMesh(mesh);
 	renderer->setHands(hands[0], hands[1]);
-	renderer->setWindow(viewerGLFWwindow);
+	renderer->setWindow(mGLFWWindow);
+	glfwGetFramebufferSize(mGLFWWindow, &FBWidth, &FBHeight);
 	renderer->updateFBSize(FBWidth, FBHeight);
 	renderer->preProcess();
 }
 
 bool Viewer::mouseButtonEvent (const Vector2i &p, int button, bool down, int modifiers) {
-	if (!Settings::getInstance().USE_RIFT && glfwGetKey(viewerGLFWwindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && down) {
+	if (!Settings::getInstance().USE_RIFT && glfwGetKey(mGLFWWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS && down) {
 		// OpenGL settings
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
@@ -614,7 +653,7 @@ bool Viewer::mouseButtonEvent (const Vector2i &p, int button, bool down, int mod
 
 		// Query cursor position and depth value at this position
 		double x, y; GLfloat z;
-		glfwGetCursorPos(viewerGLFWwindow, &x, &y);
+		glfwGetCursorPos(mGLFWWindow, &x, &y);
 		glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &z);
 		Vector3f pos(x, viewport[3] - y, z);
 
@@ -1066,15 +1105,8 @@ Viewer::~Viewer () {
 		netSocket->close();
 	}
 
-	// Remove leap listeners if any
-	if (Settings::getInstance().LEAP_USE_LISTENER)
-		leapController.removeListener(*leapListener);
-
-	// Destroy the rift. Needs to be called after glfwTerminate
-	if (hmd) {
-		ovrHmd_Destroy(hmd);
-		ovr_Shutdown();
-	}
+	ovrHmd_Destroy(hmd);
+	ovr_Shutdown();
 }
 
 VR_NAMESPACE_END
