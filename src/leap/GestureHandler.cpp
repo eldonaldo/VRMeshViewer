@@ -85,6 +85,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 			lastPos = projectOnSphere(midPoint, center, radius);
 			quat = Quaternionf::Identity();
 			lastPitch = hands[hand]->palm.pitch;
+			Settings::getInstance().ROTATION_ACTIVE = true;
 			break;
 		}
 
@@ -142,6 +143,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 
 			// Need to send a new packet
 			Settings::getInstance().NETWORK_NEW_DATA = true;
+			Settings::getInstance().ROTATION_ACTIVE = true;
  			break;
 		}
 
@@ -150,6 +152,7 @@ void GestureHandler::rotate(GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 		default: {
 			Settings::getInstance().MATERIAL_COLOR_ROTATION = Settings::getInstance().MATERIAL_COLOR;
 			Settings::getInstance().SHOW_SPHERE = false;
+			Settings::getInstance().ROTATION_ACTIVE = false;
 			// Settings::getInstance().MATERIAL_COLOR = Vector3f(0.8f, 0.8f, 0.8f);
 			break;
 		}

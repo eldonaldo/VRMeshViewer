@@ -340,7 +340,7 @@ void LeapListener::gesturesStateMachines() {
 				}
 			}
 			else if (onlyRotationActive
-				&& hand->visible && (handInside_LargeSphere) && (extendedCount >= 4 || (extendedCount <= 3 && hand->grabStrength <= rotationGrabStrenth))
+				&& hand->visible && (handInside_LargeSphere) && (extendedCount >= 1 || (extendedCount <= 3 && hand->grabStrength <= rotationGrabStrenth))
 				&& (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)) {
 
 				stopPinchGensture();
@@ -376,6 +376,20 @@ void LeapListener::gesturesStateMachines() {
 				}
 			}
 			else {
+			/*	if (hand->isRight && gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE) {
+					cout
+						<< onlyRotationActive
+						<< hand->visible
+						<< (handInside_LargeSphere)
+						<< (extendedCount >= 4 || (extendedCount <= 3 && hand->grabStrength <= rotationGrabStrenth))
+						<<( extendedCount >= 4)
+						<< (extendedCount <= 3 && hand->grabStrength <= rotationGrabStrenth)
+						<< extendedCount << ", "
+						<< hand->grabStrength << ", "
+						<< rotationGrabStrenth << ", "
+						<< (gestures[i][GESTURES::ROTATION] == GESTURE_STATES::START || gestures[i][GESTURES::ROTATION] == GESTURE_STATES::UPDATE)
+						<< endl;
+				}*/
 				resetStart[i] = true;
 			}
 		}

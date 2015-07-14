@@ -57,6 +57,7 @@ public:
 
 	Eigen::Vector3f MATERIAL_COLOR;
 	Eigen::Vector3f MATERIAL_COLOR_ROTATION;
+	bool ROTATION_ACTIVE;
 	Eigen::Vector3f LIGHT_INTENSITY;
 	float LIGHT_AMBIENT;
 

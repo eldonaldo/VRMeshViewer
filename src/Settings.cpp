@@ -25,7 +25,7 @@ Settings::Settings () :
 	// MATERIAL
 	MATERIAL_COLOR				(0.8f, 0.8f, 0.8f),
 	MATERIAL_COLOR_ROTATION		(0.7843f, 0.72941f, 0.65098f),
-
+	ROTATION_ACTIVE				(false),
 	// LIGHTNING
 	LIGHT_INTENSITY				(0.9f, 0.9f, 0.9f),
 	LIGHT_AMBIENT				(0.005f),

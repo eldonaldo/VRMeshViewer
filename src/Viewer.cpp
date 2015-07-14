@@ -361,7 +361,7 @@ void Viewer::calcAndAppendFPS () {
 		// Calculate the FPS as the number of frames divided by the interval in seconds
 		fps = double(frameCount) / (currentTime - t0);
 
-		cout << fps << endl;
+		//cout << fps << endl;
 
 		// Append to window title
 		std::string newTitle = title + " | FPS: " + toString(int(fps)) + " @ " + toString(width) + "x" + toString(height);

@@ -55,11 +55,14 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	mesh.handJoint.draw(viewMatrix, projectionMatrix);
 
 	Vector3f color = Settings::getInstance().MATERIAL_COLOR;
+	if (Settings::getInstance().ROTATION_ACTIVE)
+		shader->setUniform("enableGI", false);
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR_ROTATION);
 	for (int i = 0; i < 5; i++)
 		mesh.finger[i].draw(viewMatrix, projectionMatrix);
 	shader->setUniform("materialColor", color);
-
+	if (Settings::getInstance().ROTATION_ACTIVE)
+		shader->setUniform("enableGI", true);
 
 	for (int i = 0; i < 5; i++)
 		for (int j = 0; j < mesh.nrOfJoints; j++)

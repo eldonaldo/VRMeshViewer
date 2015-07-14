@@ -152,7 +152,7 @@ void PerspectiveRenderer::update(Matrix4f &s, Matrix4f &r, Matrix4f &t) {
 	// Create virtual point light
 	Vector3f cp = cameraPosition;
 	if (Settings::getInstance().USE_RIFT)
-		cp += Vector3f(0.4f, 0.2f, 0.5f);
+		cp += Vector3f(0.f, 0.2f, 0.5f);
 
 	shader->setUniform("light.position", cp);
 	shader->setUniform("cameraPosition", cameraPosition);
@@ -173,6 +173,7 @@ void PerspectiveRenderer::draw() {
 	shader->setUniform("materialColor", Settings::getInstance().MATERIAL_COLOR);
 	shader->setUniform("alpha", 1.f);
 	shader->setUniform("enableGI", Settings::getInstance().USE_RIFT && Settings::getInstance().GI_ENABLED);
+	shader->setUniform("light.ambientCoefficient", 0.03f);
 
 	// Draw the mesh
 	if (Settings::getInstance().MESH_DRAW)

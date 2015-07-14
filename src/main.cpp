@@ -140,6 +140,7 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"uniform mat4 mvp;" + "\n" +
 		"uniform mat4 modelViewMatrix;" + "\n" +
 		"uniform mat3 normalMatrix;" + "\n" +
+		"uniform bool useSpecular = false;" + "\n" +
 
 		"in vec3 position;" + "\n" +
 		"in vec3 normal;" + "\n" +
@@ -160,7 +161,12 @@ void initShader(std::shared_ptr<GLShader> &shader) {
 		"    vec3 e = normalize(vec3(modelViewMatrix * vec4(position, 1.0)));" + "\n" +
 		"    vec3 n = normalize(normalMatrix * normal);" + "\n" +
 
-		"    vec3 r = reflect(e, n);" + "\n" +
+		"    vec3 r;" + "\n" +
+		"    if (useSpecular)" + "\n" +
+		"		r = reflect(e, n);" + "\n" +
+		"    else" + "\n" +
+		"		r = n;" + "\n" +
+
 		"    float m = 2.0 * sqrt(pow(r.x, 2.0) + pow(r.y, 2.0) + pow(r.z + 1.0, 2.0));" + "\n" +
 		"    uvGI = r.xy / m + .5;" + "\n" +
 
