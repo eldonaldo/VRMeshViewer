@@ -81,7 +81,6 @@ include_directories(
 	ext/eigen
 	ext/glfw/include
 	ext/filesystem
-	ext/stb_image
 	ext/ovr/LibOVR/include
 	ext/ovr/LibOVRKernel/Src
 	ext/ovr/LibOVR/include/Extras
