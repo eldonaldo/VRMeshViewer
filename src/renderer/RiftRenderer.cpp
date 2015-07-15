@@ -169,6 +169,7 @@ void RiftRenderer::clear(Vector3f background) {
 void RiftRenderer::draw() {
 	// Begin distortion rendering
 	ovrFrameTiming frameTiming = ovrHmd_BeginFrame(hmd, 0);
+	Settings::getInstance().FRAME_TIME = frameTiming.ScanoutMidpointSeconds;
 
 	// Get eye poses, feeding in correct IPD offset
 	ovrVector3f viewOffset[2] = { eyeRenderDesc[0].HmdToEyeViewOffset, eyeRenderDesc[1].HmdToEyeViewOffset };

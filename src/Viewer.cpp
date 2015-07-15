@@ -480,12 +480,6 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 		if (renderer->getClassType() != EHMDRenderer)
 			glfwSwapBuffers(window);
 
-		// Get a new leap frame if no listener is used
-		if (!Settings::getInstance().LEAP_USE_LISTENER) {
-			frame = leapListener->pollFrame(leapController);
-			renderer->setFrame(frame);
-		}
-
 		// Update arcball
 		if ((Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && Settings::getInstance().NETWORK_MODE == NETWORK_MODES::SERVER) ||
 			(!Settings::getInstance().NETWORK_ENABLED && !Settings::getInstance().USE_RIFT && !Settings::getInstance().USE_LEAP)) {
@@ -504,6 +498,12 @@ void Viewer::display(std::shared_ptr<Mesh> &m, std::unique_ptr<Renderer> &r) {
 
 		// Draw using attached renderer
 		renderer->draw();
+
+		// Get a new leap frame if no listener is used
+		if (!Settings::getInstance().LEAP_USE_LISTENER) {
+			frame = leapListener->pollFrame(leapController);
+			renderer->setFrame(frame);
+		}
 		
 		// Calc fps
 		if (appFPS)

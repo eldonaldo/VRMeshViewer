@@ -111,6 +111,8 @@ public:
 	bool GI_ENABLED;
 	std::string GI_FILE;
 	std::string GI_DIFFUSE_FILE;
+
+	double FRAME_TIME;
 };
 
 VR_NAMESPACE_END

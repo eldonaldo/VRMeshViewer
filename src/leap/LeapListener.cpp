@@ -20,7 +20,7 @@ LeapListener::LeapListener(bool useRift)
 Matrix4f LeapListener::getTransformationMatrix() {
 	if (Settings::getInstance().USE_RIFT) {
 		// Average of the left and right camera positions
-		ovrPosef headPose = ovrHmd_GetTrackingState(hmd, 0).HeadPose.ThePose;
+		ovrPosef headPose = ovrHmd_GetTrackingState(hmd, Settings::getInstance().FRAME_TIME).HeadPose.ThePose;
 
 		// Add camera offset to the head position
 		ovrVector3f cameraPose;

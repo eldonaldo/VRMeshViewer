@@ -268,7 +268,7 @@ void PerspectiveRenderer::draw() {
 		float ambient = Settings::getInstance().LIGHT_AMBIENT;
 		glDisable(GL_CULL_FACE);
 		shader->setUniform("enableGI", false);
-		if (Settings::getInstance().GI_ENABLED) {
+		if (Settings::getInstance().GI_ENABLED && !Settings::getInstance().LEAP_USE_PASSTHROUGH) {
 			shader->setUniform("light.ambientCoefficient", 0.05f);
 			shader->setUniform("specular", true);
 			shader->setUniform("enableGI", true);
