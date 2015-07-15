@@ -290,13 +290,14 @@ void LeapListener::gesturesStateMachines() {
 		Vector3f sphereCenter = mesh->getBoundingBox().getCenter();
 		float diameter = (mesh->getBoundingBox().min - mesh->getBoundingBox().max).norm();
 		float sphereRadius_Small = diameter * Settings::getInstance().SPHERE_SMALL_SCALE;
+		float sphereRadius_Pinch = diameter * Settings::getInstance().SPHERE_SPINCH_SCALE;
 		float sphereRadius_Medium = diameter * Settings::getInstance().SPHERE_MEDIUM_SCALE;
 		float sphereRadius_Large = diameter * Settings::getInstance().SPHERE_LARGE_SCALE;
 
 		Vector3f pinchMidPoint = (hand->finger[Finger::Type::TYPE_INDEX].position + hand->finger[Finger::Type::TYPE_THUMB].position) * 0.5f;
 
 		// Check whats is inside the spheres and what not
-		bool pinchInsideSphere = insideSphere(pinchMidPoint, sphereCenter, sphereRadius_Small);
+		bool pinchInsideSphere = insideSphere(pinchMidPoint, sphereCenter, sphereRadius_Pinch);
 		bool handInside_SmallSphere = insideSphere(hand->palm.position, sphereCenter, sphereRadius_Small);
 		bool handInside_MediumSphere = insideSphere(hand->palm.position, sphereCenter, sphereRadius_Medium);
 		bool handInside_LargeSphere = insideSphere(hand->palm.position, sphereCenter, sphereRadius_Large);

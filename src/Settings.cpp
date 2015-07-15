@@ -54,7 +54,7 @@ Settings::Settings () :
 	LEAP_USE_LISTENER			(false),
 
 	// GESTURES, 1.f = 1 Unit = 1 Second
-	GESTURES_SCALE_TIME			(0.6f),
+	GESTURES_SCALE_TIME			(0.6f), // Must be smaller than rotation time
 	GESTURES_ROTATION_TIME		(0.7f),
 	GESTURES_PINCH_THRESHOLD	(0.95f),
 	GESTURES_GRAB_THRESHOLD		(1.f),
@@ -74,6 +74,7 @@ Settings::Settings () :
 	// ROTATION SPHERE SCALES
 	SHOW_DEBUG_SPHERES			(false),
 	SPHERE_SMALL_SCALE			(0.3f),
+	SPHERE_SPINCH_SCALE			(0.5f),
 	SPHERE_MEDIUM_SCALE			(0.6f),
 	SPHERE_VISUAL_SCALE			(0.4f),
 	SPHERE_LARGE_SCALE			(0.9f),
