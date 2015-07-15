@@ -35,20 +35,25 @@ void GestureHandler::pinch (GESTURE_STATES state, HANDS hand, std::shared_ptr<Sk
 				KDTree kdtree = mesh->getKDTree();
 
 				// Perform search
-				std::vector<uint32_t> results;
-				kdtree.search(localTipPosition, Settings::getInstance().ANNOTATION_SEACH_RADIUS, results);
-				
+				KDTree::SearchResult results[2];
+				size_t resultCount = kdtree.nnSearch(localTipPosition, 1, results);
+
 				// If there is a hit upload a pin
-				if (!results.empty()) {
+				if (resultCount == 1) {
 
-					// We take the first hit
-					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[results[0]];
+					GenericKDTreeNode<Point3f, Point3f> kdtreeNode = kdtree[results[0].index];
 
-					// Notify the viewer
-					viewer->uploadAnnotation = true;
-					viewer->annotationTarget = kdtreeNode.getPosition();
-					viewer->annotationNormal = kdtreeNode.getData();
-					found = true;
+					Vector3f p = kdtreeNode.getPosition();
+					Vector3f worldPos = (mesh->getModelMatrix() * Vector4f(p.x(), p.y(), p.z(), 1.f)).head(3);
+
+					// Only if close enouth to surface
+					if ((worldPos - avgPinchPos).norm() <= Settings::getInstance().ANNOTATION_SEACH_RADIUS) {
+						// Notify the viewer
+						viewer->uploadAnnotation = true;
+						viewer->annotationTarget = kdtreeNode.getPosition();
+						viewer->annotationNormal = kdtreeNode.getData();
+						found = true;
+					}
 				}
 			}
 
