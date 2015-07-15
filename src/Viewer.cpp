@@ -331,9 +331,18 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	hands[1] = std::make_shared<SkeletonHand>(false); // Left
 
 	// Enable HMD mode and pass through
-	if (Settings::getInstance().USE_RIFT)
-		leapController.setPolicyFlags(static_cast<Leap::Controller::PolicyFlag>(Leap::Controller::PolicyFlag::POLICY_IMAGES | Leap::Controller::PolicyFlag::POLICY_OPTIMIZE_HMD));
-	
+	bool leapReady = false;
+	while (!leapReady) {
+		leapController.setPolicy(Leap::Controller::POLICY_BACKGROUND_FRAMES);
+		leapController.setPolicy(Leap::Controller::POLICY_IMAGES);
+		leapController.setPolicy(Leap::Controller::POLICY_OPTIMIZE_HMD);
+		bool images = leapController.isPolicySet(Leap::Controller::POLICY_IMAGES);
+		bool bkgFrames = leapController.isPolicySet(Leap::Controller::POLICY_BACKGROUND_FRAMES);
+		bool optHMD = leapController.isPolicySet(Leap::Controller::POLICY_OPTIMIZE_HMD);
+
+		leapReady = images && bkgFrames && optHMD;
+	}
+
 	// Default leap listener
 	std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
 	attachLeap(leap);
