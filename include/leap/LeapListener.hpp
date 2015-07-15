@@ -16,7 +16,7 @@ VR_NAMESPACE_BEGIN
  */
 class LeapListener : public Leap::Listener {
 public:
-	LeapListener(bool useRift);
+	LeapListener();
 	virtual ~LeapListener () = default;
 
 	/**
@@ -75,7 +75,6 @@ protected:
 
 protected:
 
-	bool riftMounted; ///< Leap on HMD?
 	float windowWidth, windowHeight; ///y GLFW window size
 	float FBWidth, FBHeight; ///< Framebuffer size
 	std::shared_ptr<SkeletonHand> leftHand, rightHand, currentHand; ///< Leap hands

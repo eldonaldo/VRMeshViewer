@@ -9,31 +9,10 @@ Viewer *__cbref;
 	static bool glewInitialized = false;
 #endif
 
-Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
-	: title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
+Viewer::Viewer(const std::string &title, int width, int height, ovrHmd &h)
+	: hmd(h), title(title), width(width), height(height), interval(1.f), lastPos(0, 0)
 	, scaleMatrix(Matrix4f::Identity()), rotationMatrix(Matrix4f::Identity()), translateMatrix(Matrix4f::Identity())
-	, hmd(nullptr), uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr) {
-
-	// Append networking mode in title
-	if (Settings::getInstance().NETWORK_ENABLED) {
-		std::string mode = Settings::getInstance().NETWORK_MODE == NETWORK_MODES::CLIENT ? "Client listening on " : "Server sending to ";
-		this->title += " | " + mode + Settings::getInstance().NETWORK_IP + ":" + std::to_string(Settings::getInstance().NETWORK_PORT);
-	}
-
-	// LibOVR need to be initialized before GLFW
-	if (Settings::getInstance().USE_RIFT) {
-		ovr_Initialize();
-		hmd = ovrHmd_Create(0);
-
-		if (!hmd)
-			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
-		
-		if (!hmd)
-			throw std::runtime_error("Could not start the Rift");
-
-		if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
-			throw std::runtime_error("The Rift does not support all of the necessary sensors");
-	}
+	, uploadAnnotation(false), loadAnnotationsFlag(false), sphereRadius(0.f), sequenceNr(0), netSocket(nullptr) {
 
 	// Initialize GLFW
 	if (!glfwInit())
@@ -45,7 +24,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	if (Settings::getInstance().USE_RIFT || fullscreen) {
+	if (Settings::getInstance().USE_RIFT) {
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		const GLFWvidmode *mode = glfwGetVideoMode(monitor);
 		window = glfwCreateWindow(mode->width, mode->height, this->title.c_str(), monitor, nullptr);
@@ -344,7 +323,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	}
 
 	// Default leap listener
-	std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
+	std::unique_ptr<LeapListener> leap(new LeapListener());
 	attachLeap(leap);
 
 	// Create gesture handler

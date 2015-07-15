@@ -26,12 +26,24 @@ ExternalProject_Add(glfw_p
 	INSTALL_COMMAND ""
 )
 
+# Nanogui
+ExternalProject_Add(nanogui_p
+	URL "${CMAKE_SOURCE_DIR}/ext/nanogui"
+	PREFIX "ext_build"
+	CMAKE_ARGS ${CMAKE_EXTERNAL_ARGUMENTS_LIST} -DNANOGUI_INSTALL=False
+	INSTALL_COMMAND ""
+)
+
+# Add nanogui build path to search path
+link_directories(${CMAKE_BINARY_DIR}/ext_build/src/glfw_p-build/src ${CMAKE_BINARY_DIR}/ext_build/src/nanogui_p-build)
+
+
 # The primary SDK artifact, a static library for Oculus access 
 add_subdirectory(ext/ovr)
 
 # Add Leap and OVR libraries
 find_library(LEAP_LIBRARY NAMES leap PATHS /usr/local/lib $ENV{LEAPSDK_DIR}/lib $ENV{LEAPSDK_DIR}/lib/x64 $ENV{LEAPSDK_DIR} ~/Library/Frameworks /Library/Frameworks)
-set(extra_libs ovr ${LEAP_LIBRARY})
+set(extra_libs nanogui ovr ${LEAP_LIBRARY})
 
 if (WIN32)
 	# Windows needs GLEW
@@ -88,6 +100,8 @@ include_directories(
 	ext/leap/util
 	ext/asio/asio/include
 	ext/hdrloader
+	ext/nanogui/include
+	ext/nanogui/ext/nanovg/src
 	include
 	${CMAKE_BINARY_DIR}
 )
@@ -143,6 +157,7 @@ add_executable(VRMeshViewer
 )
 
 # Make sure to build in the right order
+add_dependencies(VRMeshViewer nanogui_p)
 add_dependencies(VRMeshViewer glfw_p)
 if(WIN32)
 	add_dependencies(VRMeshViewer glew_p)

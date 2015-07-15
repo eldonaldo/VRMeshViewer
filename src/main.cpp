@@ -38,6 +38,19 @@ bool parseArgs (int argc, char *argv[]) {
 
 int main (int argc, char *argv[]) {
 
+	// LibOVR need to be initialized before GLFW
+	ovr_Initialize();
+	ovrHmd hmd = ovrHmd_Create(0);
+
+	if (!hmd)
+		hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
+
+	if (!hmd)
+		throw std::runtime_error("Could not start the Rift");
+
+	if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
+		throw std::runtime_error("The Rift does not support all of the necessary sensors");
+
 	// Args
 	if (!parseArgs(argc, argv)) {
 		std::cout << "Usage: VRMeshViewer <3d|2d> <model.obj> [<none|annotations.txt>] [<client|server> <UDP-port> <ip-address>]" << std::endl;
@@ -51,7 +64,7 @@ int main (int argc, char *argv[]) {
 	try {
 
 		// This sets up the OpenGL context and needs the be first call
-		Viewer viewer("Virtual Reality Mesh Viewer", width, height, false);
+		Viewer viewer("Virtual Reality Mesh Viewer", width, height, hmd);
 
 		// Create shader
 		std::shared_ptr<GLShader> shader = std::make_shared<GLShader>();
@@ -72,7 +85,7 @@ int main (int argc, char *argv[]) {
 		std::shared_ptr<Mesh> mesh = std::make_shared<WavefrontOBJ>(Settings::getInstance().MODEL);
 
 		// Create Leap listener
-		std::unique_ptr<LeapListener> leap(new LeapListener(Settings::getInstance().USE_RIFT));
+		std::unique_ptr<LeapListener> leap(new LeapListener());
 		viewer.attachLeap(leap);
 
 		// Networking

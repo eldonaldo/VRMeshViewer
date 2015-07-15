@@ -5,8 +5,8 @@ VR_NAMESPACE_BEGIN
 using namespace Leap;
 using namespace std;
 
-LeapListener::LeapListener(bool useRift)
-	: windowWidth(0.f), windowHeight(0.f), FBWidth(0.f), FBHeight(0.f), riftMounted(useRift), hmd(nullptr) {
+LeapListener::LeapListener()
+	: windowWidth(0.f), windowHeight(0.f), FBWidth(0.f), FBHeight(0.f), hmd(nullptr) {
 
 	// A List of all gestures an their initial state, 0 = right hand, 1 = left hand
 	for (int i = 0; i < 2; i++) {

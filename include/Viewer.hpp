@@ -28,7 +28,7 @@ public:
 	/**
 	 * @brief Default constructor
 	 */
-	Viewer(const std::string &title, int width, int height, bool fullscreen = false);
+	Viewer(const std::string &title, int width, int height, ovrHmd &h);
 
 	/**
 	 * @brief Default constructor
