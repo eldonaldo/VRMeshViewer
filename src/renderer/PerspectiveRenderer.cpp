@@ -251,6 +251,9 @@ void PerspectiveRenderer::draw() {
 	// Draw wireframe overlay
 	if (Settings::getInstance().MESH_DRAW_WIREFRAME) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glEnable(GL_POLYGON_OFFSET_LINE);
+		glPolygonOffset(-1, -1);
+
 		shader->setUniform("simpleColor", true);
 		shader->setUniform("materialColor", Vector3f(0.2f, 0.2f, 0.2f));
 		shader->setUniform("alpha", 1.f);
@@ -259,6 +262,7 @@ void PerspectiveRenderer::draw() {
 
 		shader->setUniform("simpleColor", false);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisable(GL_POLYGON_OFFSET_LINE);
 	}
 
 	// Draw hands

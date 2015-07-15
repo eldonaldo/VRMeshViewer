@@ -65,7 +65,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 		glewExperimental = GL_TRUE;
 		glewInitialized = true;
 		if (glewInit() != GLEW_NO_ERROR)
-			throw VRException("Could not initialize GLEW!");
+			throw std::runtime_error("Could not initialize GLEW!");
 	}
 #endif
 
