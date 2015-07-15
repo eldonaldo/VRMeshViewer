@@ -29,15 +29,15 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 			hmd = ovrHmd_CreateDebug(ovrHmdType::ovrHmd_DK2);
 		
 		if (!hmd)
-			throw VRException("Could not start the Rift");
+			throw std::runtime_error("Could not start the Rift");
 
 		if (!ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_MagYawCorrection | ovrTrackingCap_Position, 0))
-			throw VRException("The Rift does not support all of the necessary sensors");
+			throw std::runtime_error("The Rift does not support all of the necessary sensors");
 	}
 
 	// Initialize GLFW
 	if (!glfwInit())
-		throw VRException("Could not start GLFW");
+		throw std::runtime_error("Could not start GLFW");
 
 	// Request OpenGL compatible 3.3 context with the core profile enabled
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -55,7 +55,7 @@ Viewer::Viewer(const std::string &title, int width, int height, bool fullscreen)
 	}
 	
 	if (!window)
-		throw VRException("Could not open a GFLW window");
+		throw std::runtime_error("Could not open a GFLW window");
 
 	glfwMakeContextCurrent(window);
 
@@ -710,7 +710,7 @@ bool Viewer::pinListContains(std::vector<std::shared_ptr<Pin>> &list, const Pin 
 
 void Viewer::addAnnotation(const Vector3f &pos, const Vector3f &n, const Vector3f &c) {
 	if (mesh == nullptr)
-		throw VRException("No mesh to add annotations");
+		throw std::runtime_error("No mesh to add annotations");
 
 	Matrix3f nm = mesh->getNormalMatrix();
 	std::shared_ptr<Pin> pin = std::make_shared<Pin>(pos, n, nm);
@@ -732,11 +732,11 @@ void Viewer::addAnnotation(const Vector3f &pos, const Vector3f &n, const Vector3
 
 void Viewer::loadAnnotationsOnLoop() {
 	if (!fileExists(annotationsLoadPath))
-		throw VRException("File \"%s\" does not exists!", annotationsLoadPath);
+		throw std::runtime_error("File "+annotationsLoadPath+" does not exists!");
 
 	std::ifstream is(annotationsLoadPath);
 	if (is.fail())
-		throw VRException("Unable to open file \"%s\"!", annotationsLoadPath);
+		throw std::runtime_error("Unable to open file "+annotationsLoadPath+"!");
 	
 	std::stringstream buffer;
 	buffer << is.rdbuf();
@@ -774,24 +774,13 @@ void Viewer::addAnnotation(Vector3f &pos, Vector3f &n) {
 }
 
 std::string Viewer::info () {
-	return tfm::format(
+	return
 		"Viewer[\n"
-		"  Size = %s,\n"
-		"  FBSize = %s,\n"
-		"  Engine = %s,\n"
-		"  OpenGL version supported on this machine = %s,\n"
-		"  Acquired OpenGL version = %s,\n"
-		"  Renderer = %s,\n"
-		"  Mesh = %s\n"
-		"]\n",
-		toString(width) + " x " + toString(height),
-		toString(FBWidth) + " x " + toString(FBHeight),
-		glGetString(GL_RENDERER),
-		glGetString(GL_VERSION),
-		glfwGetVersionString(),
-		indent((renderer ? renderer->info() : "null")),
-		indent((mesh ? mesh->toString() : "null"))
-	);
+		"  Size = "+toString(width) + " x " + toString(height)+",\n"
+		"  FBSize = "+toString(FBWidth) + " x " + toString(FBHeight)+",\n"
+		"  Renderer = "+indent((renderer ? renderer->info() : "null"))+",\n"
+		"  Mesh = "+indent((mesh ? mesh->toString() : "null"))+"\n"
+		"]\n";
 }
 
 Arcball& Viewer::getArcball () {

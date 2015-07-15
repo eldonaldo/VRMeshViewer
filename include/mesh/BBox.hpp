@@ -339,7 +339,7 @@ template <typename _PointType> struct TBoundingBox {
         if (!isValid())
             return "BoundingBox[invalid]";
         else
-            return tfm::format("BoundingBox[min=%s, max=%s]", min.toString(), max.toString());
+            return "BoundingBox[min=" + min.toString() + ", max=" + max.toString() + "]";
     }
 
     PointType min; ///< Component-wise minimum

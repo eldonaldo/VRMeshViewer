@@ -24,7 +24,7 @@ unsigned int toUInt(const std::string &str) {
 	char *end_ptr = nullptr;
 	unsigned int result = (int)strtoul(str.c_str(), &end_ptr, 10);
 	if (*end_ptr != '\0')
-		throw VRException("Could not parse integer value \"%s\"", str);
+		throw std::runtime_error("Could not parse integer value " + str);
 	return result;
 }
 

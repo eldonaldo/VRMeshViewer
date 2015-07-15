@@ -127,7 +127,7 @@ WavefrontOBJ::WavefrontOBJ(const std::string &file) {
 	m_name = file;
 	std::ifstream is(file);
     if (is.fail())
-        throw VRException("Unable to open OBJ file \"%s\"!", file);
+        throw std::runtime_error("Unable to open OBJ file");
 
 	loadFromString(is);
 }

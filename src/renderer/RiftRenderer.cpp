@@ -53,7 +53,7 @@ void RiftRenderer::preProcess() {
 	PerspectiveRenderer::preProcess();
 
 	if (hmd == nullptr)
-		throw new VRException("HMD not set! Can't do pre necessary processing for the Rift");
+		throw new std::runtime_error("HMD not set! Can't do pre necessary processing for the Rift");
 
 	// Generate framebuffers for left and right eye
 	OVR::Sizei texLeft = ovrHmd_GetFovTextureSize(hmd, ovrEye_Left, hmd->DefaultEyeFov[ovrEye_Left], 1.0f);

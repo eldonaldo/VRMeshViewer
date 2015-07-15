@@ -47,7 +47,7 @@ public:
     	if (m.cols() == m_V.cols() && m.rows() == m_V.rows())
     		m_V = m;
     	else
-    		VRException("Can't set position matrix. Dimensions do not match.");
+		    std::runtime_error("Can't set position matrix. Dimensions do not match.");
     }
 
     /// Return a pointer to the vertex normals (or \c nullptr if there are none)
@@ -67,16 +67,12 @@ public:
 
     /// Return a human-readable summary of this instance
 	std::string toString() const {
-		return tfm::format(
+		return
 			"Mesh[\n"
-			"  name = \"%s\",\n"
-			"  vertexCount = %i,\n"
-			"  triangleCount = %i\n"
-			"]",
-			m_name,
-			m_V.cols(),
-			m_F.cols()
-		);
+			"  name = \""+m_name+"\",\n"
+			"  vertexCount = "+std::to_string(m_V.cols())+",\n"
+			"  triangleCount = "+std::to_string(m_F.cols())+"\n"
+			"]";
 	}
 
 	/**

@@ -32,7 +32,7 @@ protected:
             std::vector<std::string> tokens = tokenize(string, "/", true);
 
             if (tokens.size() < 1 || tokens.size() > 3)
-                throw VRException("Invalid vertex data: \"%s\"", string);
+                throw std::runtime_error("Invalid vertex data:" + string);
 
             p = toUInt(tokens[0]);
 

@@ -141,7 +141,9 @@ public:
 
     /// Return a human-readable string summary
     std::string toString() const {
-        return tfm::format("[%f, %f, %f]", coeff(0), coeff(1), coeff(2));
+        std::string s;
+        s = "[" + std::to_string(coeff(0)) + ", " + std::to_string(coeff(1)) + ", " + std::to_string(coeff(2)) + "]";
+        return s;
     }
 };
 

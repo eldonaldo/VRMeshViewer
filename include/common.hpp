@@ -71,7 +71,6 @@
 #include "OVR.h"
 #include "OVR_CAPI_GL.h"
 #include "OVR_Math.h"
-#include "tinyformat.h"
 
 namespace VR_NS {}
 using namespace vrmv;
@@ -157,17 +156,6 @@ public:
 		x() = r * scale; y() = g * scale;
 		z() = b * scale; w() = a * scale;
 	}
-};
-
-// Simple exception class, which stores a human-readable error description
-class VRException : public std::runtime_error {
-public:
-    // Variadic template constructor to support printf-style arguments
-    template <typename... Args>
-    VRException (const char *fmt, const Args &... args)
-		: std::runtime_error(tfm::format(fmt, args...)) {
-
-    }
 };
 
 /// Copy of non-existing std::to_string for MinGW

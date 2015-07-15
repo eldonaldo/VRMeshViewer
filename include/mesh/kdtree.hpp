@@ -54,7 +54,7 @@ template <typename _PointType, typename _DataRecord> struct GenericKDTreeNode {
     /// Given the current node's index, set the left child index
     void setLeftIndex(IndexType self, IndexType value) {
         if (value != self+1)
-            throw VRException("GenericKDTreeNode::setLeftIndex(): Internal error!");
+            throw std::runtime_error("GenericKDTreeNode::setLeftIndex(): Internal error!");
     }
 
     /// Check whether this is a leaf node
@@ -427,7 +427,7 @@ protected:
               typename std::vector<IndexType>::iterator rangeStart,
               typename std::vector<IndexType>::iterator rangeEnd) {
         if (rangeEnd <= rangeStart)
-            throw VRException("Internal error!");
+            throw std::runtime_error("Internal error!");
 
         m_depth = std::max(depth, m_depth);
 

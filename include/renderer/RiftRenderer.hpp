@@ -68,24 +68,18 @@ public:
 	 * @return Brief info about the renderer
 	 */
 	virtual const std::string info () const {
-		return tfm::format(
+		return
 			"RiftRenderer[\n"
-			"  FOV = %d°,\n"
-			"  aspectRatio = %d,\n"
-			"  zNear = %d,\n"
-			"  zFar = %d,\n"
-			"  Frustum Width = %d,\n"
-			"  Frustum Height = %d,\n"
+			"  FOV = "+std::to_string(fov)+" deg,\n"
+			"  aspectRatio = "+std::to_string(aspectRatio)+",\n"
+			"  zNear = "+std::to_string(zNear)+",\n"
+			"  zFar = "+std::to_string(zFar)+",\n"
+			"  Frustum Width = "+std::to_string(fH)+",\n"
+			"  Frustum Height = "+std::to_string(fW)+",\n"
 			"  OVR[\n"
-			"    Type = %s\n"
+			"    Type = "+hmd->ProductName+"\n"
 			"  ]\n"
-			"]",
-			fov,
-			aspectRatio,
-			zNear, zFar,
-			fH, fW,
-			hmd->ProductName
-		);
+			"]";
 	}
 
 	/**

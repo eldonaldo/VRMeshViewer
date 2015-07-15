@@ -80,7 +80,6 @@ endif()
 include_directories(
 	ext/eigen
 	ext/glfw/include
-	ext/tinyformat
 	ext/filesystem
 	ext/stb_image
 	ext/ovr/LibOVR/include

@@ -60,20 +60,15 @@ public:
 	 * @return Brief info about the renderer
 	 */
 	virtual const std::string info () const {
-		return tfm::format(
+		return
 			"PerspectiveRenderer[\n"
-			"  FOV = %d deg,\n"
-			"  aspectRatio = %d,\n"
-			"  zNear = %d,\n"
-			"  zFar = %d,\n"
-			"  Frustum Width = %d,\n"
-			"  Frustum Height = %d,\n"
-			"]",
-			fov,
-			aspectRatio,
-			zNear, zFar,
-			fH, fW
-		);
+			"  FOV = "+std::to_string(fov)+" deg,\n"
+			"  aspectRatio = "+std::to_string(aspectRatio)+",\n"
+			"  zNear = "+std::to_string(zNear)+",\n"
+			"  zFar = "+std::to_string(zFar)+",\n"
+			"  Frustum Width = "+std::to_string(fH)+",\n"
+			"  Frustum Height = "+std::to_string(fW)+",\n"
+			"]";
 	}
 
 	/**
