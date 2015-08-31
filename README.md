@@ -1,7 +1,12 @@
 Gesture-driven Virtual Reality Mesh Viewer
 ==========================================
 
-VRMeshViewer is a virtual reality mesh viewer, that allows the user to inspect 3D models using the Oculus Rift (at least DK2), and transform the model’s state by forming gestures using the tracking data provided by the Leap Motion. 
+VRMeshViewer is a virtual reality mesh viewer, that allows the user to inspect 3D models using the Oculus Rift (at least DK2), 
+and transform the model’s state by forming gestures using the tracking data provided by the Leap Motion. 
+It features two different operating modes: augmented reality and spherical virtual environment. Whereas in augmented reality mode 
+the Leap camera images are used as background stream, turning the application into a augmented reality mesh viewer where the virtual
+hands are synchronized with the real (or even disable them completely by pressing `h`), the spherical virtual environment renders
+a virtual living room where the model is shaded according to the light distribution of the environment map.
 
 ## Available Gestures
 
@@ -36,7 +41,25 @@ hit the surface with your pinched fingers. The annotation is then placed, where 
 The gesture corresponds to placing a pin onto a pin board. To place another pin your must repeat the pinch. 
 By forming the same gesture but touching an already placed pin, you can remove it.
 
-## Description
+## Keymap
+
+| Key  |Description |
+| ------------- | ------------- |
+|Esc | Quit application|
+|A | Save annotations to a file|
+|B | Draw bounding box|
+|C | Reset model state|
+|E | Show / hide pedestal for the model|
+|G | Enable / disable virtual environment|
+|H | Show / hide virtual hands|
+|M | Show / hide model|
+|P | Enable / disable passthrough|
+|R | Recenter world coordinate system origin to current head position|
+|S | Show / hide rotation sphere|
+|V | Enable / disable v-sync|
+|W | Draw wireframe|
+
+## Dependencies
 
 VRMeshViewer builds on [GLFW](http://www.glfw.org/) for cross-platform OpenGL context creation and event handling, 
 [GLEW](http://glew.sourceforge.net/) to use OpenGL 3.x on Windows, 
@@ -54,10 +77,10 @@ dependencies are jointly built using a CMake-based build system.
 * At least Oculus Rift Runtime 0.5.0 installed
 * At least Leap SDK 2.2.5 installed  and environment variable "LEAPSDK_DIR" set, pointing to the folder where the SDK resides.
 
-#### Mac
+#### Mac OS X
 
 * At least Oculus Rift Runtime 0.5.0 installed
-* At least LeapSDK / Runtime 2.2.5 installed
+* At least Leap SDK / Runtime 2.2.5 installed
 
 ## Compiling
 
