@@ -61,7 +61,7 @@ void SkeletonHand::draw (const Matrix4f &viewMatrix, const Matrix4f &projectionM
 	for (int i = 0; i < 5; i++)
 		mesh.finger[i].draw(viewMatrix, projectionMatrix);
 	shader->setUniform("materialColor", color);
-	if (Settings::getInstance().ROTATION_ACTIVE)
+	if (Settings::getInstance().ROTATION_ACTIVE && !Settings::getInstance().LEAP_USE_PASSTHROUGH)
 		shader->setUniform("enableGI", true);
 
 	for (int i = 0; i < 5; i++)
