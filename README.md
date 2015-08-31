@@ -1,16 +1,13 @@
 Gesture-driven Virtual Reality Mesh Viewer
 ==========================================
 
-VRMeshViewer is a virtual reality mesh viewer , that allows the user to inspect 3D models using the Oculus Rift (at least DK2), and transform the model’s state by forming gestures using the tracking data provided by the Leap Motion. 
+VRMeshViewer is a virtual reality mesh viewer, that allows the user to inspect 3D models using the Oculus Rift (at least DK2), and transform the model’s state by forming gestures using the tracking data provided by the Leap Motion. 
 
 ## Available Gestures
 
 ### Scaling and Translation
 
 ![Scaling and Translation Gesture](https://github.com/nicoprevitali/VRMeshViewer/raw/master/figures/gesture-scaling.png "Scaling and Translation Gesture")
-
-The idea of the gesture is, that the user can grasp the model with both hands, shrink or enlarge it by simultaneously 
-moving both hands away or together, and translate it at the same time by moving the hands in a parallel motion.
 
 To start the gesture, fully extend all fingers, put both hands on the same height as the model and align them such that the palm of the left and right hand point towards the object. 
 If this alignment is held for roughly a half second, the application recognizes it as an attempt to start 
@@ -54,13 +51,13 @@ dependencies are jointly built using a CMake-based build system.
 
 #### Windows
 
-* Oculus Rift Runtime 0.5.0 installed
-* LeapSDK/Runtime 2.2.5 installed, and environment variable "LEAPSDK_DIR" set, pointing to the folder where the SDK resides.
+* At least Oculus Rift Runtime 0.5.0 installed
+* At least Leap SDK 2.2.5 installed  and environment variable "LEAPSDK_DIR" set, pointing to the folder where the SDK resides.
 
 #### Mac
 
-* Oculus Rift Runtime 0.5.0 installed
-* LeapSDK/Runtime 2.2.5 installed
+* At least Oculus Rift Runtime 0.5.0 installed
+* At least LeapSDK / Runtime 2.2.5 installed
 
 ## Compiling
 
