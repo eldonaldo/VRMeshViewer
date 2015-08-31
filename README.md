@@ -20,7 +20,7 @@ to extend his fingers instead of making a fist when simulating the grasp.
 
 ### Rotation
 
-![Rotation Gesture](https://github.com/nicoprevitali/VRMeshViewer/raw/master/figures/gesture-scaling.png "Rotation Gesture")
+![Rotation Gesture](https://github.com/nicoprevitali/VRMeshViewer/raw/master/figures/gesture-rotation.png "Rotation Gesture")
 
 To start the gesture, fully extend all fingers (whereat the thumb may be relaxed) and place the hand in space, where you would expect 
 the surface of bounding sphere to be, keeping it steady for a small amount of time. If you were wrong with your guess, the sphere’s mesh 
@@ -31,7 +31,7 @@ the model whereat a certain distance the gesture stops.
 
 ### Annotation Placement
 
-![Annotation Placement Gesture](https://github.com/nicoprevitali/VRMeshViewer/raw/master/figures/gesture-scaling.png "Annotation Placement Gesture")
+![Annotation Placement Gesture](https://github.com/nicoprevitali/VRMeshViewer/raw/master/figures/gesture-annotation.png "Annotation Placement Gesture")
 
 Annotations are little pins that stick perpendicular to the model's surface, placed by your hands through executing a gesture. 
 To place an annotation, pinch the thumb and index finger together and extend all other finders. Then move the hand towards to model until you 
