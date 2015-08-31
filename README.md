@@ -2,11 +2,16 @@ Gesture-driven Virtual Reality Mesh Viewer
 ==========================================
 
 VRMeshViewer is a virtual reality mesh viewer, that allows the user to inspect 3D models using the Oculus Rift (at least DK2), 
-and transform the model’s state by forming gestures using the tracking data provided by the Leap Motion. 
+and transform the model’s state by forming gestures using the tracking data provided by the Leap Motion mounted in front of the Rift 
+using the Oculus Rift Development Mount. 
+
 It features two different operating modes: augmented reality and spherical virtual environment. Whereas in augmented reality mode 
 the Leap camera images are used as background stream, turning the application into a augmented reality mesh viewer where the virtual
 hands are synchronized with the real (or even disable them completely by pressing `h`), the spherical virtual environment renders
 a virtual living room where the model is shaded according to the light distribution of the environment map.
+
+The mesh viewer was built during my undergrate thesis and is a reserch project, meaning that it may contain bugs or even may not work 
+on your system (see section Description).
 
 ## Available Gestures
 
