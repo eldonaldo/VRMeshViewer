@@ -1,7 +1,7 @@
 Gesture-driven Virtual Reality Mesh Viewer
 ==========================================
 
-VRMeshViewer is a virtual reality tool, that allows the user to inspect 3D models in OBJ wavefront format using the Oculus Rift DK2 
+VRMeshViewer is a virtual reality tool written in C++, that allows the user to inspect 3D models in OBJ wavefront format using the Oculus Rift DK2 
 and transform the model by forming simple gestures using a Leap Motion mounted in front of the Oculus Rift.
 
 It features two different operating modes: augmented reality and virtual environment. In augmented reality mode, 
@@ -93,11 +93,10 @@ Hence, call
 
 VRMeshViewer builds on [GLFW](http://www.glfw.org/) for cross-platform OpenGL context creation and event handling, 
 [GLEW](http://glew.sourceforge.net/) to use OpenGL 3.x on Windows, 
-[Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for basic vector types and certainly it depends on the
-Oculus Rift and Leap Motion runtime which are not included in the repo.
+[Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) for basic vector types, and certainly it depends on the
+Oculus Rift and Leap Motion runtimes. The runtimes and the Leap SDK are not included in the repo. However, the Oculus Rift SDK is.
 
-VRMeshViewer currently works on Mac OS X (Clang) and Windows
-(Visual Studio ≥ 2013); it requires a recent C++11 capable compiler. All
+VRMeshViewer currently only works Windows (Visual Studio ≥ 2013); it requires a recent C++11 capable compiler. All
 dependencies are jointly built using a CMake-based build system.
 
 ## Runtime Requirements
