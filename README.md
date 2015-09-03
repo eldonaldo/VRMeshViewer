@@ -1,17 +1,28 @@
 Gesture-driven Virtual Reality Mesh Viewer
 ==========================================
 
-VRMeshViewer is a virtual reality mesh viewer, that allows the user to inspect 3D models using the Oculus Rift (at least DK2), 
-and transform the model’s state by forming gestures using the tracking data provided by the Leap Motion mounted in front of the Rift 
-using the Oculus Rift Development Mount. 
+VRMeshViewer is a virtual reality tool, that allows the user to inspect 3D models in OBJ wavefront format using the Oculus Rift DK2 
+and transform the model by forming simple gestures using a Leap Motion mounted in front of the Oculus Rift.
 
-It features two different operating modes: augmented reality and spherical virtual environment. Whereas in augmented reality mode 
+It features two different operating modes: augmented reality and virtual environment. In augmented reality mode, 
 the Leap camera images are used as background stream, turning the application into a augmented reality mesh viewer where the virtual
-hands are synchronized with the real (or even disable them completely by pressing `h`), the spherical virtual environment renders
-a virtual living room where the model is shaded according to the light distribution of the environment map.
+hands are synchronized with the real (or you can even disable them completely by pressing `h`). In virtual environment, the application renders
+a virtual living room where the model is shaded according to the light distribution of the environment map. By interconnecting two instances 
+through network communication, the viewer allows two users to synchronize the state of the application, while maintaining different viewpoints. 
+Annotations are then displayed identically in both instances, making it more clear which part of the model is being discussed.
 
-The mesh viewer was built during my undergrate thesis and is a reserch project, meaning that it may contain bugs or even may not work 
-on your system (see section Description).
+The mesh viewer was built during my undergrate thesis and is a reserch project in the field of VR devices. This means, that it may 
+contain bugs or even may not work on your platform (see section Description).
+
+## Screenshots
+
+### Scaling Gesture
+
+![Scaling and Translation Gesture](https://github.com/nicoprevitali/VRMeshViewer/raw/master/figures/vrmv-scaling.png "Scaling and Translation Gesture")
+
+### Augmented Reality
+
+![Augmented Reality Scaling and Translation Gesture](https://github.com/nicoprevitali/VRMeshViewer/raw/master/figures/vrmv-augmented-reality.png "Augmented Reality Scaling and Translation Gesture")
 
 ## Available Gestures
 
@@ -46,9 +57,13 @@ hit the surface with your pinched fingers. The annotation is then placed, where 
 The gesture corresponds to placing a pin onto a pin board. To place another pin your must repeat the pinch. 
 By forming the same gesture but touching an already placed pin, you can remove it.
 
+## Usage
+
+Usage: `VRMeshViewer <3d|2d> <model.obj> [<none|annotations.txt>] [<client|server> <UDP-port> <ip-address>]`
+
 ## Keymap
 
-| Key  |Description |
+| Key  |Function |
 | ------------- | ------------- |
 |Esc | Quit application|
 |A | Save annotations to a file|
@@ -77,18 +92,14 @@ dependencies are jointly built using a CMake-based build system.
 
 ## Runtime Requirements
 
-#### Windows
-
-* At least Oculus Rift Runtime 0.5.0 installed
-* At least Leap SDK 2.2.5 installed  and environment variable "LEAPSDK_DIR" set, pointing to the folder where the SDK resides.
-
-#### Mac OS X
-
 * At least Oculus Rift Runtime 0.5.0 installed
 * At least Leap SDK / Runtime 2.2.5 installed
 
 ## Compiling
 
-Clone the repository and all dependencies (with `git clone --recursive`),
+First, set an user and system environment variable called `LEAPSDK_DIR`, 
+pointing to the folder where the Leap Motion SDK resides.
+
+Then, clone the repository and all dependencies (with `git clone --recursive`),
 run CMake to generate Makefiles or CMake/Visual Studio project files, and
 the rest should just work automatically.
