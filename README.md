@@ -59,14 +59,24 @@ By forming the same gesture but touching an already placed pin, you can remove i
 
 ## Usage
 
-Usage: `VRMeshViewer <3d|2d> <model.obj> [<none|annotations.txt>] [<client|server> <UDP-port> <ip-address>]`
+* _Mandatory first argument_. Besides the virtual reality mode the application features a regular 2D perspective, and therefore the first program argument specifies in which mode we want to start the application, i.e. `2d` or `3d`.
+
+* _Mandatory second argument_. The second arugment needs to provide the path to the model wavefront OBJ geometry file, i.e. `path-to-model.obj`
+
+* _Optional thrid argument_. Specifies, if any previously saved annotations should be loaded. If this is the case, provide the path to the file. If not, provide `none`
+
+* _Optional fourth argument_. Specifies the networking mode used if any. I.e. the leader passes `server`, and the viewer `client`. The next two arguments are the other's instance `UDP port` and `IP address`
+
+Hence, call
+
+`VRMeshViewer[.exe] <3d|2d> <model.obj> [<none|annotations.txt>] [<client|server> <UDP-port> <ip-address>]`
 
 ## Keymap
 
 | Key  |Function |
 | ------------- | ------------- |
 |Esc | Quit application|
-|A | Save annotations to a file|
+|A | Save annotations to a file in the current working directory|
 |B | Draw bounding box|
 |C | Reset model state|
 |E | Show / hide pedestal for the model|
