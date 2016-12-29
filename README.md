@@ -1,18 +1,16 @@
 Gesture-driven Virtual Reality Mesh Viewer
 ==========================================
 
-VRMeshViewer is a virtual reality tool written in C++, that allows the user to inspect 3D models in OBJ wavefront format using the Oculus Rift DK2 
-and transform the model by forming simple gestures using a Leap Motion mounted in front of the Oculus Rift.
+VRMeshViewer is a virtual / augmented reality program written in C++ which allows the user to inspect 3D models in OBJ wavefront format using the Oculus Rift DK2. The models can be transformed by forming simple gestures using a Leap Motion mounted in front of the Oculus Rift.
 
-It features two different operating modes: augmented reality and virtual environment. In augmented reality mode, 
+It features two different operating modes: augmented reality and virtual environment. In augmented reality mode 
 the Leap camera images are used as background stream, turning the application into a augmented reality mesh viewer where the virtual
 hands are synchronized with the real (or you can even disable them completely by pressing `h`). In virtual environment, the application renders
 a virtual living room where the model is shaded according to the light distribution of the environment map. By interconnecting two instances 
-through network communication, the viewer allows two users to synchronize the state of the application, while maintaining different viewpoints. 
+through network communication, the viewer allows two users to synchronize the state of the application while maintaining different viewpoints. 
 Annotations are then displayed identically in both instances, making it more clear which part of the model is being discussed.
 
-The mesh viewer was built during my undergrate thesis and is a reserch project in the field of VR devices. This means, that it may 
-contain bugs or even may not work on your platform (see section Description).
+The mesh viewer was built during my undergrate thesis as a reserch project in the field of VR devices.
 
 ## Screenshots
 
